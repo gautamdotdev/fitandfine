@@ -1,0 +1,226 @@
+/* ============================================
+   VELDRA — Design System
+   ============================================ */
+
+/* CSS Custom Properties */
+:root {
+  --radius: 0.5rem;
+  --background: oklch(0.957 0.008 70);
+  --surface: oklch(1 0 0);
+  --foreground: oklch(0.18 0.012 60);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.012 60);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.012 60);
+  --primary: oklch(0.22 0.022 60);
+  --primary-foreground: oklch(0.97 0.008 70);
+  --secondary: oklch(0.92 0.012 70);
+  --secondary-foreground: oklch(0.22 0.022 60);
+  --muted: oklch(0.92 0.012 70);
+  --muted-foreground: oklch(0.48 0.014 60);
+  --accent: oklch(0.22 0.022 60);
+  --accent-foreground: oklch(0.97 0.008 70);
+  --gold: oklch(0.74 0.108 80);
+  --destructive: oklch(0.55 0.2 25);
+  --destructive-foreground: oklch(0.98 0.003 0);
+  --border: oklch(0.88 0.01 70);
+  --input: oklch(0.88 0.01 70);
+  --ring: oklch(0.22 0.022 60);
+  --whatsapp: #25D366;
+
+  /* Tailwind-style color vars */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-gold: var(--gold);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-whatsapp: var(--whatsapp);
+
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+}
+
+.dark {
+  --background: oklch(0.16 0.008 60);
+  --surface: oklch(0.22 0.01 60);
+  --foreground: oklch(0.94 0.012 70);
+  --card: oklch(0.22 0.01 60);
+  --card-foreground: oklch(0.94 0.012 70);
+  --popover: oklch(0.22 0.01 60);
+  --popover-foreground: oklch(0.94 0.012 70);
+  --primary: oklch(0.94 0.012 70);
+  --primary-foreground: oklch(0.16 0.008 60);
+  --secondary: oklch(0.28 0.012 60);
+  --secondary-foreground: oklch(0.94 0.012 70);
+  --muted: oklch(0.28 0.012 60);
+  --muted-foreground: oklch(0.68 0.014 60);
+  --accent: oklch(0.74 0.108 80);
+  --accent-foreground: oklch(0.16 0.008 60);
+  --gold: oklch(0.78 0.115 80);
+  --destructive: oklch(0.6 0.22 25);
+  --destructive-foreground: oklch(0.98 0.003 0);
+  --border: oklch(0.32 0.012 60);
+  --input: oklch(0.32 0.012 60);
+  --ring: oklch(0.74 0.108 80);
+}
+
+/* ============================================
+   RESET & BASE
+   ============================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border-color: var(--color-border);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+}
+
+/* Hide default scrollbars globally */
+*::-webkit-scrollbar {
+  display: none;
+}
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: var(--font-serif);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  font-family: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+input, textarea, select {
+  font-family: inherit;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.label-caps {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.nav-link {
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.text-gold { color: var(--color-gold); }
+.text-muted-foreground { color: var(--color-muted-foreground); }
+.text-foreground { color: var(--color-foreground); }
+.text-background { color: var(--color-background); }
+.text-destructive { color: var(--color-destructive); }
+.text-white { color: #fff; }
+.text-whatsapp { color: var(--color-whatsapp); }
+
+.bg-background { background-color: var(--color-background); }
+.bg-surface { background-color: var(--color-surface); }
+.bg-foreground { background-color: var(--color-foreground); }
+.bg-gold { background-color: var(--color-gold); }
+.bg-muted { background-color: var(--color-muted); }
+.bg-whatsapp { background-color: var(--color-whatsapp); }
+.bg-destructive { background-color: var(--color-destructive); }
+
+.border-border { border-color: var(--color-border); }
+.border-foreground { border-color: var(--color-foreground); }
+.border-gold { border-color: var(--color-gold); }
+
+.font-serif { font-family: var(--font-serif); }
+.font-sans { font-family: var(--font-sans); }
+.font-bold { font-weight: 700; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes zoomIn {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.7s ease-out both;
+}
+
+.page-transition {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Scrollbar hide */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
