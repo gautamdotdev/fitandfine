@@ -13,6 +13,8 @@ import { useCart, useToasts } from "../lib/store.js";
 import { useShop } from "../context/ShopContext.jsx";
 import { useNavigate } from "react-router-dom";
 import { orderApi } from "../lib/api.js";
+import { CONTACT_NAME, WHATSAPP_NUMBER } from "../lib/products.js";
+
 
 export default function CartPage() {
   const { items, remove, setQty, subtotal, count } = useCart();
@@ -47,8 +49,8 @@ export default function CartPage() {
             `${n + 1}. ${i.name} (Size ${i.size}, ${i.color}) — ₹${i.price.toLocaleString("en-IN")} x${i.qty}`,
         )
         .join("\n");
-      const text = `Hi Zala Bhavyarajsinh, I'd like to order the following:\n${lines}\nTotal: ₹${grandTotal.toLocaleString("en-IN")}\nOrder details: ${data.orderLink}\nPlease confirm availability.`;
-      const waUrl = `https://wa.me/918780142005?text=${encodeURIComponent(text)}`;
+      const text = `Hi ${CONTACT_NAME}, I'd like to order the following:\n${lines}\nTotal: ₹${grandTotal.toLocaleString("en-IN")}\nOrder details: ${data.orderLink}\nPlease confirm availability.`;
+      const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
       window.open(waUrl, "_blank");
     } catch (err) {
       push({ type: "error", message: err.message });

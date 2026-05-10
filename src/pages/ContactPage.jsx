@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { MessageCircle, MapPin, Clock, Mail, Phone } from "lucide-react";
 import { useToasts } from "../lib/store.js";
+import { WHATSAPP_NUMBER, CONTACT_NAME } from "../lib/products.js";
+
 
 function Field({ label, children }) {
   return (
@@ -238,26 +240,28 @@ export default function ContactPage() {
               Send Message
             </button>
             <a
-              href="https://wa.me/919876543210"
-              target="_blank"
-              rel="noreferrer"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                fontSize: "14px",
-                color: "var(--color-whatsapp)",
-                textDecoration: "none",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.textDecoration = "underline")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.textDecoration = "none")
-              }
-            >
-              <MessageCircle size={16} /> Or chat with us directly →
-            </a>
+  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+    `Hi ${CONTACT_NAME}, I would like to know more about your products.`
+  )}`}
+  target="_blank"
+  rel="noreferrer"
+  style={{
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+    fontSize: "14px",
+    color: "var(--color-whatsapp)",
+    textDecoration: "none",
+  }}
+  onMouseEnter={(e) =>
+    (e.currentTarget.style.textDecoration = "underline")
+  }
+  onMouseLeave={(e) =>
+    (e.currentTarget.style.textDecoration = "none")
+  }
+>
+  <MessageCircle size={16} /> Or chat with us directly →
+</a>
           </div>
         </form>
 
@@ -276,9 +280,11 @@ export default function ContactPage() {
             lines={["Mon–Sat: 11:00 – 20:00", "Sunday: by appointment"]}
           />
           <Info Icon={Mail} title="Email" lines={["hello@fitandfine.com"]} />
-          <Info Icon={Phone} title="Phone" lines={["+91 98765 43210"]} />
+          <Info Icon={Phone} title="Phone" lines={[WHATSAPP_NUMBER.startsWith('91') ? '+' + WHATSAPP_NUMBER : WHATSAPP_NUMBER]} />
+
           <a
-            href="https://wa.me/919876543210"
+            href={`https://wa.me/${WHATSAPP_NUMBER}`}
+
             target="_blank"
             rel="noreferrer"
             className="label-caps"
@@ -306,10 +312,10 @@ export default function ContactPage() {
             }}
           >
             <iframe
-              title="Map"
-              src="https://www.openstreetmap.org/export/embed.html?bbox=72.82%2C19.05%2C72.84%2C19.07&layer=mapnik"
-              style={{ width: "100%", height: "100%", border: "none" }}
-            />
+            title="Map"
+            src="https://www.openstreetmap.org/export/embed.html?bbox=71.1764,22.4035,71.2164,22.4435&layer=mapnik"
+            style={{ width: "100%", height: "100%", border: "none" }}
+          />
           </div>
         </aside>
       </div>

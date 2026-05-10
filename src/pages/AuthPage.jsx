@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useToasts } from "../lib/store.js";
 import { useShop } from "../context/ShopContext.jsx";
+import { authApi } from "../lib/api.js";
 
 function FloatingInput({
   id,
@@ -456,18 +457,12 @@ function RegisterForm({ onSwitch }) {
     }
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: form.email,
-          password: form.password,
-          name: form.name,
-          phone: form.phone,
-        }),
+      const data = await authApi.register({
+        email: form.email,
+        password: form.password,
+        name: form.name,
+        phone: form.phone,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Registration failed");
       push({ type: "success", message: "Account created! Please sign in." });
       navigate("/");
     } catch (err) {
