@@ -11,8 +11,10 @@ import { ProductCard } from "../components/ProductCard.jsx";
 
 export default function HomePage() {
   const { products, loading } = useShop();
-  const featured = products.slice(0, 6);
-  const newArrivals = products.filter((p) => p.isNew).slice(0, 8);
+  if (loading) return <div style={{ padding: '100px', textAlign: 'center' }}>Loading...</div>;
+  const featured = products.filter(p => p.isBestseller).slice(0, 6);
+  const newArrivals = products.filter((p) => p.newArrival).slice(0, 8);
+
   const testimonials = [
     {
       name: "Arjun M.",

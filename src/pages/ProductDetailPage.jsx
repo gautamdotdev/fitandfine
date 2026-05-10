@@ -479,8 +479,11 @@ function TrustBadge({ icon: Icon, title, sub }) {
 export default function ProductDetailPage() {
   const { slug } = useParams();
   const { products, loading: shopLoading } = useShop();
-  const product = products.find(p => p.slug === slug || p._id === slug);
-  
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error_msg, setErrorMsg] = useState("");
+
+
   const [imgIdx, setImgIdx] = useState(0);
   const [size, setSize] = useState(null);
   const [color, setColor] = useState("");
@@ -494,11 +497,39 @@ export default function ProductDetailPage() {
   const [addedAnim, setAddedAnim] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const { ids, toggle, has } = useWishlist();
-  const isWishlisted = has(product.id || product._id);
   const [copied, setCopied] = useState(false);
+
 
   const add = useCart((s) => s.add);
   const push = useToasts((s) => s.push);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      // Try finding in current context first
+      const found = products.find(p => p.slug === slug || p._id === slug);
+      if (found) {
+        setProduct(found);
+        setLoading(false);
+        return;
+      }
+
+      // If not loading and not found, fetch from API
+      if (!shopLoading) {
+        try {
+          setLoading(true);
+          const data = await productApi.getOne(slug);
+          const p = data.data || data;
+          setProduct({ ...p, id: p._id });
+          setLoading(false);
+        } catch (err) {
+          console.error("Error fetching product:", err);
+          setErrorMsg("Product not found");
+          setLoading(false);
+        }
+      }
+    };
+    fetchProduct();
+  }, [slug, products, shopLoading]);
 
   useEffect(() => {
     if (product) {
@@ -506,8 +537,11 @@ export default function ProductDetailPage() {
     }
   }, [product]);
 
-  if (shopLoading) return <div style={{ padding: '100px', textAlign: 'center' }}>Loading...</div>;
+  if (loading || shopLoading) return <div style={{ padding: '100px', textAlign: 'center' }}>Loading product details...</div>;
   if (!product) return <Navigate to="/not-found" replace />;
+
+  const isWishlisted = has(product.id || product._id);
+
 
   const price = product.salePrice ?? product.price;
   const discount = product.salePrice
@@ -758,7 +792,7 @@ export default function ProductDetailPage() {
                   aspectRatio: "1/1",
                   borderRadius: "10px",
                   overflow: "hidden",
-                  border: `2px solid ${i === imgIdx ? "var(--color-foreground)" : "transparent"}`,
+                  border: "1.5px solid var(--color-border)",
                   padding: 0,
                   cursor: "pointer",
                   transition: "all 0.2s",
@@ -993,8 +1027,8 @@ export default function ProductDetailPage() {
                   (e.currentTarget.style.color = "var(--color-foreground)")
                 }
                 onMouseLeave={(e) =>
-                  (e.currentTarget.style.color =
-                    "var(--color-muted-foreground)")
+                (e.currentTarget.style.color =
+                  "var(--color-muted-foreground)")
                 }
               >
                 Size Guide
@@ -1743,7 +1777,7 @@ export default function ProductDetailPage() {
       {/* ── Lightbox ── */}
       {lightbox && (
         <Lightbox
-          src={product.images[imgIdx]}
+          src={product.images?.[imgIdx]?.url || product.images?.[imgIdx]}
           alt={product.name}
           onClose={() => setLightbox(false)}
         />
