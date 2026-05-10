@@ -125,7 +125,7 @@ export function Footer() {
             </p>
             <div style={{ display: "flex", gap: "12px" }}>
               {[
-                { Icon: FaInstagram, href: "#" },
+                { Icon: FaInstagram, href: "https://www.instagram.com/fit_andfine_co" },
                 { Icon: FaWhatsapp, href: `https://wa.me/${WHATSAPP_NUMBER}` },
                 { Icon: FaFacebookF, href: "#" },
               ].map(({ Icon, href }, i) => (

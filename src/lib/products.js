@@ -54,7 +54,7 @@ export const products = [
     fabric: "Pique Cotton",
     description: "A refined take on the polo: textured pique, mother-of-pearl buttons, and a tailored placket.",
     sizes: tshirtSizes, colors: [COMMON_COLORS.ecru, COMMON_COLORS.white, COMMON_COLORS.navy],
-    images: [img("1594938298603-c8148c4b7b15"), img("1586790170083-2f9ceadc732d"), img("1618354691373-d851c5c3a990"), img("1583743814966-8936f5b7be1a")],
+    images: [img("1586363107002-4eb62c42e8ef"), img("1586790170083-2f9ceadc732d"), img("1618354691373-d851c5c3a990"), img("1583743814966-8936f5b7be1a")],
     rating: 4.5, reviewCount: 67,
   },
   {
@@ -72,7 +72,7 @@ export const products = [
     fabric: "Garment-washed Linen",
     description: "Equal parts shirt and light jacket. Worn open over a tee or buttoned with tailored trousers.",
     sizes: ["S", "M", "L", "XL", "XXL"], colors: [COMMON_COLORS.ivory, COMMON_COLORS.sage],
-    images: [img("1609505848912-b7c3b9c99049"), img("1591047139829-d91aecb6caea"), img("1602810316693-3667c854239a"), img("1594938298603-c8148c4b7b15")],
+    images: [img("1598962324947-d1a12a76f23c"), img("1591047139829-d91aecb6caea"), img("1602810316693-3667c854239a"), img("1594938298603-c8148c4b7b15")],
     isNew: true, rating: 4.4, reviewCount: 38,
   },
   {

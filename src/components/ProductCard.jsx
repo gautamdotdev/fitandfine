@@ -13,6 +13,7 @@ export function ProductCard({ product, badge }) {
 
   return (
     <div
+      className="product-card-container"
       style={{
         position: 'relative',
         transition: 'transform 0.5s',
@@ -80,14 +81,14 @@ export function ProductCard({ product, badge }) {
           )}
 
           {/* Quick Add overlay */}
-          <div style={{
-            position: 'absolute', bottom: 0, left: 0, right: 0,
-            padding: '16px',
-            transform: hovered ? 'translateY(0)' : 'translateY(16px)',
-            opacity: hovered ? 1 : 0,
-            transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
-            zIndex: 20,
-          }}>
+          <div 
+            className="product-card-quick-add"
+            style={{
+              position: 'absolute', bottom: 0, left: 0, right: 0,
+              padding: '16px',
+              transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+              zIndex: 20,
+            }}>
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -100,7 +101,7 @@ export function ProductCard({ product, badge }) {
                 });
                 push({ type: 'success', message: 'Added to cart' });
               }}
-              className="label-caps"
+              className="label-caps quick-add-btn"
               style={{
                 width: '100%',
                 backgroundColor: 'rgba(255,255,255,0.95)',
@@ -135,6 +136,7 @@ export function ProductCard({ product, badge }) {
           push({ type: 'success', message: wished ? 'Removed from wishlist' : 'Added to wishlist' });
         }}
         aria-label="Wishlist"
+        className={`product-card-wishlist ${wished ? 'is-wished' : ''}`}
         style={{
           position: 'absolute', top: '12px', left: '12px',
           width: '36px', height: '36px', borderRadius: '50%',
@@ -143,7 +145,6 @@ export function ProductCard({ product, badge }) {
           transition: 'all 0.5s', zIndex: 30, cursor: 'pointer',
           backgroundColor: wished ? 'var(--color-destructive)' : 'rgba(255,255,255,0.8)',
           color: wished ? 'white' : 'var(--color-foreground)',
-          opacity: wished ? 1 : (hovered ? 1 : 0),
           transform: wished ? 'scale(1.1)' : 'scale(1)',
           boxShadow: wished ? '0 4px 12px rgba(0,0,0,0.2)' : 'none',
         }}
@@ -153,7 +154,7 @@ export function ProductCard({ product, badge }) {
         <Heart size={15} style={{ fill: wished ? 'white' : 'none' }} strokeWidth={2} />
       </button>
 
-      {/* Product info */}
+          {/* Product info */}
       <div style={{ paddingTop: '20px', paddingBottom: '8px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
           <div>
@@ -179,6 +180,58 @@ export function ProductCard({ product, badge }) {
         </div>
         <p style={{ fontSize: '11px', color: 'var(--color-muted-foreground)', marginTop: '4px', opacity: 0.7, fontStyle: 'italic' }}>{product.fabric}</p>
       </div>
+
+      <style>{`
+        .product-card-wishlist {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        .product-card-wishlist.is-wished {
+          opacity: 1 !important;
+          transform: scale(1.1) !important;
+        }
+        .product-card-quick-add {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        
+        /* Show on hover for desktop */
+        @media (min-width: 1024px) {
+          .product-card-container:hover .product-card-wishlist {
+            opacity: 1;
+            transform: translateY(0);
+          }
+          .product-card-container:hover .product-card-quick-add {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        /* Always show or show differently on mobile */
+        @media (max-width: 1023px) {
+          .product-card-wishlist {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            background-color: rgba(255,255,255,0.95) !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+          }
+          .product-card-wishlist.is-wished {
+            background-color: var(--color-destructive) !important;
+          }
+          .product-card-quick-add {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            padding: 12px !important;
+          }
+          .quick-add-btn {
+            padding: 10px !important;
+            font-size: 9px !important;
+            background-color: var(--color-gold) !important;
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

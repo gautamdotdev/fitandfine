@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { Header } from './components/Header.jsx';
 import { Footer } from './components/Footer.jsx';
 import { Toaster } from './components/Toaster.jsx';
+import { initializeImageCache, preloadCriticalImages } from './lib/cache.js';
 import HomePage from './pages/HomePage.jsx';
 import AboutPage from './pages/AboutPage.jsx';
 import ContactPage from './pages/ContactPage.jsx';
@@ -23,6 +24,13 @@ function ScrollToTop() {
 }
 
 export default function App() {
+  useEffect(() => {
+    // Start caching images in the background for faster subsequent visits
+    initializeImageCache();
+    // Immediately preload critical hero and category images for the current session
+    preloadCriticalImages();
+  }, []);
+
   return (
     <>
       <ScrollToTop />

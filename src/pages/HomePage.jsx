@@ -17,14 +17,14 @@ export default function HomePage() {
       {/* HERO */}
       <section style={{ display: 'grid', minHeight: '88vh' }} className="hero-grid">
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '32px 64px 64px 64px' }} className="hero-content">
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start', marginBottom: '32px' }} className="label-caps">
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '32px' }} className="label-caps hero-badge">
             <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--color-gold)' }} className="animate-pulse"></span>
             <span style={{ color: 'var(--color-muted-foreground)', fontSize: '11px', letterSpacing: '0.18em' }}>New Season • SS 2025</span>
           </div>
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(44px, 7vw, 80px)', lineHeight: 0.95, letterSpacing: '-0.01em' }}>
             Dress for<br />the life you<br />deserve.
           </h1>
-          <p style={{ marginTop: '32px', color: 'var(--color-muted-foreground)', maxWidth: '28rem' }}>
+          <p style={{ marginTop: '32px', color: 'var(--color-muted-foreground)' }} className="hero-description">
             Curated menswear for the discerning gentleman. Timeless over trendy — pieces made to live with you, not the season.
           </p>
           <div style={{ marginTop: '40px' }}>
@@ -112,15 +112,15 @@ export default function HomePage() {
           <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(2rem, 4vw, 3rem)', lineHeight: 1.15 }}>
             The Summer<br />Linen Edit
           </h2>
-          <p style={{ marginTop: '24px', color: 'var(--color-muted-foreground)', maxWidth: '28rem' }}>
+          <p style={{ marginTop: '24px', color: 'var(--color-muted-foreground)' }} className="editorial-description">
             Lightweight. Breathable. Effortlessly sharp. Garment-washed linen in a quiet palette of stone, ivory and sage.
           </p>
           <Link
             to="/collections/shirts"
-            className="label-caps"
+            className="label-caps editorial-link"
             style={{
               marginTop: '32px', display: 'inline-flex', alignItems: 'center', gap: '8px',
-              alignSelf: 'flex-start', borderBottom: '1px solid var(--color-foreground)',
+              borderBottom: '1px solid var(--color-foreground)',
               paddingBottom: '4px', textDecoration: 'none', transition: 'color 0.2s, border-color 0.2s',
             }}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-gold)'; e.currentTarget.style.borderColor = 'var(--color-gold)'; }}
@@ -218,33 +218,46 @@ export default function HomePage() {
 
       <style>{`
         .hero-grid { grid-template-columns: 1fr; }
-        .hero-content { padding: 64px 24px; order: 2; }
+        .hero-content { padding: 48px 20px; order: 2; text-align: center; align-items: center; }
         .hero-image { order: 1; }
         .categories-grid { grid-template-columns: repeat(2, 1fr); }
         .featured-grid { grid-template-columns: repeat(2, 1fr); }
         .editorial-grid { grid-template-columns: 1fr; }
         .editorial-image { aspect-ratio: 4/3; }
-        .editorial-content { padding: 48px 24px !important; }
-        .story-grid { grid-template-columns: 1fr; }
+        .editorial-content { padding: 48px 20px !important; text-align: center; align-items: center; }
+        .hero-description, .editorial-description { max-width: 28rem; }
+        .story-grid { grid-template-columns: 1fr; text-align: center; }
         .testimonials-grid { grid-template-columns: 1fr; }
         .view-all-link { display: none; }
+
+        @media (max-width: 767px) {
+          .hero-description, .editorial-description { max-width: 100%; }
+        }
+
         @media (min-width: 640px) {
           .view-all-link { display: inline-block !important; }
+          .hero-content { padding: 64px 40px; }
+          .editorial-content { padding: 64px 40px !important; }
         }
+
         @media (min-width: 768px) {
           .testimonials-grid { grid-template-columns: repeat(3, 1fr) !important; }
+          .hero-content, .editorial-content { text-align: left; align-items: flex-start; }
         }
+
         @media (min-width: 1024px) {
-          .hero-grid { grid-template-columns: repeat(2, 1fr) !important; }
-          .hero-content { order: 1 !important; padding: 64px 64px !important; }
+          .hero-grid { grid-template-columns: repeat(2, 1fr) !important; min-height: 90vh !important; }
+          .hero-content { order: 1 !important; padding: 80px 80px !important; }
           .hero-image { order: 2 !important; min-height: 100% !important; }
           .categories-grid { grid-template-columns: repeat(4, 1fr) !important; }
           .featured-grid { grid-template-columns: repeat(3, 1fr) !important; }
           .editorial-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .editorial-image { aspect-ratio: auto !important; }
-          .editorial-content { padding: 80px 80px !important; }
-          .story-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .editorial-content { padding: 80px 100px !important; }
+          .story-grid { grid-template-columns: repeat(2, 1fr) !important; text-align: left; }
         }
+
+        
         .category-card:hover .category-img { transform: scale(1.05); }
         .shop-now-label { opacity: 0; transition: opacity 0.3s; }
         .category-card:hover .shop-now-label { opacity: 1; }
