@@ -1,0 +1,19 @@
+// This is a simple placeholder icon. Replace with your brand icon for production.
+const size = 192;
+const canvas = document.createElement('canvas');
+canvas.width = size;
+canvas.height = size;
+const ctx = canvas.getContext('2d');
+ctx.fillStyle = '#4B2067';
+ctx.fillRect(0, 0, size, size);
+ctx.font = 'bold 96px DM Sans, sans-serif';
+ctx.fillStyle = '#fff';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.fillText('F&F', size / 2, size / 2);
+canvas.toBlob(blob => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'icon-192.png';
+  a.click();
+});
