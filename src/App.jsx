@@ -15,6 +15,8 @@ import CartPage from "./pages/CartPage.jsx";
 import WishlistPage from "./pages/WishlistPage.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 import ComingSoonPage from "./pages/ComingSoonPage.jsx";
+import AuthPage from "./pages/AuthPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -57,6 +59,8 @@ export default function App() {
             <Route path="/product/:slug" element={<ProductDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </main>

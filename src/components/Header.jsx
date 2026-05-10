@@ -1,6 +1,15 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Search, Sun, Moon, ShoppingBag, Heart, Menu, X } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
+// Helper to get user from localStorage
+function getUser() {
+  try {
+    const u = localStorage.getItem("user");
+    return u ? JSON.parse(u) : null;
+  } catch {
+    return null;
+  }
+}
 import { useCart, useTheme, useWishlist } from "../lib/store.js";
 import { products } from "../lib/products.js";
 
@@ -13,6 +22,21 @@ const navLinks = [
 ];
 
 export function Header() {
+  // --- AUTH STATE ---
+  const [user, setUser] = useState(() => getUser());
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  // Listen for login/logout changes (from other tabs or after login)
+  useEffect(() => {
+    const sync = () => setUser(getUser());
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
+  }, []);
+  // On mount, update user state (in case login just happened)
+  useEffect(() => {
+    setUser(getUser());
+  }, []);
   const cartCount = useCart((s) => s.items.reduce((a, b) => a + b.qty, 0));
   const wishCount = useWishlist((s) => s.ids.length);
   const { theme, toggle, init } = useTheme();
@@ -21,8 +45,6 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const navigate = useNavigate();
-  const location = useLocation();
   const lastScrollY = useRef(0);
 
   useEffect(() => {
@@ -150,7 +172,6 @@ export function Header() {
               .
             </span>
           </Link>
-
           {/* Desktop Nav — absolute center */}
           <div
             style={{
@@ -194,6 +215,101 @@ export function Header() {
                 {l.label}
               </Link>
             ))}
+            {/* Auth links/menu */}
+            {!user ? (
+              <>
+                <Link
+                  to="/auth"
+                  style={{
+                    fontSize: "11px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    color: "var(--color-gold)",
+                    fontWeight: 600,
+                    marginLeft: "18px",
+                    textDecoration: "none",
+                  }}
+                >
+                  Sign In
+                </Link>
+              </>
+            ) : (
+              <div style={{ position: "relative", marginLeft: "18px" }}>
+                <button
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--color-foreground)",
+                    fontWeight: 600,
+                    fontSize: "11px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setShowUserMenu((v) => !v)}
+                  onBlur={() => setTimeout(() => setShowUserMenu(false), 150)}
+                >
+                  {user?.name?.split(" ")[0] || user?.email?.split("@")[0]} ▼
+                </button>
+                {showUserMenu && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "120%",
+                      right: 0,
+                      background: "var(--color-background)",
+                      border: "1px solid var(--color-border)",
+                      borderRadius: "8px",
+                      boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+                      minWidth: "140px",
+                      zIndex: 100,
+                    }}
+                  >
+                    <button
+                      style={{
+                        width: "100%",
+                        background: "none",
+                        border: "none",
+                        padding: "10px 18px",
+                        textAlign: "left",
+                        fontSize: "12px",
+                        color: "var(--color-foreground)",
+                        cursor: "pointer",
+                        borderBottom: "1px solid var(--color-border)",
+                      }}
+                      onClick={() => {
+                        navigate("/profile");
+                        setShowUserMenu(false);
+                      }}
+                    >
+                      Profile
+                    </button>
+                    <button
+                      style={{
+                        width: "100%",
+                        background: "none",
+                        border: "none",
+                        padding: "10px 18px",
+                        textAlign: "left",
+                        fontSize: "12px",
+                        color: "var(--color-destructive)",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => {
+                        localStorage.removeItem("accessToken");
+                        localStorage.removeItem("refreshToken");
+                        localStorage.removeItem("user");
+                        setUser(null);
+                        setShowUserMenu(false);
+                        navigate("/");
+                      }}
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Actions — right */}
@@ -364,7 +480,6 @@ export function Header() {
               <Menu size={20} strokeWidth={1.5} />
             </button>
           </div>
-
           {/* Search Overlay */}
           {searchOpen && (
             <div
@@ -699,6 +814,65 @@ export function Header() {
                   {l.label}
                 </Link>
               ))}
+              {/* Auth links/menu for mobile */}
+              {!user ? (
+                <Link
+                  to="/auth"
+                  onClick={() => setMobileOpen(false)}
+                  style={{
+                    fontFamily: "var(--font-serif)",
+                    fontSize: "2.2rem",
+                    color: "var(--color-gold)",
+                    textDecoration: "none",
+                    marginTop: "18px",
+                  }}
+                >
+                  Sign In
+                </Link>
+              ) : (
+                <>
+                  <button
+                    style={{
+                      fontFamily: "var(--font-serif)",
+                      fontSize: "2.2rem",
+                      color: "var(--color-foreground)",
+                      background: "none",
+                      border: "none",
+                      textAlign: "left",
+                      marginTop: "18px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => {
+                      setMobileOpen(false);
+                      navigate("/profile");
+                    }}
+                  >
+                    Profile
+                  </button>
+                  <button
+                    style={{
+                      fontFamily: "var(--font-serif)",
+                      fontSize: "2.2rem",
+                      color: "var(--color-destructive)",
+                      background: "none",
+                      border: "none",
+                      textAlign: "left",
+                      marginTop: "8px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => {
+                      localStorage.removeItem("accessToken");
+                      localStorage.removeItem("refreshToken");
+                      localStorage.removeItem("user");
+                      setUser(null);
+                      setMobileOpen(false);
+                      navigate("/");
+                    }}
+                  >
+                    Logout
+                  </button>
+                </>
+              )}
             </nav>
 
             <div
