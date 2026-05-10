@@ -1,34 +1,6 @@
-import { useState, useEffect } from "react";
-
-function useCountdown(target) {
-  const [diff, setDiff] = useState(target - Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setDiff(target - Date.now()), 1000);
-    return () => clearInterval(id);
-  }, [target]);
-  const total = Math.max(0, diff);
-  return {
-    days: Math.floor(total / 86400000),
-    hours: Math.floor((total % 86400000) / 3600000),
-    mins: Math.floor((total % 3600000) / 60000),
-    secs: Math.floor((total % 60000) / 1000),
-  };
-}
-
-// Always set countdown to 12 hours from page load
-function getTargetTime() {
-  return Date.now() + 12 * 60 * 60 * 1000;
-}
-
-const TARGET_TIME = getTargetTime();
-
-function Pad({ n }) {
-  return String(n).padStart(2, "0");
-}
+import { useState } from "react";
 
 export default function ComingSoonPage() {
-  const [target] = useState(TARGET_TIME);
-  const { days, hours, mins, secs } = useCountdown(target);
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
 
@@ -71,23 +43,6 @@ export default function ComingSoonPage() {
           <br />
           Crafted with intent. Arriving soon.
         </p>
-
-        {/* Countdown */}
-        <div className="cs-countdown">
-          {[
-            ["Days", days],
-            ["Hours", hours],
-            ["Mins", mins],
-            ["Secs", secs],
-          ].map(([label, val]) => (
-            <div key={label} className="cs-unit">
-              <span className="cs-num">
-                <Pad n={val} />
-              </span>
-              <span className="cs-label">{label}</span>
-            </div>
-          ))}
-        </div>
 
         {/* Divider */}
         <div className="cs-divider">
