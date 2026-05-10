@@ -848,6 +848,26 @@ export function Header() {
                   >
                     Profile
                   </button>
+                  {isAdmin && (
+                    <button
+                      style={{
+                        fontFamily: "var(--font-serif)",
+                        fontSize: "2.2rem",
+                        color: "var(--color-gold)",
+                        background: "none",
+                        border: "none",
+                        textAlign: "left",
+                        marginTop: "8px",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => {
+                        setMobileOpen(false);
+                        navigate("/admin");
+                      }}
+                    >
+                      Admin Panel
+                    </button>
+                  )}
                   <button
                     style={{
                       fontFamily: "var(--font-serif)",
@@ -860,10 +880,7 @@ export function Header() {
                       cursor: "pointer",
                     }}
                     onClick={() => {
-                      localStorage.removeItem("accessToken");
-                      localStorage.removeItem("refreshToken");
-                      localStorage.removeItem("user");
-                      setUser(null);
+                      logout();
                       setMobileOpen(false);
                       navigate("/");
                     }}

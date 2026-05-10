@@ -10,10 +10,15 @@ import {
   Truck,
 } from "lucide-react";
 import { useCart, useToasts } from "../lib/store.js";
+import { useShop } from "../context/ShopContext.jsx";
+import { useNavigate } from "react-router-dom";
+import { orderApi } from "../lib/api.js";
 
 export default function CartPage() {
   const { items, remove, setQty, subtotal, count } = useCart();
+  const { token } = useShop();
   const push = useToasts((s) => s.push);
+  const navigate = useNavigate();
 
   const total = subtotal();
   const itemCount = count();
@@ -22,24 +27,19 @@ export default function CartPage() {
   const [loading, setLoading] = useState(false);
 
   async function handleCheckout() {
+    if (!token) {
+      push({ type: "info", message: "Please sign in to complete your order." });
+      navigate("/auth#login");
+      return;
+    }
+
     setLoading(true);
     try {
-      // Get access token from localStorage or your auth store
-      const token = localStorage.getItem("accessToken");
-      if (!token) throw new Error("You must be logged in to checkout.");
-      const res = await fetch("http://localhost:5000/api/orders/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          items,
-          total: grandTotal,
-        }),
+      const data = await orderApi.create({
+        items,
+        total: grandTotal,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Order failed");
+
       // Build WhatsApp message with order link
       const lines = items
         .map(
@@ -51,7 +51,7 @@ export default function CartPage() {
       const waUrl = `https://wa.me/918780142005?text=${encodeURIComponent(text)}`;
       window.open(waUrl, "_blank");
     } catch (err) {
-      alert(err.message);
+      push({ type: "error", message: err.message });
     } finally {
       setLoading(false);
     }
@@ -172,7 +172,7 @@ export default function CartPage() {
                 }}
               >
                 <img
-                  src={item.image}
+                  src={item.image?.url || item.image}
                   alt={item.name}
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />

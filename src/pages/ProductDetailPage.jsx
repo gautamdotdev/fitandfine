@@ -493,7 +493,8 @@ export default function ProductDetailPage() {
   const [lightbox, setLightbox] = useState(false);
   const [addedAnim, setAddedAnim] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
-  const [wishlisted, setWishlisted] = useState(false);
+  const { ids, toggle, has } = useWishlist();
+  const isWishlisted = has(product.id || product._id);
   const [copied, setCopied] = useState(false);
 
   const add = useCart((s) => s.add);
@@ -524,10 +525,10 @@ export default function ProductDetailPage() {
       return;
     }
     add({
-      productId: product.id,
+      productId: product.id || product._id,
       slug: product.slug,
       name: product.name,
-      image: product.images[0],
+      image: product.images[0]?.url || product.images[0],
       price,
       size,
       color,
@@ -710,7 +711,7 @@ export default function ProductDetailPage() {
             )}
             {/* Wishlist */}
             <button
-              onClick={() => setWishlisted((w) => !w)}
+              onClick={() => toggle(product.id || product._id)}
               style={{
                 position: "absolute",
                 top: "16px",
@@ -726,14 +727,14 @@ export default function ProductDetailPage() {
                 justifyContent: "center",
                 cursor: "pointer",
                 transition: "transform 0.2s",
-                transform: wishlisted ? "scale(1.15)" : "scale(1)",
+                transform: isWishlisted ? "scale(1.15)" : "scale(1)",
               }}
             >
               <Heart
                 size={16}
                 style={{
-                  fill: wishlisted ? "#e53e3e" : "none",
-                  color: wishlisted ? "#e53e3e" : "#666",
+                  fill: isWishlisted ? "#e53e3e" : "none",
+                  color: isWishlisted ? "#e53e3e" : "#666",
                   transition: "all 0.2s",
                 }}
               />

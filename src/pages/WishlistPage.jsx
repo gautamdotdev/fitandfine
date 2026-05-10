@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
 import { Heart, ArrowRight } from 'lucide-react';
 import { useWishlist } from '../lib/store.js';
-import { products } from '../lib/products.js';
+import { useShop } from '../context/ShopContext.jsx';
 import { ProductCard } from '../components/ProductCard.jsx';
 
 export default function WishlistPage() {
   const { ids } = useWishlist();
-  const items = products.filter((p) => ids.includes(p.id));
+  const { products } = useShop();
+  const items = products.filter((p) => ids.includes(p.id) || ids.includes(p._id));
 
   if (items.length === 0) {
     return (

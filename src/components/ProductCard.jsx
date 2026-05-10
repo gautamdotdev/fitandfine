@@ -4,7 +4,7 @@ import { useCart, useToasts, useWishlist } from "../lib/store.js";
 import { useState } from "react";
 
 export function ProductCard({ product, badge }) {
-  const wished = useWishlist((s) => s.ids.includes(product.id));
+  const wished = useWishlist((s) => s.ids.includes(product.id) || s.ids.includes(product._id));
   const toggleWish = useWishlist((s) => s.toggle);
   const add = useCart((s) => s.add);
   const push = useToasts((s) => s.push);
@@ -125,7 +125,7 @@ export function ProductCard({ product, badge }) {
       <button
         onClick={(e) => {
           e.preventDefault();
-          toggleWish(product.id);
+          toggleWish(product.id || product._id);
           push({
             type: "success",
             message: wished ? "Removed from wishlist" : "Added to wishlist",

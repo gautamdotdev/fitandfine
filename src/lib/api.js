@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export const api = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');
@@ -39,4 +39,8 @@ export const authApi = {
   login: (credentials) => api('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
   register: (data) => api('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
   getMe: () => api('/auth/me'),
+};
+
+export const orderApi = {
+  create: (data) => api('/orders/create', { method: 'POST', body: JSON.stringify(data) }),
 };
