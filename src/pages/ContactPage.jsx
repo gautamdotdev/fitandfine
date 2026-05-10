@@ -72,6 +72,7 @@ const inputStyle = {
   transition: "border-color 0.2s",
   color: "var(--color-foreground)",
   fontFamily: "var(--font-sans)",
+  boxSizing: "border-box",
 };
 
 export default function ContactPage() {
@@ -213,6 +214,7 @@ export default function ContactPage() {
             }}
           >
             <button
+              type="submit"
               style={{
                 backgroundColor: "var(--color-foreground)",
                 color: "var(--color-background)",
@@ -221,6 +223,8 @@ export default function ContactPage() {
                 fontSize: "14px",
                 cursor: "pointer",
                 transition: "background-color 0.2s",
+                border: "none",
+                fontFamily: "var(--font-sans)",
               }}
               className="label-caps"
               onMouseEnter={(e) =>
@@ -271,7 +275,7 @@ export default function ContactPage() {
             title="Hours"
             lines={["Mon–Sat: 11:00 – 20:00", "Sunday: by appointment"]}
           />
-          <Info Icon={Mail} title="Email" lines={["hello@FIT & FINE.com"]} />
+          <Info Icon={Mail} title="Email" lines={["hello@fitandfine.com"]} />
           <Info Icon={Phone} title="Phone" lines={["+91 98765 43210"]} />
           <a
             href="https://wa.me/919876543210"
