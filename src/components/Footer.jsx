@@ -57,7 +57,11 @@ export function Footer() {
       }}
     >
       <div
-        style={{ maxWidth: "1400px", margin: "0 auto", padding: "10px 20px" }}
+        style={{
+          maxWidth: "1400px",
+          margin: "10px auto",
+          padding: "10px 20px",
+        }}
       >
         <div
           style={{
