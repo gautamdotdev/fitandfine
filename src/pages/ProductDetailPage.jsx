@@ -14,9 +14,11 @@ import {
   Share2,
   Check,
 } from "lucide-react";
-import { findProduct, products, whatsappProductUrl } from "../lib/products.js";
+import { whatsappProductUrl } from "../lib/products.js";
 import { ProductCard } from "../components/ProductCard.jsx";
 import { useCart, useToasts, useWishlist } from "../lib/store.js";
+import { useShop } from "../context/ShopContext.jsx";
+import { productApi } from "../lib/api.js";
 
 /* ── Star Rating Display ── */
 function Stars({ rating, size = 13 }) {
@@ -476,12 +478,12 @@ function TrustBadge({ icon: Icon, title, sub }) {
 /* ── Main Page ── */
 export default function ProductDetailPage() {
   const { slug } = useParams();
-  const product = findProduct(slug);
-  if (!product) return <Navigate to="/not-found" replace />;
-
+  const { products, loading: shopLoading } = useShop();
+  const product = products.find(p => p.slug === slug || p._id === slug);
+  
   const [imgIdx, setImgIdx] = useState(0);
   const [size, setSize] = useState(null);
-  const [color, setColor] = useState(product.colors[0].name);
+  const [color, setColor] = useState("");
   const [qty, setQty] = useState(1);
   const [error, setError] = useState("");
   const [openSection, setOpenSection] = useState("details");
@@ -497,13 +499,22 @@ export default function ProductDetailPage() {
   const add = useCart((s) => s.add);
   const push = useToasts((s) => s.push);
 
+  useEffect(() => {
+    if (product) {
+      setColor(product.colors?.[0]?.name || product.colors?.[0] || "");
+    }
+  }, [product]);
+
+  if (shopLoading) return <div style={{ padding: '100px', textAlign: 'center' }}>Loading...</div>;
+  if (!product) return <Navigate to="/not-found" replace />;
+
   const price = product.salePrice ?? product.price;
   const discount = product.salePrice
     ? Math.round((1 - product.salePrice / product.price) * 100)
     : null;
   const related = products
     .filter(
-      (p) => p.id !== product.id && p.categorySlug === product.categorySlug,
+      (p) => p._id !== product._id && (p.categorySlug === product.categorySlug || p.category === product.category),
     )
     .slice(0, 4);
 
@@ -599,7 +610,7 @@ export default function ProductDetailPage() {
         </Link>
         <ChevronRight size={11} />
         <Link
-          to={`/collections/${product.categorySlug}`}
+          to={`/collections/${product.categorySlug || 't-shirts'}`}
           style={{
             textDecoration: "none",
             color: "inherit",
@@ -645,7 +656,7 @@ export default function ProductDetailPage() {
               onClick={() => setLightbox(true)}
             >
               <img
-                src={product.images[imgIdx]}
+                src={product.images?.[imgIdx]?.url || product.images?.[imgIdx]}
                 alt={product.name}
                 style={{
                   width: "100%",
@@ -767,7 +778,7 @@ export default function ProductDetailPage() {
                 }}
               >
                 <img
-                  src={src}
+                  src={src?.url || src}
                   alt=""
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />

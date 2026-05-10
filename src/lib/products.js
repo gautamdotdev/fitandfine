@@ -308,7 +308,7 @@ export const categories = [
 export const HERO_IMAGE =
   "https://images.unsplash.com/photo-1617127365659-c47fa864d8bc?w=1400&q=85&auto=format&fit=crop";
 export const EDITORIAL_IMAGE =
-  "https://images.unsplash.com/photo-1609505848912-b7c3b9c99049?w=1200&q=85&auto=format&fit=crop";
+  "https://media.gq.com/photos/667591e59d2c94677772c192/16:9/w_6256,h_3519,c_limit/Lede-GQR-LinenShirts-9406.jpg";
 export const STORY_IMAGE =
   "https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?w=1200&q=85&auto=format&fit=crop";
 

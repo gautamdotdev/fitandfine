@@ -23,7 +23,7 @@ export function ProductCard({ product, badge }) {
       onMouseLeave={() => setHovered(false)}
     >
       <Link
-        to={`/product/${product.slug}`}
+        to={`/product/${product.slug || product._id || product.id}`}
         style={{ display: "block", textDecoration: "none", color: "inherit" }}
       >
         <div
@@ -40,7 +40,7 @@ export function ProductCard({ product, badge }) {
           }}
         >
           <img
-            src={product.images[0]}
+            src={product.images?.[0]?.url || product.images?.[0] || 'https://via.placeholder.com/400x500?text=No+Image'}
             alt={product.name}
             style={{
               width: "100%",
@@ -54,7 +54,7 @@ export function ProductCard({ product, badge }) {
           />
 
           <img
-            src={product.images[1] || product.images[0]}
+            src={product.images?.[1]?.url || product.images?.[0]?.url || product.images?.[1] || product.images?.[0] || 'https://via.placeholder.com/400x500?text=No+Image'}
             alt=""
             style={{
               position: "absolute",
@@ -78,7 +78,7 @@ export function ProductCard({ product, badge }) {
             }}
           />
 
-          {(badge || product.isNew) && (
+          {(badge || product.newArrival) && (
             <span
               className="label-caps"
               style={{
@@ -185,7 +185,7 @@ export function ProductCard({ product, badge }) {
             </p>
 
             <Link
-              to={`/product/${product.slug}`}
+              to={`/product/${product.slug || product._id || product.id}`}
               style={{ textDecoration: "none", color: "inherit" }}
             >
               <h3

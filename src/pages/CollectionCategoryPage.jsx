@@ -7,7 +7,7 @@ import {
   ChevronDown,
   ArrowUpDown,
 } from "lucide-react";
-import { products, productsByCategory } from "../lib/products.js";
+import { useShop } from "../context/ShopContext.jsx";
 import { ProductCard } from "../components/ProductCard.jsx";
 import { useToasts } from "../lib/store.js";
 
@@ -491,7 +491,8 @@ function FilterChip({ label, onClear }) {
 /* ── Main Page ── */
 export default function CollectionCategoryPage() {
   const { category } = useParams();
-  const items = productsByCategory(category);
+  const { products, loading } = useShop();
+  const items = products.filter((p) => p.categorySlug === category || p.category?.toLowerCase().replace(/\s+/g, '-') === category);
   const push = useToasts((s) => s.push);
 
   if (

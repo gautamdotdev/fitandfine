@@ -11,6 +11,7 @@ import {
   Phone,
 } from "lucide-react";
 import { useToasts } from "../lib/store.js";
+import { useShop } from "../context/ShopContext.jsx";
 
 function FloatingInput({
   id,
@@ -186,7 +187,7 @@ function LoginForm({ onSwitch }) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
-  const push = useToasts((s) => s.push);
+  const { login } = useShop();
 
   const validate = () => {
     const e = {};
@@ -205,24 +206,10 @@ function LoginForm({ onSwitch }) {
     }
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Login failed");
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      push({
-        type: "success",
-        message: "Welcome back! Signed in successfully.",
-      });
+      await login({ email, password });
       navigate("/");
     } catch (err) {
       setErrors({ password: err.message });
-      push({ type: "error", message: err.message });
     } finally {
       setLoading(false);
     }

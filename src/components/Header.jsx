@@ -1,17 +1,8 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Search, Sun, Moon, ShoppingBag, Heart, Menu, X } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
-// Helper to get user from localStorage
-function getUser() {
-  try {
-    const u = localStorage.getItem("user");
-    return u ? JSON.parse(u) : null;
-  } catch {
-    return null;
-  }
-}
 import { useCart, useTheme, useWishlist } from "../lib/store.js";
-import { products } from "../lib/products.js";
+import { useShop } from "../context/ShopContext.jsx";
 
 const navLinks = [
   { to: "/", label: "Home" },
@@ -22,21 +13,10 @@ const navLinks = [
 ];
 
 export function Header() {
-  // --- AUTH STATE ---
-  const [user, setUser] = useState(() => getUser());
+  const { user, logout, products, isAdmin } = useShop();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  // Listen for login/logout changes (from other tabs or after login)
-  useEffect(() => {
-    const sync = () => setUser(getUser());
-    window.addEventListener("storage", sync);
-    return () => window.removeEventListener("storage", sync);
-  }, []);
-  // On mount, update user state (in case login just happened)
-  useEffect(() => {
-    setUser(getUser());
-  }, []);
   const cartCount = useCart((s) => s.items.reduce((a, b) => a + b.qty, 0));
   const wishCount = useWishlist((s) => s.ids.length);
   const { theme, toggle, init } = useTheme();
@@ -284,6 +264,28 @@ export function Header() {
                     >
                       Profile
                     </button>
+                    {isAdmin && (
+                      <button
+                        style={{
+                          width: "100%",
+                          background: "none",
+                          border: "none",
+                          padding: "10px 18px",
+                          textAlign: "left",
+                          fontSize: "12px",
+                          color: "var(--color-gold)",
+                          cursor: "pointer",
+                          borderBottom: "1px solid var(--color-border)",
+                          fontWeight: 600,
+                        }}
+                        onClick={() => {
+                          navigate("/admin");
+                          setShowUserMenu(false);
+                        }}
+                      >
+                        Admin Panel
+                      </button>
+                    )}
                     <button
                       style={{
                         width: "100%",
@@ -296,10 +298,7 @@ export function Header() {
                         cursor: "pointer",
                       }}
                       onClick={() => {
-                        localStorage.removeItem("accessToken");
-                        localStorage.removeItem("refreshToken");
-                        localStorage.removeItem("user");
-                        setUser(null);
+                        logout();
                         setShowUserMenu(false);
                         navigate("/");
                       }}
@@ -606,7 +605,7 @@ export function Header() {
                         results.map((p) => (
                           <Link
                             key={p.id}
-                            to={`/product/${p.slug}`}
+                            to={`/product/${p.slug || p._id || p.id}`}
                             onClick={() => setSearchOpen(false)}
                             style={{
                               display: "flex",

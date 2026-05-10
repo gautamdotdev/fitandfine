@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, Star } from "lucide-react";
+import { useShop } from "../context/ShopContext.jsx";
 import {
   categories,
-  products,
   HERO_IMAGE,
   EDITORIAL_IMAGE,
   STORY_IMAGE,
@@ -10,6 +10,7 @@ import {
 import { ProductCard } from "../components/ProductCard.jsx";
 
 export default function HomePage() {
+  const { products, loading } = useShop();
   const featured = products.slice(0, 6);
   const newArrivals = products.filter((p) => p.isNew).slice(0, 8);
   const testimonials = [
