@@ -1,5 +1,5 @@
 /* ============================================
-   VELDRA — Design System
+   FIT & FINE — Design System
    ============================================ */
 
 /* CSS Custom Properties */
@@ -26,7 +26,7 @@
   --border: oklch(0.88 0.01 70);
   --input: oklch(0.88 0.01 70);
   --ring: oklch(0.22 0.022 60);
-  --whatsapp: #25D366;
+  --whatsapp: #25d366;
 
   /* Tailwind-style color vars */
   --color-background: var(--background);
@@ -83,7 +83,9 @@
 /* ============================================
    RESET & BASE
    ============================================ */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -100,7 +102,9 @@ body {
   font-family: var(--font-sans);
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
   overflow-x: hidden;
 }
 
@@ -113,7 +117,11 @@ body {
   scrollbar-width: none;
 }
 
-h1, h2, h3, h4, h5 {
+h1,
+h2,
+h3,
+h4,
+h5 {
   font-family: var(--font-serif);
   line-height: 1.15;
   letter-spacing: -0.01em;
@@ -137,7 +145,9 @@ img {
   max-width: 100%;
 }
 
-input, textarea, select {
+input,
+textarea,
+select {
   font-family: inherit;
 }
 
@@ -159,54 +169,119 @@ input, textarea, select {
   font-weight: 500;
 }
 
-.text-gold { color: var(--color-gold); }
-.text-muted-foreground { color: var(--color-muted-foreground); }
-.text-foreground { color: var(--color-foreground); }
-.text-background { color: var(--color-background); }
-.text-destructive { color: var(--color-destructive); }
-.text-white { color: #fff; }
-.text-whatsapp { color: var(--color-whatsapp); }
+.text-gold {
+  color: var(--color-gold);
+}
+.text-muted-foreground {
+  color: var(--color-muted-foreground);
+}
+.text-foreground {
+  color: var(--color-foreground);
+}
+.text-background {
+  color: var(--color-background);
+}
+.text-destructive {
+  color: var(--color-destructive);
+}
+.text-white {
+  color: #fff;
+}
+.text-whatsapp {
+  color: var(--color-whatsapp);
+}
 
-.bg-background { background-color: var(--color-background); }
-.bg-surface { background-color: var(--color-surface); }
-.bg-foreground { background-color: var(--color-foreground); }
-.bg-gold { background-color: var(--color-gold); }
-.bg-muted { background-color: var(--color-muted); }
-.bg-whatsapp { background-color: var(--color-whatsapp); }
-.bg-destructive { background-color: var(--color-destructive); }
+.bg-background {
+  background-color: var(--color-background);
+}
+.bg-surface {
+  background-color: var(--color-surface);
+}
+.bg-foreground {
+  background-color: var(--color-foreground);
+}
+.bg-gold {
+  background-color: var(--color-gold);
+}
+.bg-muted {
+  background-color: var(--color-muted);
+}
+.bg-whatsapp {
+  background-color: var(--color-whatsapp);
+}
+.bg-destructive {
+  background-color: var(--color-destructive);
+}
 
-.border-border { border-color: var(--color-border); }
-.border-foreground { border-color: var(--color-foreground); }
-.border-gold { border-color: var(--color-gold); }
+.border-border {
+  border-color: var(--color-border);
+}
+.border-foreground {
+  border-color: var(--color-foreground);
+}
+.border-gold {
+  border-color: var(--color-gold);
+}
 
-.font-serif { font-family: var(--font-serif); }
-.font-sans { font-family: var(--font-sans); }
-.font-bold { font-weight: 700; }
-.font-medium { font-weight: 500; }
-.font-semibold { font-weight: 600; }
+.font-serif {
+  font-family: var(--font-serif);
+}
+.font-sans {
+  font-family: var(--font-sans);
+}
+.font-bold {
+  font-weight: 700;
+}
+.font-medium {
+  font-weight: 500;
+}
+.font-semibold {
+  font-weight: 600;
+}
 
 /* ============================================
    ANIMATIONS
    ============================================ */
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 @keyframes zoomIn {
-  from { transform: scale(0); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .fade-in-up {
@@ -222,5 +297,10 @@ input, textarea, select {
 }
 
 /* Scrollbar hide */
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-.scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}

@@ -71,7 +71,7 @@ export function Footer() {
             <div
               style={{ fontFamily: "var(--font-serif)", fontSize: "1.5rem" }}
             >
-              VELDRA<span style={{ color: "var(--color-gold)" }}>.</span>
+              FIT & FINE<span style={{ color: "var(--color-gold)" }}>.</span>
             </div>
             <p
               style={{
@@ -125,7 +125,10 @@ export function Footer() {
             </p>
             <div style={{ display: "flex", gap: "12px" }}>
               {[
-                { Icon: FaInstagram, href: "https://www.instagram.com/fit_andfine_co" },
+                {
+                  Icon: FaInstagram,
+                  href: "https://www.instagram.com/fit_andfine_co",
+                },
                 { Icon: FaWhatsapp, href: `https://wa.me/${WHATSAPP_NUMBER}` },
                 { Icon: FaFacebookF, href: "#" },
               ].map(({ Icon, href }, i) => (
@@ -257,7 +260,7 @@ export function Footer() {
           }}
           className="footer-bottom"
         >
-          <p>© 2025 VELDRA. All rights reserved.</p>
+          <p>© 2025 FIT & FINE. All rights reserved.</p>
           <div style={{ display: "flex", gap: "20px" }}>
             <a href="#" style={{ color: "inherit", textDecoration: "none" }}>
               Privacy Policy
