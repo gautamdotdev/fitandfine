@@ -682,7 +682,7 @@ export default function ProductDetailPage() {
           <div
             style={{
               position: "relative",
-              borderRadius: "16px",
+              borderRadius: "5px",
               overflow: "hidden",
               backgroundColor: "var(--color-muted)",
             }}
@@ -806,7 +806,7 @@ export default function ProductDetailPage() {
                     style={{
                       width: "72px",
                       height: "72px",
-                      borderRadius: "10px",
+                      borderRadius: "5px",
                       overflow: "hidden",
                       border: `1.5px solid ${i === imgIdx ? "var(--color-foreground)" : "var(--color-border)"}`,
                       padding: 0,
@@ -832,7 +832,11 @@ export default function ProductDetailPage() {
                     <img
                       src={src?.url || src}
                       alt=""
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
                     />
                   </button>
                 ))}
@@ -1056,8 +1060,8 @@ export default function ProductDetailPage() {
                   (e.currentTarget.style.color = "var(--color-foreground)")
                 }
                 onMouseLeave={(e) =>
-                (e.currentTarget.style.color =
-                  "var(--color-muted-foreground)")
+                  (e.currentTarget.style.color =
+                    "var(--color-muted-foreground)")
                 }
               >
                 Size Guide

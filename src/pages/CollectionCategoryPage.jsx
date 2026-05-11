@@ -543,30 +543,30 @@ function FilterSidebar({ draft, setDraft, hasDraftChanges, onApply, onReset }) {
           {(draft.sizes.length > 0 ||
             draft.colors.length > 0 ||
             draft.maxPrice < 10000) && (
-              <button
-                onClick={onReset}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.color = "var(--color-foreground)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.color = "var(--color-muted-foreground)")
-                }
-                style={{
-                  fontSize: "11px",
-                  color: "var(--color-muted-foreground)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  textDecoration: "underline",
-                  textUnderlineOffset: "3px",
-                  fontFamily: "inherit",
-                  padding: 0,
-                  transition: "color 0.2s",
-                }}
-              >
-                Reset
-              </button>
-            )}
+            <button
+              onClick={onReset}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.color = "var(--color-foreground)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = "var(--color-muted-foreground)")
+              }
+              style={{
+                fontSize: "11px",
+                color: "var(--color-muted-foreground)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                textDecoration: "underline",
+                textUnderlineOffset: "3px",
+                fontFamily: "inherit",
+                padding: 0,
+                transition: "color 0.2s",
+              }}
+            >
+              Reset
+            </button>
+          )}
         </div>
 
         <FilterPanel draft={draft} setDraft={setDraft} />
@@ -695,19 +695,19 @@ function FilterDrawer({
             {(draft.sizes.length > 0 ||
               draft.colors.length > 0 ||
               draft.maxPrice < 10000) && (
-                <p
-                  style={{
-                    fontSize: "11px",
-                    color: "var(--color-muted-foreground)",
-                    marginTop: "4px",
-                  }}
-                >
-                  {draft.sizes.length +
-                    draft.colors.length +
-                    (draft.maxPrice < 10000 ? 1 : 0)}{" "}
-                  selected
-                </p>
-              )}
+              <p
+                style={{
+                  fontSize: "11px",
+                  color: "var(--color-muted-foreground)",
+                  marginTop: "4px",
+                }}
+              >
+                {draft.sizes.length +
+                  draft.colors.length +
+                  (draft.maxPrice < 10000 ? 1 : 0)}{" "}
+                selected
+              </p>
+            )}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <button
@@ -861,7 +861,8 @@ function SkeletonCard() {
 
 export default function CollectionCategoryPage() {
   const { category } = useParams();
-  const { products, loading, fetchProducts, nextCursor, hasMore, total } = useShop();
+  const { products, loading, fetchProducts, nextCursor, hasMore, total } =
+    useShop();
 
   // ── ALL HOOKS FIRST ──
   const [initialLoad, setInitialLoad] = useState(true);
@@ -882,24 +883,34 @@ export default function CollectionCategoryPage() {
     }, 300);
   }, []);
 
-  const fetchFiltered = useCallback(async ({ cursor = null, append = false } = {}) => {
-    if (fetchingRef.current) return;
-    fetchingRef.current = true;
+  const fetchFiltered = useCallback(
+    async ({ cursor = null, append = false } = {}) => {
+      if (fetchingRef.current) return;
+      fetchingRef.current = true;
 
-    try {
-      const filters = {
-        category,
-        minPrice: 0,
-        maxPrice: applied.maxPrice,
-        sort: sort === "low" ? "price" : sort === "high" ? "-price" : sort === "best" ? "-rating" : "-createdAt"
-      };
+      try {
+        const filters = {
+          category,
+          minPrice: 0,
+          maxPrice: applied.maxPrice,
+          sort:
+            sort === "low"
+              ? "price"
+              : sort === "high"
+                ? "-price"
+                : sort === "best"
+                  ? "-rating"
+                  : "-createdAt",
+        };
 
-      await fetchProducts({ cursor, filters, limit: 20, append });
-    } finally {
-      fetchingRef.current = false;
-      setInitialLoad(false);
-    }
-  }, [category, applied, sort, fetchProducts]);
+        await fetchProducts({ cursor, filters, limit: 20, append });
+      } finally {
+        fetchingRef.current = false;
+        setInitialLoad(false);
+      }
+    },
+    [category, applied, sort, fetchProducts],
+  );
 
   // Reset and fetch on category/filter change
   useEffect(() => {
@@ -912,7 +923,8 @@ export default function CollectionCategoryPage() {
   useEffect(() => {
     const handleScroll = () => {
       if (
-        window.innerHeight + window.scrollY >= document.body.offsetHeight - 600 &&
+        window.innerHeight + window.scrollY >=
+          document.body.offsetHeight - 600 &&
         hasMore &&
         !loading &&
         !fetchingRef.current
@@ -952,11 +964,11 @@ export default function CollectionCategoryPage() {
       })),
       ...(applied.maxPrice < 10000
         ? [
-          {
-            label: `Under ₹${applied.maxPrice.toLocaleString("en-IN")}`,
-            clear: () => setApplied((a) => ({ ...a, maxPrice: 10000 })),
-          },
-        ]
+            {
+              label: `Under ₹${applied.maxPrice.toLocaleString("en-IN")}`,
+              clear: () => setApplied((a) => ({ ...a, maxPrice: 10000 })),
+            },
+          ]
         : []),
     ],
     [applied],
@@ -965,8 +977,12 @@ export default function CollectionCategoryPage() {
   const hasDraftChanges = JSON.stringify(draft) !== JSON.stringify(applied);
 
   // ── Handlers ──
-  const categoryData = categories.find(c => c.slug === category);
-  const title = categoryData?.name || (category ? category.charAt(0).toUpperCase() + category.slice(1).replace(/-/g, " ") : "");
+  const categoryData = categories.find((c) => c.slug === category);
+  const title =
+    categoryData?.name ||
+    (category
+      ? category.charAt(0).toUpperCase() + category.slice(1).replace(/-/g, " ")
+      : "");
 
   const openDrawer = () => {
     setDraft({ ...applied });
@@ -997,7 +1013,7 @@ export default function CollectionCategoryPage() {
       style={{
         maxWidth: "1400px",
         margin: "0 auto",
-        padding: "0px 20px 100px",
+        padding: "0px 5px",
       }}
     >
       {/* Breadcrumb */}
@@ -1040,7 +1056,6 @@ export default function CollectionCategoryPage() {
 
       {/* Page Header */}
       <div style={{ marginTop: "28px", marginBottom: "32px" }}>
-
         <div
           style={{
             display: "flex",
@@ -1158,7 +1173,10 @@ export default function CollectionCategoryPage() {
                 {filtered.map((p) => (
                   <ProductCard key={p.id} product={p} />
                 ))}
-                {loading && Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
+                {loading &&
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <SkeletonCard key={i} />
+                  ))}
               </>
             )}
           </div>
@@ -1166,7 +1184,9 @@ export default function CollectionCategoryPage() {
           {!loading && filtered.length === 0 && (
             <div style={{ textAlign: "center", padding: "80px 0" }}>
               <p style={{ fontSize: "32px", marginBottom: "12px" }}>🔍</p>
-              <p style={{ fontSize: "16px", fontFamily: "var(--font-serif)" }}>No products found</p>
+              <p style={{ fontSize: "16px", fontFamily: "var(--font-serif)" }}>
+                No products found
+              </p>
               <button
                 onClick={resetAll}
                 style={{
@@ -1189,7 +1209,9 @@ export default function CollectionCategoryPage() {
           {hasMore && filtered.length > 0 && (
             <div style={{ textAlign: "center", marginTop: "64px" }}>
               <button
-                onClick={() => fetchFiltered({ cursor: nextCursor, append: true })}
+                onClick={() =>
+                  fetchFiltered({ cursor: nextCursor, append: true })
+                }
                 disabled={loading}
                 style={{
                   padding: "14px 48px",
@@ -1205,12 +1227,25 @@ export default function CollectionCategoryPage() {
                   opacity: loading ? 0.6 : 1,
                   boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
-                onMouseEnter={(e) => { if (!loading) e.currentTarget.style.transform = "translateY(-2px)"; }}
-                onMouseLeave={(e) => { if (!loading) e.currentTarget.style.transform = "translateY(0)"; }}
+                onMouseEnter={(e) => {
+                  if (!loading)
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading)
+                    e.currentTarget.style.transform = "translateY(0)";
+                }}
               >
                 {loading ? "Loading..." : "Load More Products"}
               </button>
-              <p style={{ marginTop: "20px", fontSize: "12px", color: "var(--color-muted-foreground)", fontWeight: 500 }}>
+              <p
+                style={{
+                  marginTop: "20px",
+                  fontSize: "12px",
+                  color: "var(--color-muted-foreground)",
+                  fontWeight: 500,
+                }}
+              >
                 Showing {filtered.length} of {total} products
               </p>
             </div>
@@ -1232,12 +1267,12 @@ export default function CollectionCategoryPage() {
       <style>{`
         .ccp-layout { display: grid; grid-template-columns: 1fr; gap: 0; }
         .ccp-sidebar { display: none; }
-        .ccp-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .ccp-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
         .ccp-filter-btn { display: flex !important; }
         @media (min-width: 1024px) {
           .ccp-layout { grid-template-columns: 260px 1fr; gap: 48px; }
           .ccp-sidebar { display: block !important; }
-          .ccp-filter-btn { display: none !important; }
+          .ccp-filter-btn { display: none !important; }w
           .ccp-grid { grid-template-columns: repeat(3, 1fr); gap: 28px; }
         }
         @media (min-width: 1280px) {
@@ -1252,4 +1287,3 @@ export default function CollectionCategoryPage() {
     </div>
   );
 }
-

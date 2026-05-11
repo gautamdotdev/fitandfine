@@ -15,10 +15,10 @@ export function ProductCard({ product, badge }) {
 
   return (
     <div
-      className="product-card-container"
+      className="product-card full-width-card"
       style={{
         position: "relative",
-        borderRadius: "10px",
+        borderRadius: "0",
         border: "1.5px solid var(--color-border)",
         backgroundColor: "var(--color-background)",
         overflow: "hidden",
@@ -149,7 +149,7 @@ export function ProductCard({ product, badge }) {
           left: "10px",
           width: "34px",
           height: "34px",
-          borderRadius: "6px",
+          borderRadius: "50%",
           backdropFilter: "blur(12px)",
           display: "flex",
           alignItems: "center",
@@ -269,53 +269,6 @@ export function ProductCard({ product, badge }) {
         >
           {product.fabric}
         </p>
-
-        {Array.isArray(product.colors) && product.colors.length > 0 && (
-          <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
-            {product.colors.map((color) => (
-              <button
-                key={color._id || color.hex || color.name}
-                title={color.name || color.hex}
-                style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: "50%",
-                  backgroundColor: color.hex,
-                  border: "1.5px solid var(--color-border)",
-                  cursor: "pointer",
-                  outline: "none",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  position: "relative",
-                }}
-                tabIndex={-1}
-              >
-                {/* Show color name below swatch on hover (tooltip alternative) */}
-                <span
-                  style={{
-                    position: "absolute",
-                    top: "110%",
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    background: "rgba(0,0,0,0.7)",
-                    color: "#fff",
-                    fontSize: 10,
-                    padding: "2px 6px",
-                    borderRadius: 6,
-                    whiteSpace: "nowrap",
-                    opacity: 0,
-                    pointerEvents: "none",
-                    transition: "opacity 0.2s",
-                  }}
-                  className="product-card-color-tooltip"
-                >
-                  {color.name || color.hex || "Color"}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       <style>{`

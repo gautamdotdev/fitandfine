@@ -5,33 +5,80 @@ import { ProductCard } from "../components/ProductCard.jsx";
 
 export default function NewArrivalsPage() {
   const { products, loading } = useShop();
-  if (loading) return <div style={{ padding: "100px 20px", textAlign: "center" }}>Loading...</div>;
+  if (loading)
+    return (
+      <div style={{ padding: "100px 20px", textAlign: "center" }}>
+        Loading...
+      </div>
+    );
   const items = products.filter((p) => p.newArrival);
 
   return (
     <div
       className="page-transition"
-      style={{ maxWidth: "1400px", margin: "0 auto", padding: "0px 20px 100px" }}
+      style={{ maxWidth: "1400px", margin: "0 auto", padding: "0px 5px" }}
     >
       {/* Breadcrumb */}
-      <nav style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "var(--color-muted-foreground)", letterSpacing: "0.04em" }}>
-        <Link to="/" style={{ textDecoration: "none", color: "inherit", transition: "color 0.2s" }}
-          onMouseEnter={(e) => (e.target.style.color = "var(--color-foreground)")}
-          onMouseLeave={(e) => (e.target.style.color = "var(--color-muted-foreground)")}>
+      <nav
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+          fontSize: "11px",
+          color: "var(--color-muted-foreground)",
+          letterSpacing: "0.04em",
+        }}
+      >
+        <Link
+          to="/"
+          style={{
+            textDecoration: "none",
+            color: "inherit",
+            transition: "color 0.2s",
+          }}
+          onMouseEnter={(e) =>
+            (e.target.style.color = "var(--color-foreground)")
+          }
+          onMouseLeave={(e) =>
+            (e.target.style.color = "var(--color-muted-foreground)")
+          }
+        >
           Home
         </Link>
         <ChevronRight size={11} />
-        <span style={{ color: "var(--color-foreground)", fontWeight: 600 }}>New Arrivals</span>
+        <span style={{ color: "var(--color-foreground)", fontWeight: 600 }}>
+          New Arrivals
+        </span>
       </nav>
 
       {/* Header */}
       <div style={{ marginTop: "28px", marginBottom: "32px" }}>
-        <p className="label-caps" style={{ color: "var(--color-gold)", fontSize: "10px", letterSpacing: "0.12em" }}>
+        <p
+          className="label-caps"
+          style={{
+            color: "var(--color-gold)",
+            fontSize: "10px",
+            letterSpacing: "0.12em",
+          }}
+        >
           Just Landed
         </p>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
-          <p style={{ fontSize: "13px", color: "var(--color-muted-foreground)" }}>
-            <span style={{ fontWeight: 600, color: "var(--color-foreground)" }}>{items.length}</span> products
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: "12px",
+          }}
+        >
+          <p
+            style={{ fontSize: "13px", color: "var(--color-muted-foreground)" }}
+          >
+            <span style={{ fontWeight: 600, color: "var(--color-foreground)" }}>
+              {items.length}
+            </span>{" "}
+            products
           </p>
         </div>
       </div>
@@ -46,13 +93,25 @@ export default function NewArrivalsPage() {
       {items.length === 0 && (
         <div style={{ textAlign: "center", padding: "80px 0" }}>
           <p style={{ fontSize: "32px", marginBottom: "12px" }}>📦</p>
-          <p style={{ fontSize: "16px", fontFamily: "var(--font-serif)", marginBottom: "8px" }}>Nothing new yet</p>
-          <p style={{ fontSize: "13px", color: "var(--color-muted-foreground)" }}>Check back soon.</p>
+          <p
+            style={{
+              fontSize: "16px",
+              fontFamily: "var(--font-serif)",
+              marginBottom: "8px",
+            }}
+          >
+            Nothing new yet
+          </p>
+          <p
+            style={{ fontSize: "13px", color: "var(--color-muted-foreground)" }}
+          >
+            Check back soon.
+          </p>
         </div>
       )}
 
       <style>{`
-        .na-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .na-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
         @media (min-width: 480px) { .na-grid { gap: 24px; } }
         @media (min-width: 768px) { .na-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; } }
         @media (min-width: 1280px) { .na-grid { grid-template-columns: repeat(4, 1fr); gap: 28px; } }

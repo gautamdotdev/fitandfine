@@ -1,0 +1,15 @@
+/* Ensures two cards per row, full width, no border radius */
+.full-width-card {
+  width: 50%;
+  border-radius: 0 !important;
+  box-sizing: border-box;
+  /* Optional: add padding if you want space between cards */
+  /* padding: 8px; */
+}
+
+/* Example parent container for grid layout */
+.product-card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}

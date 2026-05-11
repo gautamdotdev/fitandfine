@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ArrowRight, Star } from "lucide-react";
-
+import { useShop } from "../context/ShopContext";
 import {
   categories,
   HERO_IMAGE,
@@ -9,38 +9,6 @@ import {
   STORY_IMAGE,
 } from "../lib/products.js";
 import { ProductCard } from "../components/ProductCard.jsx";
-import { useShop } from "../context/ShopContext.jsx";
-
-function SkeletonBox({
-  width = "100%",
-  height = "20px",
-  borderRadius = "4px",
-  style = {},
-}) {
-  return (
-    <div
-      className="skeleton-pulse"
-      style={{
-        width,
-        height,
-        borderRadius,
-        backgroundColor: "var(--color-border)",
-        ...style,
-      }}
-    />
-  );
-}
-
-function SkeletonProductCard() {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-      <SkeletonBox height="360px" borderRadius="8px" />
-      <SkeletonBox width="60%" height="14px" />
-      <SkeletonBox width="40%" height="14px" />
-      <SkeletonBox width="25%" height="14px" />
-    </div>
-  );
-}
 
 function HomePageSkeleton() {
   return (
@@ -215,7 +183,7 @@ function HomePageSkeleton() {
         }
         .skeleton-pulse { animation: skeleton-shimmer 1.6s ease-in-out infinite; }
         .hero-grid { grid-template-columns: 1fr; }
-        .hero-content { padding: 48px 20px; order: 2; text-align: center; align-items: center; }
+        .hero-content { padding: 48px 0px; order: 2; text-align: center; align-items: center; }
         .hero-image { order: 1; }
         .categories-grid { grid-template-columns: repeat(2, 1fr); }
         .featured-grid { grid-template-columns: repeat(2, 1fr); }
@@ -233,6 +201,37 @@ function HomePageSkeleton() {
           .editorial-content { padding: 80px 100px !important; }
         }
       `}</style>
+    </div>
+  );
+}
+
+function SkeletonBox({
+  width = "100%",
+  height = "20px",
+  borderRadius = "4px",
+  style = {},
+}) {
+  return (
+    <div
+      className="skeleton-pulse"
+      style={{
+        width,
+        height,
+        borderRadius,
+        backgroundColor: "var(--color-border)",
+        ...style,
+      }}
+    />
+  );
+}
+
+function SkeletonProductCard() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      <SkeletonBox height="360px" borderRadius="8px" />
+      <SkeletonBox width="60%" height="14px" />
+      <SkeletonBox width="40%" height="14px" />
+      <SkeletonBox width="25%" height="14px" />
     </div>
   );
 }
@@ -410,92 +409,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CATEGORIES */}
-      <section
-        style={{ maxWidth: "1400px", margin: "0 auto", padding: "40px 20px" }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)",
-            gap: "16px",
-          }}
-          className="categories-grid"
-        >
-          {categories.map((c) => (
-            <Link
-              key={c.slug}
-              to={`/collections/${c.slug}`}
-              style={{
-                position: "relative",
-                aspectRatio: "3/4",
-                overflow: "hidden",
-                borderRadius: "8px",
-                display: "block",
-                textDecoration: "none",
-              }}
-              className="category-card"
-            >
-              <img
-                src={c.image}
-                alt={c.name}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  transition: "transform 0.7s",
-                }}
-                className="category-img"
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  background:
-                    "linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0.1), transparent)",
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  padding: "20px",
-                  color: "white",
-                }}
-              >
-                <h3
-                  style={{
-                    fontFamily: "var(--font-serif)",
-                    fontSize: "1.25rem",
-                  }}
-                >
-                  {c.name}
-                </h3>
-                <p
-                  className="label-caps shop-now-label"
-                  style={{
-                    marginTop: "4px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    fontSize: "9px",
-                  }}
-                >
-                  Shop Now <ArrowRight size={12} />
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
       {/* FEATURED */}
       <section
-        style={{ maxWidth: "1400px", margin: "0 auto", padding: "48px 20px" }}
+        style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 5px" }}
       >
-        <div style={{ textAlign: "center", marginBottom: "56px" }}>
+        <div style={{ textAlign: "center", marginBottom: "20px" }}>
           <p
             className="label-caps"
             style={{ color: "var(--color-gold)", marginBottom: "12px" }}
@@ -515,7 +433,7 @@ export default function HomePage() {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(2, 1fr)",
-            gap: "24px 24px",
+            gap: "5px",
           }}
           className="featured-grid"
         >
@@ -523,7 +441,7 @@ export default function HomePage() {
             <ProductCard key={p.id} product={p} />
           ))}
         </div>
-        <div style={{ textAlign: "center", marginTop: "56px" }}>
+        <div style={{ textAlign: "center", marginTop: "20px" }}>
           <Link
             to="/collections/t-shirts"
             className="label-caps"
@@ -635,7 +553,7 @@ export default function HomePage() {
 
       {/* NEW ARRIVALS */}
       <section
-        style={{ maxWidth: "1400px", margin: "0 auto", padding: "40px 20px" }}
+        style={{ maxWidth: "1400px", margin: "0 auto", padding: "20px 10px" }}
       >
         <div
           style={{
@@ -692,7 +610,7 @@ export default function HomePage() {
       </section>
 
       {/* BRAND STORY */}
-      <section
+      {/* <section
         style={{
           maxWidth: "1400px",
           margin: "0 auto",
@@ -744,10 +662,10 @@ export default function HomePage() {
             craft of dressing well.
           </p>
         </div>
-      </section>
+      </section> */}
 
       {/* TESTIMONIALS */}
-      <section
+      {/* <section
         style={{ backgroundColor: "var(--color-surface)", padding: "80px 0" }}
       >
         <div
@@ -834,7 +752,7 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* STORY IMAGE */}
       <section
