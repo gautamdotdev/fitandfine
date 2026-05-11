@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import { useCart, useTheme, useWishlist } from "../lib/store.js";
 import { useShop, useAuth } from "../context/ShopContext.jsx";
 
-
 const navLinks = [
   { to: "/", label: "Home" },
   {
@@ -17,32 +16,6 @@ const navLinks = [
       { to: "/collections/combo", label: "Combo", desc: "Best value deals" },
     ],
   },
-  // {
-  //   to: "/shop",
-  //   label: "Shop",
-  //   children: [
-  //     {
-  //       to: "/shop/bestsellers",
-  //       label: "Best Sellers",
-  //       desc: "Most loved products",
-  //     },
-  //     {
-  //       to: "/shop/trending",
-  //       label: "Trending Now",
-  //       desc: "Current streetwear picks",
-  //     },
-  //     {
-  //       to: "/shop/premium",
-  //       label: "Premium",
-  //       desc: "Luxury crafted pieces",
-  //     },
-  //     {
-  //       to: "/shop/summer-edit",
-  //       label: "Summer Edit",
-  //       desc: "Lightweight seasonal wear",
-  //     },
-  //   ],
-  // },
   { to: "/new-arrivals", label: "New Arrivals" },
   { to: "/sale", label: "Sale" },
 ];
@@ -78,11 +51,8 @@ export function Header() {
     const onScroll = () => {
       const currentY = window.scrollY;
       setScrolled(currentY > 10);
-      if (currentY > lastScrollY.current && currentY > 80) {
-        setHidden(true);
-      } else {
-        setHidden(false);
-      }
+      if (currentY > lastScrollY.current && currentY > 80) setHidden(true);
+      else setHidden(false);
       lastScrollY.current = currentY;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -95,6 +65,19 @@ export function Header() {
     setDesktopDropdown(null);
   }, [location.pathname]);
 
+  // Close search on outside click
+  useEffect(() => {
+    if (!searchOpen) return;
+    const handler = (e) => {
+      if (!e.target.closest("[data-search-overlay]") && !e.target.closest("[data-search-btn]")) {
+        setSearchOpen(false);
+        setQuery("");
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [searchOpen]);
+
   const results =
     query.trim().length > 0
       ? products
@@ -103,12 +86,13 @@ export function Header() {
             p.name.toLowerCase().includes(query.toLowerCase()) ||
             (p.category?.toLowerCase() || "").includes(query.toLowerCase())
         )
-        .slice(0, 5)
+        .slice(0, 6)
       : [];
 
   const isCartOrWishlist =
     location.pathname.includes("/cart") ||
-    location.pathname.includes("/wishlist");
+    location.pathname.includes("/wishlist") ||
+    location.pathname.startsWith("/search");
 
   const handleDropdownEnter = (menu) => {
     clearTimeout(collectionsTimer.current);
@@ -116,9 +100,7 @@ export function Header() {
   };
 
   const handleDropdownLeave = () => {
-    collectionsTimer.current = setTimeout(() => {
-      setDesktopDropdown(null);
-    }, 150);
+    collectionsTimer.current = setTimeout(() => setDesktopDropdown(null), 150);
   };
 
   return (
@@ -216,15 +198,11 @@ export function Header() {
                     style={{
                       fontSize: "11px",
                       textTransform: "uppercase",
-                      letterSpacing:
-                        desktopDropdown === l.to ? "0.12em" : "0.08em",
+                      letterSpacing: desktopDropdown === l.to ? "0.12em" : "0.08em",
                       color:
-                        l.label === "Sale"
-                          ? "var(--color-gold)"
-                          : location.pathname.startsWith(l.to) ||
-                            desktopDropdown === l.to
-                            ? "var(--color-foreground)"
-                            : "color-mix(in oklch, var(--color-foreground) 60%, transparent)",
+                        location.pathname.startsWith(l.to) || desktopDropdown === l.to
+                          ? "var(--color-foreground)"
+                          : "color-mix(in oklch, var(--color-foreground) 60%, transparent)",
                       fontWeight: location.pathname.startsWith(l.to) ? 600 : 500,
                       transition: "all 0.3s",
                       background: "none",
@@ -237,14 +215,10 @@ export function Header() {
                     }}
                   >
                     {l.label}
-
                     <ChevronDown
                       size={10}
                       style={{
-                        transform:
-                          desktopDropdown === l.to
-                            ? "rotate(180deg)"
-                            : "rotate(0deg)",
+                        transform: desktopDropdown === l.to ? "rotate(180deg)" : "rotate(0deg)",
                         transition: "transform 0.3s",
                         marginTop: "1px",
                       }}
@@ -263,26 +237,17 @@ export function Header() {
                       boxShadow: "0 20px 60px rgba(0,0,0,0.12)",
                       overflow: "hidden",
                       opacity: desktopDropdown === l.to ? 1 : 0,
-                      visibility:
-                        desktopDropdown === l.to ? "visible" : "hidden",
+                      visibility: desktopDropdown === l.to ? "visible" : "hidden",
                       transform:
                         desktopDropdown === l.to
                           ? "translateX(-50%) translateY(0)"
                           : "translateX(-50%) translateY(-8px)",
-                      transition:
-                        "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-                      pointerEvents:
-                        desktopDropdown === l.to ? "auto" : "none",
+                      transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+                      pointerEvents: desktopDropdown === l.to ? "auto" : "none",
                     }}
                   >
                     <div style={{ padding: "8px" }}>
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "1fr 1fr",
-                          gap: "4px",
-                        }}
-                      >
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px" }}>
                         {l.children.map((child) => (
                           <Link
                             key={child.to}
@@ -312,74 +277,25 @@ export function Header() {
                             }
                           >
                             <div>
-                              <p
-                                style={{
-                                  fontSize: "12px",
-                                  fontWeight: 600,
-                                  textTransform: "uppercase",
-                                  letterSpacing: "0.06em",
-                                  color: "var(--color-foreground)",
-                                  marginBottom: "2px",
-                                }}
-                              >
+                              <p style={{ fontSize: "12px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-foreground)", marginBottom: "2px" }}>
                                 {child.label}
                               </p>
-
-                              <p
-                                style={{
-                                  fontSize: "10px",
-                                  color: "var(--color-muted-foreground)",
-                                }}
-                              >
+                              <p style={{ fontSize: "10px", color: "var(--color-muted-foreground)" }}>
                                 {child.desc}
                               </p>
                             </div>
-
-                            <ArrowUpRight
-                              size={12}
-                              style={{
-                                color: "var(--color-muted-foreground)",
-                                flexShrink: 0,
-                              }}
-                            />
+                            <ArrowUpRight size={12} style={{ color: "var(--color-muted-foreground)", flexShrink: 0 }} />
                           </Link>
                         ))}
                       </div>
 
-                      <div
-                        style={{
-                          margin: "8px 0 4px",
-                          padding: "12px 16px",
-                          borderTop: "1px solid var(--color-border)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: "10px",
-                            textTransform: "uppercase",
-                            letterSpacing: "0.1em",
-                            color: "var(--color-muted-foreground)",
-                          }}
-                        >
+                      <div style={{ margin: "8px 0 4px", padding: "12px 16px", borderTop: "1px solid var(--color-border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <span style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--color-muted-foreground)" }}>
                           Browse all collections
                         </span>
-
                         <Link
                           to={l.to}
-                          style={{
-                            fontSize: "10px",
-                            fontWeight: 600,
-                            textTransform: "uppercase",
-                            letterSpacing: "0.08em",
-                            color: "var(--color-gold)",
-                            textDecoration: "none",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4px",
-                          }}
+                          style={{ fontSize: "10px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-gold)", textDecoration: "none", display: "flex", alignItems: "center", gap: "4px" }}
                         >
                           View All <ArrowUpRight size={10} />
                         </Link>
@@ -398,7 +314,9 @@ export function Header() {
                     color:
                       location.pathname === l.to
                         ? "var(--color-foreground)"
-                        : "color-mix(in oklch, var(--color-foreground) 60%, transparent)",
+                        : l.label === "Sale"
+                          ? "var(--color-gold)"
+                          : "color-mix(in oklch, var(--color-foreground) 60%, transparent)",
                     fontWeight: location.pathname === l.to ? 600 : 500,
                     transition: "all 0.3s",
                     textDecoration: "none",
@@ -411,7 +329,9 @@ export function Header() {
                     e.target.style.color =
                       location.pathname === l.to
                         ? "var(--color-foreground)"
-                        : "color-mix(in oklch, var(--color-foreground) 60%, transparent)";
+                        : l.label === "Sale"
+                          ? "var(--color-gold)"
+                          : "color-mix(in oklch, var(--color-foreground) 60%, transparent)";
                     e.target.style.letterSpacing = "0.08em";
                   }}
                 >
@@ -424,50 +344,21 @@ export function Header() {
             {!user ? (
               <Link
                 to="/auth"
-                style={{
-                  fontSize: "11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                  color: "var(--color-gold)",
-                  fontWeight: 600,
-                  marginLeft: "18px",
-                  textDecoration: "none",
-                }}
+                style={{ fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-gold)", fontWeight: 600, marginLeft: "18px", textDecoration: "none" }}
               >
                 Sign In
               </Link>
             ) : (
               <div style={{ position: "relative", marginLeft: "18px" }}>
                 <button
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "var(--color-foreground)",
-                    fontWeight: 600,
-                    fontSize: "11px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
-                    cursor: "pointer",
-                  }}
+                  style={{ background: "none", border: "none", color: "var(--color-foreground)", fontWeight: 600, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.08em", cursor: "pointer" }}
                   onClick={() => setShowUserMenu((v) => !v)}
                   onBlur={() => setTimeout(() => setShowUserMenu(false), 150)}
                 >
                   {user?.name?.split(" ")[0] || user?.email?.split("@")[0]} ▼
                 </button>
                 {showUserMenu && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "120%",
-                      right: 0,
-                      background: "var(--color-background)",
-                      border: "1px solid var(--color-border)",
-                      borderRadius: "8px",
-                      boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
-                      minWidth: "140px",
-                      zIndex: 100,
-                    }}
-                  >
+                  <div style={{ position: "absolute", top: "120%", right: 0, background: "var(--color-background)", border: "1px solid var(--color-border)", borderRadius: "8px", boxShadow: "0 2px 12px rgba(0,0,0,0.08)", minWidth: "140px", zIndex: 100 }}>
                     <button
                       style={{ width: "100%", background: "none", border: "none", padding: "10px 18px", textAlign: "left", fontSize: "12px", color: "var(--color-foreground)", cursor: "pointer", borderBottom: "1px solid var(--color-border)" }}
                       onClick={() => { navigate("/profile"); setShowUserMenu(false); }}
@@ -475,15 +366,12 @@ export function Header() {
                       Profile
                     </button>
                     {isAdmin && (
-                      <>
-                        <button
-                          style={{ width: "100%", background: "none", border: "none", padding: "10px 18px", textAlign: "left", fontSize: "12px", color: "var(--color-gold)", cursor: "pointer", borderBottom: "1px solid var(--color-border)", fontWeight: 600 }}
-                          onClick={() => { navigate("/admin"); setShowUserMenu(false); }}
-                        >
-                          Admin Panel
-                        </button>
-
-                      </>
+                      <button
+                        style={{ width: "100%", background: "none", border: "none", padding: "10px 18px", textAlign: "left", fontSize: "12px", color: "var(--color-gold)", cursor: "pointer", borderBottom: "1px solid var(--color-border)", fontWeight: 600 }}
+                        onClick={() => { navigate("/admin"); setShowUserMenu(false); }}
+                      >
+                        Admin Panel
+                      </button>
                     )}
                     <button
                       style={{ width: "100%", background: "none", border: "none", padding: "10px 18px", textAlign: "left", fontSize: "12px", color: "var(--color-destructive)", cursor: "pointer" }}
@@ -501,9 +389,10 @@ export function Header() {
           <div style={{ display: "flex", alignItems: "center", gap: "2px", marginLeft: "auto" }}>
             {!isCartOrWishlist && (
               <button
+                data-search-btn
                 onClick={() => setSearchOpen((s) => !s)}
                 aria-label="Search"
-                style={{ padding: "8px", transition: "all 0.3s", display: "flex", alignItems: "center" }}
+                style={{ padding: "8px", transition: "all 0.3s", display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: "var(--color-foreground)" }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = "var(--color-gold)"; e.currentTarget.style.transform = "scale(1.1)"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.color = ""; e.currentTarget.style.transform = "scale(1)"; }}
               >
@@ -513,7 +402,7 @@ export function Header() {
             <button
               onClick={toggle}
               aria-label="Theme"
-              style={{ padding: "8px", transition: "all 0.3s", display: "flex", alignItems: "center" }}
+              style={{ padding: "8px", transition: "all 0.3s", display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: "var(--color-foreground)" }}
               className="theme-toggle"
               onMouseEnter={(e) => { e.currentTarget.style.color = "var(--color-gold)"; e.currentTarget.style.transform = "scale(1.1)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.color = ""; e.currentTarget.style.transform = "scale(1)"; }}
@@ -523,7 +412,7 @@ export function Header() {
             <Link
               to="/wishlist"
               aria-label="Wishlist"
-              style={{ padding: "8px", transition: "all 0.3s", display: "flex", alignItems: "center", position: "relative" }}
+              style={{ padding: "8px", transition: "all 0.3s", display: "flex", alignItems: "center", position: "relative", color: "var(--color-foreground)" }}
               onMouseEnter={(e) => { e.currentTarget.style.color = "var(--color-gold)"; e.currentTarget.style.transform = "scale(1.1)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.color = ""; e.currentTarget.style.transform = "scale(1)"; }}
             >
@@ -537,7 +426,7 @@ export function Header() {
             <Link
               to="/cart"
               aria-label="Cart"
-              style={{ padding: "8px", transition: "all 0.3s", display: "flex", alignItems: "center", position: "relative" }}
+              style={{ padding: "8px", transition: "all 0.3s", display: "flex", alignItems: "center", position: "relative", color: "var(--color-foreground)" }}
               onMouseEnter={(e) => { e.currentTarget.style.color = "var(--color-gold)"; e.currentTarget.style.transform = "scale(1.1)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.color = ""; e.currentTarget.style.transform = "scale(1)"; }}
             >
@@ -550,7 +439,7 @@ export function Header() {
             </Link>
             <button
               className="mobile-menu-btn"
-              style={{ padding: "8px", marginLeft: "4px", display: "flex", alignItems: "center", transition: "all 0.3s" }}
+              style={{ padding: "8px", marginLeft: "4px", display: "flex", alignItems: "center", transition: "all 0.3s", background: "none", border: "none", cursor: "pointer", color: "var(--color-foreground)" }}
               onClick={() => { setHidden(false); setMobileOpen(true); }}
               aria-label="Menu"
               onMouseEnter={(e) => { e.currentTarget.style.color = "var(--color-gold)"; e.currentTarget.style.transform = "scale(1.1)"; }}
@@ -559,127 +448,136 @@ export function Header() {
               <Menu size={20} strokeWidth={1.5} />
             </button>
           </div>
+        </div>
 
-          {/* Search Overlay */}
-          {searchOpen && (
+        {/* Search Overlay — fixed to viewport center */}
+        {searchOpen && (
+          <div
+            data-search-overlay
+            style={{
+              position: "fixed",
+              top: "74px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: "min(calc(100vw - 24px), 560px)",
+              zIndex: 60,
+              animation: "fadeInUp 0.25s ease-out",
+            }}
+          >
             <div
               style={{
-                position: "absolute",
-                top: "100%",
-                left: "50%",
-                transform: "translateX(-50%)",
-                width: "calc(100% - 12px)",
-                maxWidth: "500px",
-                marginTop: "12px",
-                zIndex: 60,
-                animation: "fadeInUp 0.3s ease-out",
+                backgroundColor: "color-mix(in oklch, var(--color-background) 96%, transparent)",
+                backdropFilter: "blur(24px)",
+                WebkitBackdropFilter: "blur(24px)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "16px",
+                boxShadow: "0 25px 50px rgba(0,0,0,0.18)",
+                overflow: "hidden",
               }}
             >
-              <div
-                style={{
-                  backgroundColor: "color-mix(in oklch, var(--color-background) 95%, transparent)",
-                  backdropFilter: "blur(24px)",
-                  WebkitBackdropFilter: "blur(24px)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "16px",
-                  boxShadow: "0 25px 50px rgba(0,0,0,0.15)",
-                  overflow: "hidden",
-                }}
-              >
-                <div style={{ padding: "16px 24px", display: "flex", alignItems: "center", gap: "16px" }}>
-                  <Search size={16} style={{ color: "var(--color-muted-foreground)" }} />
-                  <input
-                    autoFocus
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && query) { 
-                        navigate(`/search?q=${encodeURIComponent(query)}`); 
-                        setSearchOpen(false); 
-                      }
-                      if (e.key === "Escape") { setSearchOpen(false); setQuery(""); }
-                    }}
-                    placeholder="Search FIT & FINE..."
-                    style={{ flex: 1, background: "transparent", border: "none", outline: "none", fontSize: "14px", color: "var(--color-foreground)" }}
-                  />
-                  <button
-                    onClick={() => { setSearchOpen(false); setQuery(""); }}
-                    style={{ padding: "4px", borderRadius: "50%", transition: "background 0.2s", display: "flex" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-muted)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-                {query && (
-                  <div
-                    style={{
-                      borderTop: "1px solid var(--color-border)",
-                      padding: "24px",
-                      background: "color-mix(in oklch, var(--color-surface) 30%, transparent)",
-                    }}
-                  >
-                    <p className="label-caps" style={{ fontSize: "10px", color: "var(--color-muted-foreground)", marginBottom: "16px" }}>
-                      Results
-                    </p>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                      {results.length === 0 ? (
-                        <p style={{ fontSize: "12px", color: "var(--color-muted-foreground)", fontStyle: "italic", gridColumn: "1/-1" }}>
-                          No matches for "{query}"
-                        </p>
-                      ) : (
-                        results.map((p) => (
+              {/* Input row */}
+              <div style={{ padding: "14px 20px", display: "flex", alignItems: "center", gap: "14px" }}>
+                <Search size={16} style={{ color: "var(--color-muted-foreground)", flexShrink: 0 }} />
+                <input
+                  autoFocus
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && query) {
+                      navigate(`/search?q=${encodeURIComponent(query)}`);
+                      setSearchOpen(false);
+                      setQuery("");
+                    }
+                    if (e.key === "Escape") { setSearchOpen(false); setQuery(""); }
+                  }}
+                  placeholder="Search FIT & FINE..."
+                  style={{ flex: 1, background: "transparent", border: "none", outline: "none", fontSize: "15px", color: "var(--color-foreground)", minWidth: 0 }}
+                />
+                <button
+                  onClick={() => { setSearchOpen(false); setQuery(""); }}
+                  style={{ padding: "4px", borderRadius: "50%", transition: "background 0.2s", display: "flex", flexShrink: 0, background: "none", border: "none", cursor: "pointer", color: "var(--color-foreground)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-border)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Results */}
+              {query && (
+                <div style={{ borderTop: "1px solid var(--color-border)" }}>
+                  <div style={{ maxHeight: "360px", overflowY: "auto", padding: "8px" }}>
+                    {results.length === 0 ? (
+                      <p style={{ fontSize: "13px", color: "var(--color-muted-foreground)", fontStyle: "italic", padding: "16px 12px" }}>
+                        No matches for "{query}"
+                      </p>
+                    ) : (
+                      results.map((p) => {
+                        const imageUrl = p.images?.[0]?.url || p.images?.[0] || "https://via.placeholder.com/400x500?text=No+Image";
+                        return (
                           <Link
                             key={p.id}
                             to={`/product/${p.slug || p._id || p.id}`}
-                            onClick={() => setSearchOpen(false)}
-                            style={{ display: "flex", alignItems: "center", gap: "12px", textDecoration: "none" }}
-                            className="search-result-item"
+                            onClick={() => { setSearchOpen(false); setQuery(""); }}
+                            style={{ display: "flex", alignItems: "center", gap: "14px", textDecoration: "none", padding: "10px 12px", borderRadius: "10px", transition: "background 0.15s" }}
+                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-surface)")}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                           >
-                            <div style={{ width: "48px", height: "64px", borderRadius: "6px", overflow: "hidden", backgroundColor: "var(--color-muted)", flexShrink: 0 }}>
-                              <img src={p.images[0]} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.5s" }} />
+                            <div style={{ width: "48px", height: "60px", borderRadius: "6px", overflow: "hidden", flexShrink: 0, border: "1px solid var(--color-border)", backgroundColor: "var(--color-surface)" }}>
+                              <img src={imageUrl} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                             </div>
-                            <div style={{ overflow: "hidden" }}>
-                              <p style={{ fontFamily: "var(--font-serif)", fontSize: "11px", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <p style={{ fontFamily: "var(--font-serif)", fontSize: "13px", fontWeight: 500, color: "var(--color-foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: "4px" }}>
                                 {p.name}
                               </p>
-                              <p style={{ fontSize: "9px", color: "var(--color-muted-foreground)", marginTop: "2px" }}>
-                                ₹{p.price.toLocaleString("en-IN")}
+                              <p style={{ fontSize: "11px", color: "var(--color-muted-foreground)", textTransform: "capitalize", marginBottom: "4px" }}>
+                                {p.category}
+                              </p>
+                              <p style={{ fontSize: "12px", color: "var(--color-gold)", fontWeight: 600 }}>
+                                ₹{(p.salePrice || p.price).toLocaleString("en-IN")}
+                                {p.salePrice && (
+                                  <span style={{ marginLeft: "6px", fontSize: "11px", color: "var(--color-muted-foreground)", textDecoration: "line-through", fontWeight: 400 }}>
+                                    ₹{p.price.toLocaleString("en-IN")}
+                                  </span>
+                                )}
                               </p>
                             </div>
+                            <ArrowUpRight size={14} style={{ color: "var(--color-muted-foreground)", flexShrink: 0 }} />
                           </Link>
-                        ))
-                      )}
-                    </div>
-                    {results.length > 0 && (
-                      <div style={{ marginTop: "24px", paddingTop: "16px", borderTop: "1px solid var(--color-border)", textAlign: "center" }}>
-                        <Link
-                          to={`/search?q=${encodeURIComponent(query)}`}
-                          onClick={() => setSearchOpen(false)}
-                          style={{
-                            fontSize: "11px",
-                            fontWeight: 700,
-                            textTransform: "uppercase",
-                            letterSpacing: "0.1em",
-                            color: "var(--color-gold)",
-                            textDecoration: "none",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "6px"
-                          }}
-                        >
-                          View all {products.filter(p => p.name.toLowerCase().includes(query.toLowerCase())).length} results
-                        </Link>
-                      </div>
+                        );
+                      })
                     )}
                   </div>
-                )}
-              </div>
+
+                  {results.length > 0 && (
+                    <div style={{ borderTop: "1px solid var(--color-border)", padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span style={{ fontSize: "11px", color: "var(--color-muted-foreground)" }}>
+                        {results.length} result{results.length !== 1 ? "s" : ""}
+                      </span>
+                      <Link
+                        to={`/search?q=${encodeURIComponent(query)}`}
+                        onClick={() => { setSearchOpen(false); setQuery(""); }}
+                        style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--color-gold)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                      >
+                        View All <ArrowUpRight size={10} />
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         <style>{`
+          @keyframes fadeInUp {
+            from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+            to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+          }
+          @keyframes zoomIn {
+            from { transform: scale(0); }
+            to   { transform: scale(1); }
+          }
           @media (min-width: 1024px) {
             .mobile-menu-btn { display: none !important; }
             .header-inner { display: flex !important; }
@@ -762,34 +660,14 @@ export function Header() {
             <Link
               to="/"
               onClick={() => setMobileOpen(false)}
-              style={{
-                fontFamily: "var(--font-serif)",
-                fontSize: "1.1rem",
-                fontWeight: 600,
-                display: "flex",
-                alignItems: "baseline",
-                textDecoration: "none",
-                color: "var(--color-foreground)",
-              }}
+              style={{ fontFamily: "var(--font-serif)", fontSize: "1.1rem", fontWeight: 600, display: "flex", alignItems: "baseline", textDecoration: "none", color: "var(--color-foreground)" }}
             >
               FIT & FINE
               <span style={{ color: "var(--color-gold)", marginLeft: "1px" }}>.</span>
             </Link>
             <button
               onClick={() => setMobileOpen(false)}
-              style={{
-                width: "36px",
-                height: "36px",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                border: "1px solid var(--color-border)",
-                background: "none",
-                cursor: "pointer",
-                transition: "background 0.2s",
-                color: "var(--color-foreground)",
-              }}
+              style={{ width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--color-border)", background: "none", cursor: "pointer", transition: "background 0.2s", color: "var(--color-foreground)" }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-muted)")}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
             >
@@ -799,19 +677,12 @@ export function Header() {
 
           {/* Scrollable content */}
           <div style={{ flex: 1, overflowY: "auto", scrollbarWidth: "none" }}>
-
-            {/* Nav Links */}
             <nav style={{ padding: "8px 0" }}>
               {navLinks.map((l, i) =>
                 l.children ? (
-                  /* Collections accordion */
                   <div key={l.to}>
                     <button
-                      onClick={() =>
-                        setMobileDropdown((prev) =>
-                          prev === l.to ? null : l.to
-                        )
-                      }
+                      onClick={() => setMobileDropdown((prev) => prev === l.to ? null : l.to)}
                       style={{
                         width: "100%",
                         display: "flex",
@@ -822,56 +693,25 @@ export function Header() {
                         border: "none",
                         cursor: "pointer",
                         textAlign: "left",
-                        borderBottom: mobileDropdown === l.to
-                          ? "none"
-                          : "1px solid color-mix(in oklch, var(--color-border) 40%, transparent)",
+                        borderBottom: mobileDropdown === l.to ? "none" : "1px solid color-mix(in oklch, var(--color-border) 40%, transparent)",
                         transform: mobileOpen ? "translateX(0)" : "translateX(20px)",
                         opacity: mobileOpen ? 1 : 0,
                         transition: `transform 0.6s cubic-bezier(0.16,1,0.3,1) ${i * 60}ms, opacity 0.6s ${i * 60}ms, background 0.2s`,
                       }}
-                      onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor =
-                        "color-mix(in oklch, var(--color-foreground) 4%, transparent)")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.backgroundColor = "")
-                      }
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "color-mix(in oklch, var(--color-foreground) 4%, transparent)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
                     >
-                      <span
-                        style={{
-                          fontFamily: "var(--font-serif)",
-                          fontSize: "1.6rem",
-                          fontWeight: 500,
-                          color: location.pathname.startsWith("/collections")
-                            ? "var(--color-gold)"
-                            : "var(--color-foreground)",
-                          lineHeight: 1.2,
-                        }}
-                      >
+                      <span style={{ fontFamily: "var(--font-serif)", fontSize: "1.6rem", fontWeight: 500, color: location.pathname.startsWith("/collections") ? "var(--color-gold)" : "var(--color-foreground)", lineHeight: 1.2 }}>
                         {l.label}
                       </span>
-                      <span
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          color: "var(--color-muted-foreground)",
-                        }}
-                      >
+                      <span style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--color-muted-foreground)" }}>
                         <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em" }}>
                           {mobileDropdown === l.to ? "Close" : "Explore"}
                         </span>
-                        <ChevronDown
-                          size={14}
-                          style={{
-                            transform: mobileDropdown === l.to ? "rotate(180deg)" : "rotate(0deg)",
-                            transition: "transform 0.3s",
-                          }}
-                        />
+                        <ChevronDown size={14} style={{ transform: mobileDropdown === l.to ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }} />
                       </span>
                     </button>
 
-                    {/* Accordion Children */}
                     <div
                       style={{
                         maxHeight: mobileDropdown === l.to ? "400px" : "0",
@@ -882,7 +722,7 @@ export function Header() {
                       }}
                     >
                       <div style={{ padding: "4px 0 12px" }}>
-                        {l.children.map((child, ci) => (
+                        {l.children.map((child) => (
                           <Link
                             key={child.to}
                             to={child.to}
@@ -897,35 +737,14 @@ export function Header() {
                               transition: "background 0.2s, border-color 0.2s",
                               marginLeft: "4px",
                             }}
-                            onMouseEnter={(e) =>
-                            (e.currentTarget.style.backgroundColor =
-                              "color-mix(in oklch, var(--color-foreground) 4%, transparent)")
-                            }
-                            onMouseLeave={(e) =>
-                              (e.currentTarget.style.backgroundColor = "")
-                            }
+                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "color-mix(in oklch, var(--color-foreground) 4%, transparent)")}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
                           >
                             <div>
-                              <p
-                                style={{
-                                  fontSize: "13px",
-                                  fontWeight: location.pathname === child.to ? 700 : 500,
-                                  color:
-                                    location.pathname === child.to
-                                      ? "var(--color-gold)"
-                                      : "var(--color-foreground)",
-                                  letterSpacing: "0.02em",
-                                  marginBottom: "2px",
-                                }}
-                              >
+                              <p style={{ fontSize: "13px", fontWeight: location.pathname === child.to ? 700 : 500, color: location.pathname === child.to ? "var(--color-gold)" : "var(--color-foreground)", letterSpacing: "0.02em", marginBottom: "2px" }}>
                                 {child.label}
                               </p>
-                              <p
-                                style={{
-                                  fontSize: "10px",
-                                  color: "var(--color-muted-foreground)",
-                                }}
-                              >
+                              <p style={{ fontSize: "10px", color: "var(--color-muted-foreground)" }}>
                                 {child.desc}
                               </p>
                             </div>
@@ -935,20 +754,7 @@ export function Header() {
                         <Link
                           to="/collections"
                           onClick={() => setMobileOpen(false)}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "6px",
-                            margin: "8px 28px 0 36px",
-                            padding: "8px 0",
-                            fontSize: "10px",
-                            fontWeight: 700,
-                            textTransform: "uppercase",
-                            letterSpacing: "0.1em",
-                            color: "var(--color-gold)",
-                            textDecoration: "none",
-                            borderTop: "1px solid color-mix(in oklch, var(--color-border) 60%, transparent)",
-                          }}
+                          style={{ display: "flex", alignItems: "center", gap: "6px", margin: "8px 28px 0 36px", padding: "8px 0", fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--color-gold)", textDecoration: "none", borderTop: "1px solid color-mix(in oklch, var(--color-border) 60%, transparent)" }}
                         >
                           Shop All Collections <ArrowUpRight size={10} />
                         </Link>
@@ -971,37 +777,14 @@ export function Header() {
                       opacity: mobileOpen ? 1 : 0,
                       transition: `transform 0.6s cubic-bezier(0.16,1,0.3,1) ${i * 60}ms, opacity 0.6s ${i * 60}ms, background 0.2s`,
                     }}
-                    onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor =
-                      "color-mix(in oklch, var(--color-foreground) 4%, transparent)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.backgroundColor = "")
-                    }
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "color-mix(in oklch, var(--color-foreground) 4%, transparent)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
                   >
-                    <span
-                      style={{
-                        fontFamily: "var(--font-serif)",
-                        fontSize: "1.6rem",
-                        fontWeight: 500,
-                        color:
-                          location.pathname === l.to
-                            ? "var(--color-gold)"
-                            : "var(--color-foreground)",
-                        lineHeight: 1.2,
-                      }}
-                    >
+                    <span style={{ fontFamily: "var(--font-serif)", fontSize: "1.6rem", fontWeight: 500, color: location.pathname === l.to ? "var(--color-gold)" : "var(--color-foreground)", lineHeight: 1.2 }}>
                       {l.label}
                     </span>
                     {location.pathname === l.to && (
-                      <span
-                        style={{
-                          width: "6px",
-                          height: "6px",
-                          borderRadius: "50%",
-                          backgroundColor: "var(--color-gold)",
-                        }}
-                      />
+                      <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "var(--color-gold)" }} />
                     )}
                   </Link>
                 )
@@ -1009,30 +792,12 @@ export function Header() {
             </nav>
 
             {/* Auth section */}
-            <div
-              style={{
-                padding: "20px 28px",
-                borderBottom: "1px solid color-mix(in oklch, var(--color-border) 40%, transparent)",
-              }}
-            >
+            <div style={{ padding: "20px 28px", borderBottom: "1px solid color-mix(in oklch, var(--color-border) 40%, transparent)" }}>
               {!user ? (
                 <Link
                   to="/auth"
                   onClick={() => setMobileOpen(false)}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    padding: "12px 24px",
-                    backgroundColor: "var(--color-gold)",
-                    color: "white",
-                    borderRadius: "8px",
-                    fontSize: "12px",
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
-                    textDecoration: "none",
-                  }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "12px 24px", backgroundColor: "var(--color-gold)", color: "white", borderRadius: "8px", fontSize: "12px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", textDecoration: "none" }}
                 >
                   Sign In to Your Account
                 </Link>
@@ -1069,55 +834,19 @@ export function Header() {
             <div style={{ padding: "28px 28px 40px" }}>
               <button
                 onClick={toggle}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  fontSize: "13px",
-                  fontWeight: 500,
-                  color: "var(--color-foreground)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  marginBottom: "32px",
-                  padding: "10px 14px",
-                  borderRadius: "8px",
-                  border: "1px solid var(--color-border)",
-                  width: "100%",
-                  justifyContent: "center",
-                }}
+                style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "13px", fontWeight: 500, color: "var(--color-foreground)", background: "none", cursor: "pointer", marginBottom: "32px", padding: "10px 14px", borderRadius: "8px", border: "1px solid var(--color-border)", width: "100%", justifyContent: "center" }}
               >
-                {theme === "light" ? (
-                  <><Moon size={16} strokeWidth={1.5} /> Switch to Dark Mode</>
-                ) : (
-                  <><Sun size={16} strokeWidth={1.5} /> Switch to Light Mode</>
-                )}
+                {theme === "light" ? <><Moon size={16} strokeWidth={1.5} /> Switch to Dark Mode</> : <><Sun size={16} strokeWidth={1.5} /> Switch to Light Mode</>}
               </button>
 
-              <p
-                style={{
-                  fontSize: "9px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.14em",
-                  color: "var(--color-muted-foreground)",
-                  marginBottom: "14px",
-                }}
-              >
+              <p style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.14em", color: "var(--color-muted-foreground)", marginBottom: "14px" }}>
                 Follow Us
               </p>
               <div style={{ display: "flex", gap: "20px" }}>
                 {["Instagram", "Pinterest", "Twitter"].map((s) => (
                   <span
                     key={s}
-                    style={{
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      color: "var(--color-muted-foreground)",
-                      cursor: "pointer",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.06em",
-                      transition: "color 0.2s",
-                    }}
+                    style={{ fontSize: "12px", fontWeight: 600, color: "var(--color-muted-foreground)", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.06em", transition: "color 0.2s" }}
                     onMouseEnter={(e) => (e.target.style.color = "var(--color-foreground)")}
                     onMouseLeave={(e) => (e.target.style.color = "var(--color-muted-foreground)")}
                   >
