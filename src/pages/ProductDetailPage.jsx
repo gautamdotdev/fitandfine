@@ -789,41 +789,55 @@ export default function ProductDetailPage() {
               marginTop: "12px",
             }}
           >
-            {product.images.map((src, i) => (
-              <button
-                key={i}
-                onClick={() => setImgIdx(i)}
+            {/* Thumbnails */}
+            {product.images.length > 1 && (
+              <div
                 style={{
-                  aspectRatio: "1/1",
-                  borderRadius: "10px",
-                  overflow: "hidden",
-                  border: "1.5px solid var(--color-border)",
-                  padding: 0,
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                  opacity: i === imgIdx ? 1 : 0.6,
-                  transform: i === imgIdx ? "scale(1)" : "scale(0.97)",
-                }}
-                onMouseEnter={(e) => {
-                  if (i !== imgIdx) {
-                    e.currentTarget.style.opacity = "0.9";
-                    e.currentTarget.style.transform = "scale(1)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (i !== imgIdx) {
-                    e.currentTarget.style.opacity = "0.6";
-                    e.currentTarget.style.transform = "scale(0.97)";
-                  }
+                  display: "grid",
+                  gridTemplateColumns: `repeat(${Math.min(product.images.length, 6)}, 72px)`,
+                  gap: "10px",
+                  marginTop: "12px",
                 }}
               >
-                <img
-                  src={src?.url || src}
-                  alt=""
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              </button>
-            ))}
+                {product.images.map((src, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setImgIdx(i)}
+                    style={{
+                      width: "72px",
+                      height: "72px",
+                      borderRadius: "10px",
+                      overflow: "hidden",
+                      border: `1.5px solid ${i === imgIdx ? "var(--color-foreground)" : "var(--color-border)"}`,
+                      padding: 0,
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                      opacity: i === imgIdx ? 1 : 0.6,
+                      transform: i === imgIdx ? "scale(1)" : "scale(0.97)",
+                      flexShrink: 0,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (i !== imgIdx) {
+                        e.currentTarget.style.opacity = "0.9";
+                        e.currentTarget.style.transform = "scale(1)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (i !== imgIdx) {
+                        e.currentTarget.style.opacity = "0.6";
+                        e.currentTarget.style.transform = "scale(0.97)";
+                      }
+                    }}
+                  >
+                    <img
+                      src={src?.url || src}
+                      alt=""
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -875,17 +889,25 @@ export default function ProductDetailPage() {
             </button>
           </div>
 
-          <h1
+          <h3
             style={{
               fontFamily: "var(--font-serif)",
-              fontSize: "clamp(1.75rem, 4vw, 2.4rem)",
-              lineHeight: 1.1,
-              letterSpacing: "-0.02em",
-              marginTop: "8px",
+              fontSize: "0.95rem",
+              marginTop: "5px",
+              transition: "color 0.3s",
+              cursor: "pointer",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              lineHeight: 1.3,
+              minHeight: "2.6em",
             }}
+            onMouseEnter={(e) => (e.target.style.color = "var(--color-gold)")}
+            onMouseLeave={(e) => (e.target.style.color = "")}
           >
             {product.name}
-          </h1>
+          </h3>
 
           {/* Rating */}
           <a
@@ -970,9 +992,11 @@ export default function ProductDetailPage() {
               marginTop: "16px",
               color: "var(--color-muted-foreground)",
               lineHeight: 1.7,
-              fontSize: "14px",
+              fontSize: "13px",
               borderLeft: "2px solid var(--color-gold)",
               paddingLeft: "14px",
+              wordBreak: "break-word",
+              overflowWrap: "break-word",
             }}
           >
             {product.description}
@@ -1032,8 +1056,8 @@ export default function ProductDetailPage() {
                   (e.currentTarget.style.color = "var(--color-foreground)")
                 }
                 onMouseLeave={(e) =>
-                  (e.currentTarget.style.color =
-                    "var(--color-muted-foreground)")
+                (e.currentTarget.style.color =
+                  "var(--color-muted-foreground)")
                 }
               >
                 Size Guide
@@ -2186,6 +2210,15 @@ export default function ProductDetailPage() {
         @keyframes scaleIn {
           from { opacity: 0; transform: scale(0.92); }
           to { opacity: 1; transform: scale(1); }
+        }
+
+        /* existing styles + add these */
+        .pdp-root h1 {
+          word-break: break-word;
+          overflow-wrap: break-word;
+        }
+        nav {
+          flex-wrap: wrap;
         }
       `}</style>
     </div>

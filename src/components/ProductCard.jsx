@@ -270,7 +270,6 @@ export function ProductCard({ product, badge }) {
           {product.fabric}
         </p>
 
-        {/* Color Swatches */}
         {Array.isArray(product.colors) && product.colors.length > 0 && (
           <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
             {product.colors.map((color) => (
