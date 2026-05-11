@@ -226,20 +226,25 @@ function LoginForm({ onSwitch }) {
           letterSpacing: "-0.02em",
           lineHeight: 1.1,
           marginBottom: "6px",
+          textAlign: "center",
         }}
       >
         Welcome back
       </h1>
+
       <p
         style={{
           fontSize: "14px",
           color: "var(--color-muted-foreground)",
           marginBottom: "32px",
+          textAlign: "center",
         }}
       >
         Sign in to your FIT & FINE account
       </p>
-      <div style={{ display: "flex", gap: "10px", marginBottom: "24px" }}>
+
+      <div style={{ display: "flex", gap: "10px", marginBottom: "24px", justifyContent: "center" }}>
+
         <SocialBtn>
           <svg width="16" height="16" viewBox="0 0 24 24">
             <path
@@ -483,20 +488,25 @@ function RegisterForm({ onSwitch }) {
           letterSpacing: "-0.02em",
           lineHeight: 1.1,
           marginBottom: "6px",
+          textAlign: "center",
         }}
       >
         Create account
       </h1>
+
       <p
         style={{
           fontSize: "14px",
           color: "var(--color-muted-foreground)",
           marginBottom: "32px",
+          textAlign: "center",
         }}
       >
         Join FIT & FINE — it only takes a minute
       </p>
-      <div style={{ display: "flex", gap: "10px", marginBottom: "24px" }}>
+
+      <div style={{ display: "flex", gap: "10px", marginBottom: "24px", justifyContent: "center" }}>
+
         <SocialBtn>
           <svg width="16" height="16" viewBox="0 0 24 24">
             <path
@@ -784,9 +794,11 @@ export default function AuthPage() {
       style={{
         minHeight: "calc(100vh - 64px)",
         display: "flex",
-        alignItems: "stretch",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
+
       <div
         className="auth-brand-panel"
         style={{ flex: "0 0 45%", padding: "32px", display: "none" }}
@@ -816,7 +828,6 @@ export default function AuthPage() {
         </div>
       </div>
       <style>{`
-				@media (min-width: 1024px) { .auth-brand-panel { display: block !important; } }
 				.auth-name-row { grid-template-columns: 1fr; }
 				@media (min-width: 480px) { .auth-name-row { grid-template-columns: 1fr 1fr !important; } }
 				@keyframes authFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
