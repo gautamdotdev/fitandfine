@@ -119,48 +119,55 @@ export default function AdminProductFormPage() {
   const [isExtractingColors, setIsExtractingColors] = useState(false);
 
   const extractColorsFromImage = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = async () => {
-          try {
-            // ColorThief 3.x uses named exports and is async
-            const palette = await getPalette(img, 5); 
-            
-            const extracted = palette.map(color => {
-              const rgb = color.array(); // In 3.x, getColor/getPalette returns Color objects
-              const hex = color.hex();
-              
-              // Get color name from hex
-              const names = namer(hex).ntc; 
-              const name = names[0].name;
-              
-              return { name, hex };
-            });
-            
-            // Deduplicate and filter out very similar colors if needed
-            // For now just keep unique names
-            const unique = [];
-            const seenNames = new Set();
-            for (const c of extracted) {
-              if (!seenNames.has(c.name)) {
-                unique.push(c);
-                seenNames.add(c.name);
-              }
-              if (unique.length >= 4) break;
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = async () => {
+        try {
+          // ColorThief 3.3.1 returns an array of Color objects
+          const palette = (await getPalette(img, { colorCount: 6 })) || [];
+
+          const unique = [];
+          const seenNames = new Set();
+
+          for (const item of palette) {
+            let hex;
+
+            if (item && typeof item.hex === 'function') {
+              hex = item.hex();
+            } else if (Array.isArray(item)) {
+              const [r, g, b] = item;
+              hex = "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
             }
-            
-            resolve(unique);
-          } catch (err) {
-            reject(err);
+
+            if (!hex) continue;
+
+            const names = namer(hex).ntc;
+            const name = names[0].name;
+
+            if (!seenNames.has(name)) {
+              unique.push({ name, hex });
+              seenNames.add(name);
+            }
+            if (unique.length >= 4) break;
           }
-        };
-        img.onerror = () => reject(new Error("Failed to load image for color extraction"));
-        img.src = e.target.result;
+
+          resolve(unique);
+        } catch (error) {
+          console.error("Color extraction failed:", error);
+          resolve([]);
+        } finally {
+          if (img.src.startsWith('blob:')) {
+            URL.revokeObjectURL(img.src);
+          }
+        }
       };
-      reader.onerror = () => reject(new Error("Failed to read file"));
-      reader.readAsDataURL(file);
+      img.onerror = () => {
+        if (img.src.startsWith('blob:')) {
+          URL.revokeObjectURL(img.src);
+        }
+        resolve([]);
+      };
+      img.src = URL.createObjectURL(file);
     });
   };
 
@@ -186,12 +193,12 @@ export default function AdminProductFormPage() {
   useEffect(() => {
     const loadProduct = async () => {
       if (!id) return;
-      
+
       setLoading(true);
       try {
         // 1. Try to find in context first
         let product = products.find((p) => p._id === id || p.id === id);
-        
+
         // 2. If not in context (e.g. on refresh), fetch from API
         if (!product) {
           product = await productApi.getOne(id);
@@ -276,11 +283,11 @@ export default function AdminProductFormPage() {
       const newColors = [...prev.colors];
       // Create a fresh object for the specific color being updated
       const updatedColor = { ...newColors[i], [field]: val };
-      
+
       if (field === "name" && val.trim() === "") {
         updatedColor.name = `Color ${i + 1}`;
       }
-      
+
       newColors[i] = updatedColor;
       return { ...prev, colors: newColors };
     });
@@ -310,10 +317,10 @@ export default function AdminProductFormPage() {
         ...prev,
         colors: [...prev.colors, ...detected].slice(0, 6) // Keep it reasonable
       }));
-      pushToast({ 
-        title: "Colors Detected", 
-        message: `Extracted ${detected.length} colors from image.`, 
-        type: "success" 
+      pushToast({
+        title: "Colors Detected",
+        message: `Extracted ${detected.length} colors from image.`,
+        type: "success"
       });
     } catch (err) {
       console.error("Color extraction error:", err);
@@ -363,7 +370,7 @@ export default function AdminProductFormPage() {
 
       // Fire and forget
       saveProduct(id, data, { name: formData.name });
-      
+
       // Navigate immediately
       navigate("/admin");
     } catch (error) {
@@ -711,8 +718,8 @@ export default function AdminProductFormPage() {
                       transition: "background 0.15s",
                     }}
                     onMouseEnter={(e) =>
-                      (e.currentTarget.style.background =
-                        "var(--color-surface)")
+                    (e.currentTarget.style.background =
+                      "var(--color-surface)")
                     }
                     onMouseLeave={(e) =>
                       (e.currentTarget.style.background = "none")
@@ -890,10 +897,10 @@ export default function AdminProductFormPage() {
 
               {/* ── Detected Colors Preview ── */}
               {isExtractingColors && (
-                <div style={{ 
-                  padding: "16px", 
-                  textAlign: "center", 
-                  background: "var(--color-surface)", 
+                <div style={{
+                  padding: "16px",
+                  textAlign: "center",
+                  background: "var(--color-surface)",
                   borderRadius: 12,
                   border: "1px dashed var(--color-border)",
                   marginTop: 12
@@ -913,19 +920,19 @@ export default function AdminProductFormPage() {
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
                     {formData.colors.map((c, i) => (
-                      <div key={c.hex + i} style={{ 
-                        display: "flex", 
-                        alignItems: "center", 
-                        gap: 10, 
-                        padding: "8px 10px", 
-                        background: "var(--color-surface)", 
+                      <div key={c.hex + i} style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "8px 10px",
+                        background: "var(--color-surface)",
                         borderRadius: 12,
                         border: "1.2px solid var(--color-border)"
                       }}>
-                        <div style={{ 
-                          width: 24, 
-                          height: 24, 
-                          borderRadius: "50%", 
+                        <div style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: "50%",
                           background: c.hex,
                           border: "1px solid rgba(0,0,0,0.1)",
                           flexShrink: 0
