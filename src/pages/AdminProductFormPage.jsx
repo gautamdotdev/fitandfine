@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useShop } from "../context/ShopContext";
+import { useShop, useAuth } from "../context/ShopContext";
+
 import { productApi } from "../lib/api";
 import { useToasts } from "../lib/store";
 import {
@@ -104,7 +105,10 @@ function SectionHead({ title, sub }) {
 export default function AdminProductFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { refreshProducts, isAdmin, products } = useShop();
+  const { isAdmin } = useAuth();
+  const { products, fetchProducts } = useShop();
+  const refreshProducts = () => fetchProducts();
+
   const pushToast = useToasts((s) => s.push);
   const [loading, setLoading] = useState(false);
   const dropRef = useRef(null);

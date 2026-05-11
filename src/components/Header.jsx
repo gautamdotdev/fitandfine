@@ -2,7 +2,8 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Search, Sun, Moon, ShoppingBag, Heart, Menu, X, ChevronDown, ChevronRight, ArrowUpRight } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useCart, useTheme, useWishlist } from "../lib/store.js";
-import { useShop } from "../context/ShopContext.jsx";
+import { useShop, useAuth } from "../context/ShopContext.jsx";
+
 
 const navLinks = [
   { to: "/", label: "Home" },
@@ -47,7 +48,9 @@ const navLinks = [
 ];
 
 export function Header() {
-  const { user, logout, products, isAdmin } = useShop();
+  const { user, logout, isAdmin } = useAuth();
+  const { products } = useShop();
+
   const [showUserMenu, setShowUserMenu] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();

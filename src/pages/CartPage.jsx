@@ -10,7 +10,8 @@ import {
   Truck,
 } from "lucide-react";
 import { useCart, useToasts } from "../lib/store.js";
-import { useShop } from "../context/ShopContext.jsx";
+import { useShop, useAuth } from "../context/ShopContext.jsx";
+
 import { useNavigate } from "react-router-dom";
 import { orderApi } from "../lib/api.js";
 import { CONTACT_NAME, WHATSAPP_NUMBER } from "../lib/products.js";
@@ -18,7 +19,7 @@ import { CONTACT_NAME, WHATSAPP_NUMBER } from "../lib/products.js";
 
 export default function CartPage() {
   const { items, remove, setQty, subtotal, count } = useCart();
-  const { token } = useShop();
+  const { token } = useAuth();
   const push = useToasts((s) => s.push);
   const navigate = useNavigate();
 

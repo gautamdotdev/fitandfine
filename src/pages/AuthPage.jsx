@@ -11,7 +11,8 @@ import {
   Phone,
 } from "lucide-react";
 import { useToasts } from "../lib/store.js";
-import { useShop } from "../context/ShopContext.jsx";
+import { useShop, useAuth } from "../context/ShopContext.jsx";
+
 import { authApi } from "../lib/api.js";
 
 function FloatingInput({
@@ -188,7 +189,7 @@ function LoginForm({ onSwitch }) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
-  const { login } = useShop();
+  const { login } = useAuth();
 
   const validate = () => {
     const e = {};

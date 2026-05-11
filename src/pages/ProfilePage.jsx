@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/ShopContext";
 import {
   User,
   Package,
@@ -1586,7 +1587,20 @@ function SettingsTab() {
 
 /* ── Main Profile Page ── */
 export default function ProfilePage() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [tab, setTab] = useState("orders");
+
+  const displayUser = {
+    ...USER,
+    name: user?.name || USER.name,
+    email: user?.email || USER.email,
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const tabs = [
@@ -1692,7 +1706,7 @@ export default function ProfilePage() {
                     textOverflow: "ellipsis",
                   }}
                 >
-                  {USER.name}
+                  {displayUser.name}
                 </h1>
                 <span
                   style={{
@@ -1707,7 +1721,7 @@ export default function ProfilePage() {
                     color: "white",
                   }}
                 >
-                  {USER.tier}
+                  {displayUser.tier}
                 </span>
               </div>
             </div>
@@ -1741,7 +1755,7 @@ export default function ProfilePage() {
                   lineHeight: 1.1,
                 }}
               >
-                {USER.points.toLocaleString("en-IN")}
+                {displayUser.points.toLocaleString("en-IN")}
               </p>
             </div>
           </div>
@@ -1773,7 +1787,7 @@ export default function ProfilePage() {
                   whiteSpace: "nowrap",
                 }}
               >
-                {USER.email}
+                {displayUser.email}
               </span>
             </span>
             <span
@@ -1786,7 +1800,7 @@ export default function ProfilePage() {
                 gap: "6px",
               }}
             >
-              <Calendar size={11} /> Member since {USER.joined}
+              <Calendar size={11} /> Member since {displayUser.joined}
             </span>
           </div>
         </div>
@@ -1804,12 +1818,12 @@ export default function ProfilePage() {
       >
         <StatTile
           label="Total Orders"
-          value={USER.totalOrders}
+          value={displayUser.totalOrders}
           sub="Since joining"
         />
         <StatTile
           label="Total Spent"
-          value={`₹${(USER.totalSpent / 1000).toFixed(1)}k`}
+          value={`₹${(displayUser.totalSpent / 1000).toFixed(1)}k`}
           sub="Lifetime value"
         />
         <StatTile label="Wishlist" value={WISHLIST.length} sub="Items saved" />
@@ -1839,7 +1853,7 @@ export default function ProfilePage() {
                   margin: "8px 0",
                 }}
               />
-              <NavItem icon={LogOut} label="Sign Out" danger />
+              <NavItem icon={LogOut} label="Sign Out" onClick={handleLogout} danger />
             </div>
           </Card>
         </aside>

@@ -1,14 +1,15 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const api = async (endpoint, options = {}) => {
+  // Read token inside function so it's always fresh
   const token = localStorage.getItem("token");
+  
   const headers = {
     "Content-Type": "application/json",
     ...(token && { Authorization: `Bearer ${token}` }),
     ...options.headers,
   };
 
-  // If body is FormData, don't set Content-Type (browser will set it with boundary)
   if (options.body instanceof FormData) {
     delete headers["Content-Type"];
   }
@@ -16,6 +17,7 @@ export const api = async (endpoint, options = {}) => {
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,
+    signal: options.signal, // Pass abort signal
   });
 
   const data = await response.json();
@@ -27,15 +29,28 @@ export const api = async (endpoint, options = {}) => {
   return data;
 };
 
-// Paginated & filterable fetch
+// Paginated & filterable fetch with cursor support
 export const fetchProducts = async ({
-  page = 1,
+  page,
+  cursor,
   limit = 20,
   filters = {},
+  signal,
 } = {}) => {
-  const params = new URLSearchParams({ page, limit, ...filters });
-  return api(`/products?${params.toString()}`);
+  const queryParams = { ...filters, limit };
+  if (cursor) queryParams.cursor = cursor;
+  if (page) queryParams.page = page;
+
+  const params = new URLSearchParams();
+  Object.entries(queryParams).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      params.append(key, value);
+    }
+  });
+
+  return api(`/products?${params.toString()}`, { signal });
 };
+
 
 export const productApi = {
   getAll: (params = {}) => fetchProducts(params),

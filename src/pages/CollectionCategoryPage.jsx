@@ -818,60 +818,111 @@ function FilterDrawer({
   );
 }
 
+// ─── Skeleton Components ──────────────────────────────────────────────────────
+
+function SkeletonCard() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      <div
+        style={{
+          aspectRatio: "3/4",
+          width: "100%",
+          borderRadius: "12px",
+          backgroundColor: "var(--color-surface)",
+          animation: "pulse 1.5s infinite ease-in-out",
+        }}
+      />
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+        <div
+          style={{
+            height: "16px",
+            width: "60%",
+            borderRadius: "4px",
+            backgroundColor: "var(--color-surface)",
+            animation: "pulse 1.5s infinite ease-in-out",
+          }}
+        />
+        <div
+          style={{
+            height: "14px",
+            width: "40%",
+            borderRadius: "4px",
+            backgroundColor: "var(--color-surface)",
+            animation: "pulse 1.5s infinite ease-in-out",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function CollectionCategoryPage() {
   const { category } = useParams();
-  const { products, loading, fetchProducts } = useShop();
-  const push = useToasts((s) => s.push);
-
-  // ── ALL HOOKS FIRST — never below any early return ──
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const { products, loading, fetchProducts, nextCursor, hasMore, total } = useShop();
+  
+  // ── ALL HOOKS FIRST ──
   const [initialLoad, setInitialLoad] = useState(true);
   const [applied, setApplied] = useState(DEFAULT_FILTERS);
   const [draft, setDraft] = useState(DEFAULT_FILTERS);
   const [sort, setSort] = useState("newest");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
+  
+  const fetchingRef = useRef(false);
+  const debounceTimerRef = useRef(null);
 
-  const fetchFiltered = useCallback(() => {
-    const filters = { category, minPrice: 500, maxPrice: applied.maxPrice };
-    fetchProducts({ page, limit: 20, filters, append: page > 1 }).then(
-      (data) => {
-        if (data?.products?.length < 20) setHasMore(false);
-        setInitialLoad(false);
-      },
-    );
-  }, [category, applied, page, fetchProducts]);
+  // 1. Debounced filter apply for price
+  const debouncedSetApplied = useCallback((newFilters) => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      setApplied(newFilters);
+    }, 300);
+  }, []);
 
+  const fetchFiltered = useCallback(async ({ cursor = null, append = false } = {}) => {
+    if (fetchingRef.current) return;
+    fetchingRef.current = true;
+    
+    try {
+      const filters = { 
+        category, 
+        minPrice: 500, 
+        maxPrice: applied.maxPrice,
+        sort: sort === "low" ? "price" : sort === "high" ? "-price" : sort === "best" ? "-rating" : "-createdAt"
+      };
+      
+      await fetchProducts({ cursor, filters, limit: 20, append });
+    } finally {
+      fetchingRef.current = false;
+      setInitialLoad(false);
+    }
+  }, [category, applied, sort, fetchProducts]);
+
+  // Reset and fetch on category/filter change
   useEffect(() => {
-    setPage(1);
-    setHasMore(true);
     setInitialLoad(true);
-  }, [category, applied]);
-
-  useEffect(() => {
-    fetchFiltered();
+    fetchFiltered({ cursor: null, append: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, applied, page]);
+  }, [category, applied, sort]);
 
+  // 2. Cursor-aware Infinite Scroll
   useEffect(() => {
     const handleScroll = () => {
       if (
-        window.innerHeight + window.scrollY >=
-          document.body.offsetHeight - 400 &&
+        window.innerHeight + window.scrollY >= document.body.offsetHeight - 600 &&
         hasMore &&
-        !loading
+        !loading &&
+        !fetchingRef.current
       ) {
-        setPage((p) => p + 1);
+        fetchFiltered({ cursor: nextCursor, append: true });
       }
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [hasMore, loading]);
+  }, [hasMore, loading, nextCursor, fetchFiltered]);
 
-  // ✅ useMemo BEFORE early return — this was the bug
   const filtered = useMemo(() => {
     let r = products.slice();
     if (applied.sizes.length)
@@ -880,14 +931,8 @@ export default function CollectionCategoryPage() {
       r = r.filter((p) =>
         p.colors?.some((c) => applied.colors.includes(c.name)),
       );
-    r = r.filter((p) => (p.salePrice ?? p.price) <= applied.maxPrice);
-    if (sort === "low")
-      r.sort((a, b) => (a.salePrice ?? a.price) - (b.salePrice ?? b.price));
-    if (sort === "high")
-      r.sort((a, b) => (b.salePrice ?? b.price) - (a.salePrice ?? a.price));
-    if (sort === "best") r.sort((a, b) => b.rating - a.rating);
     return r;
-  }, [products, applied, sort]);
+  }, [products, applied]);
 
   const activeChips = useMemo(
     () => [
@@ -917,13 +962,6 @@ export default function CollectionCategoryPage() {
   );
 
   const hasDraftChanges = JSON.stringify(draft) !== JSON.stringify(applied);
-
-  // ── Early returns AFTER all hooks ──
-  if (initialLoad && loading) {
-    return (
-      <div style={{ padding: "100px", textAlign: "center" }}>Loading...</div>
-    );
-  }
 
   // ── Handlers ──
   const title = products[0]?.category ?? category.replace("-", " ");
@@ -978,12 +1016,6 @@ export default function CollectionCategoryPage() {
             color: "inherit",
             transition: "color 0.2s",
           }}
-          onMouseEnter={(e) =>
-            (e.target.style.color = "var(--color-foreground)")
-          }
-          onMouseLeave={(e) =>
-            (e.target.style.color = "var(--color-muted-foreground)")
-          }
         >
           Home
         </Link>
@@ -995,12 +1027,6 @@ export default function CollectionCategoryPage() {
             color: "inherit",
             transition: "color 0.2s",
           }}
-          onMouseEnter={(e) =>
-            (e.target.style.color = "var(--color-foreground)")
-          }
-          onMouseLeave={(e) =>
-            (e.target.style.color = "var(--color-muted-foreground)")
-          }
         >
           Collections
         </Link>
@@ -1021,7 +1047,7 @@ export default function CollectionCategoryPage() {
             marginBottom: "10px",
           }}
         >
-          Men's {title}
+          {title}
         </h1>
         <div
           style={{
@@ -1038,7 +1064,7 @@ export default function CollectionCategoryPage() {
             <span style={{ fontWeight: 600, color: "var(--color-foreground)" }}>
               {filtered.length}
             </span>{" "}
-            of {products.length} products
+            products
           </p>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <button
@@ -1094,12 +1120,6 @@ export default function CollectionCategoryPage() {
           ))}
           <button
             onClick={resetAll}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.color = "var(--color-foreground)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = "var(--color-muted-foreground)")
-            }
             style={{
               fontSize: "11px",
               fontWeight: 600,
@@ -1111,7 +1131,6 @@ export default function CollectionCategoryPage() {
               cursor: "pointer",
               padding: "4px 8px",
               fontFamily: "inherit",
-              transition: "color 0.2s",
             }}
           >
             Clear all
@@ -1123,7 +1142,15 @@ export default function CollectionCategoryPage() {
       <div className="ccp-layout">
         <FilterSidebar
           draft={draft}
-          setDraft={setDraft}
+          setDraft={(update) => {
+            setDraft((prev) => {
+              const next = typeof update === "function" ? update(prev) : update;
+              if (next.maxPrice !== prev.maxPrice) {
+                debouncedSetApplied(next);
+              }
+              return next;
+            });
+          }}
           hasDraftChanges={hasDraftChanges}
           onApply={applyFilters}
           onReset={resetDraft}
@@ -1131,44 +1158,27 @@ export default function CollectionCategoryPage() {
 
         <div>
           <div className="ccp-grid">
-            {filtered.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
+            {/* 3. Loading skeleton logic */}
+            {initialLoad && loading ? (
+              Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)
+            ) : (
+              <>
+                {filtered.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+                {loading && Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
+              </>
+            )}
           </div>
 
-          {filtered.length === 0 && (
+          {!loading && filtered.length === 0 && (
             <div style={{ textAlign: "center", padding: "80px 0" }}>
               <p style={{ fontSize: "32px", marginBottom: "12px" }}>🔍</p>
-              <p
-                style={{
-                  fontSize: "16px",
-                  fontFamily: "var(--font-serif)",
-                  marginBottom: "8px",
-                }}
-              >
-                No products found
-              </p>
-              <p
-                style={{
-                  fontSize: "13px",
-                  color: "var(--color-muted-foreground)",
-                  marginBottom: "24px",
-                }}
-              >
-                Try adjusting your filters
-              </p>
+              <p style={{ fontSize: "16px", fontFamily: "var(--font-serif)" }}>No products found</p>
               <button
                 onClick={resetAll}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    "var(--color-foreground)";
-                  e.currentTarget.style.color = "var(--color-background)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                  e.currentTarget.style.color = "var(--color-foreground)";
-                }}
                 style={{
+                  marginTop: "24px",
                   padding: "10px 24px",
                   borderRadius: "8px",
                   border: "1.5px solid var(--color-foreground)",
@@ -1177,8 +1187,6 @@ export default function CollectionCategoryPage() {
                   fontSize: "12px",
                   fontWeight: 600,
                   cursor: "pointer",
-                  fontFamily: "inherit",
-                  transition: "all 0.2s",
                 }}
               >
                 Clear Filters
@@ -1186,42 +1194,38 @@ export default function CollectionCategoryPage() {
             </div>
           )}
 
-          {filtered.length > 0 && (
-            <div style={{ textAlign: "center", marginTop: "56px" }}>
+          {hasMore && filtered.length > 0 && (
+            <div style={{ textAlign: "center", marginTop: "64px" }}>
               <button
-                onClick={() =>
-                  push({ type: "info", message: "No more products to load" })
-                }
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.borderColor =
-                    "var(--color-foreground)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.borderColor = "var(--color-border)")
-                }
+                onClick={() => fetchFiltered({ cursor: nextCursor, append: true })}
+                disabled={loading}
                 style={{
-                  padding: "12px 40px",
-                  borderRadius: "10px",
-                  border: "1.5px solid var(--color-border)",
-                  background: "transparent",
-                  color: "var(--color-foreground)",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
+                  padding: "14px 48px",
+                  borderRadius: "14px",
+                  border: "none",
+                  backgroundColor: "var(--color-foreground)",
+                  color: "var(--color-background)",
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  letterSpacing: "0.05em",
+                  cursor: loading ? "not-allowed" : "pointer",
                   transition: "all 0.2s",
+                  opacity: loading ? 0.6 : 1,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
+                onMouseEnter={(e) => { if (!loading) e.currentTarget.style.transform = "translateY(-2px)"; }}
+                onMouseLeave={(e) => { if (!loading) e.currentTarget.style.transform = "translateY(0)"; }}
               >
-                Load More
+                {loading ? "Loading..." : "Load More Products"}
               </button>
+              <p style={{ marginTop: "20px", fontSize: "12px", color: "var(--color-muted-foreground)", fontWeight: 500 }}>
+                Showing {filtered.length} of {total} products
+              </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Mobile Drawer */}
       <FilterDrawer
         open={drawerOpen}
         visible={drawerVisible}
@@ -1234,25 +1238,10 @@ export default function CollectionCategoryPage() {
       />
 
       <style>{`
-        .ccp-layout {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 0;
-        }
+        .ccp-layout { display: grid; grid-template-columns: 1fr; gap: 0; }
         .ccp-sidebar { display: none; }
-        .ccp-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 20px;
-        }
+        .ccp-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
         .ccp-filter-btn { display: flex !important; }
-
-        @media (min-width: 480px) {
-          .ccp-grid { gap: 24px; }
-        }
-        @media (min-width: 768px) {
-          .ccp-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; }
-        }
         @media (min-width: 1024px) {
           .ccp-layout { grid-template-columns: 260px 1fr; gap: 48px; }
           .ccp-sidebar { display: block !important; }
@@ -1262,11 +1251,13 @@ export default function CollectionCategoryPage() {
         @media (min-width: 1280px) {
           .ccp-grid { grid-template-columns: repeat(4, 1fr); }
         }
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(6px); }
-          to   { opacity: 1; transform: translateY(0); }
+        @keyframes pulse {
+          0% { opacity: 0.6; }
+          50% { opacity: 1; }
+          100% { opacity: 0.6; }
         }
       `}</style>
     </div>
   );
 }
+
