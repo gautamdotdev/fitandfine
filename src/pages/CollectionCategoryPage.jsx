@@ -55,7 +55,7 @@ const SORT_OPTIONS = [
   { value: "best", label: "Best Rated" },
 ];
 
-const DEFAULT_FILTERS = { sizes: [], colors: [], maxPrice: 10000 };
+const DEFAULT_FILTERS = { sizes: [], colors: [], minPrice: 0, maxPrice: 10000 };
 
 // ─── SizeBtn ─────────────────────────────────────────────────────────────────
 
@@ -543,30 +543,30 @@ function FilterSidebar({ draft, setDraft, hasDraftChanges, onApply, onReset }) {
           {(draft.sizes.length > 0 ||
             draft.colors.length > 0 ||
             draft.maxPrice < 10000) && (
-            <button
-              onClick={onReset}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.color = "var(--color-foreground)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.color = "var(--color-muted-foreground)")
-              }
-              style={{
-                fontSize: "11px",
-                color: "var(--color-muted-foreground)",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                textDecoration: "underline",
-                textUnderlineOffset: "3px",
-                fontFamily: "inherit",
-                padding: 0,
-                transition: "color 0.2s",
-              }}
-            >
-              Reset
-            </button>
-          )}
+              <button
+                onClick={onReset}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.color = "var(--color-foreground)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.color = "var(--color-muted-foreground)")
+                }
+                style={{
+                  fontSize: "11px",
+                  color: "var(--color-muted-foreground)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  textUnderlineOffset: "3px",
+                  fontFamily: "inherit",
+                  padding: 0,
+                  transition: "color 0.2s",
+                }}
+              >
+                Reset
+              </button>
+            )}
         </div>
 
         <FilterPanel draft={draft} setDraft={setDraft} />
@@ -695,19 +695,19 @@ function FilterDrawer({
             {(draft.sizes.length > 0 ||
               draft.colors.length > 0 ||
               draft.maxPrice < 10000) && (
-              <p
-                style={{
-                  fontSize: "11px",
-                  color: "var(--color-muted-foreground)",
-                  marginTop: "4px",
-                }}
-              >
-                {draft.sizes.length +
-                  draft.colors.length +
-                  (draft.maxPrice < 10000 ? 1 : 0)}{" "}
-                selected
-              </p>
-            )}
+                <p
+                  style={{
+                    fontSize: "11px",
+                    color: "var(--color-muted-foreground)",
+                    marginTop: "4px",
+                  }}
+                >
+                  {draft.sizes.length +
+                    draft.colors.length +
+                    (draft.maxPrice < 10000 ? 1 : 0)}{" "}
+                  selected
+                </p>
+              )}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <button
@@ -862,7 +862,7 @@ function SkeletonCard() {
 export default function CollectionCategoryPage() {
   const { category } = useParams();
   const { products, loading, fetchProducts, nextCursor, hasMore, total } = useShop();
-  
+
   // ── ALL HOOKS FIRST ──
   const [initialLoad, setInitialLoad] = useState(true);
   const [applied, setApplied] = useState(DEFAULT_FILTERS);
@@ -870,7 +870,7 @@ export default function CollectionCategoryPage() {
   const [sort, setSort] = useState("newest");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
-  
+
   const fetchingRef = useRef(false);
   const debounceTimerRef = useRef(null);
 
@@ -885,15 +885,15 @@ export default function CollectionCategoryPage() {
   const fetchFiltered = useCallback(async ({ cursor = null, append = false } = {}) => {
     if (fetchingRef.current) return;
     fetchingRef.current = true;
-    
+
     try {
-      const filters = { 
-        category, 
-        minPrice: 0, 
+      const filters = {
+        category,
+        minPrice: 0,
         maxPrice: applied.maxPrice,
         sort: sort === "low" ? "price" : sort === "high" ? "-price" : sort === "best" ? "-rating" : "-createdAt"
       };
-      
+
       await fetchProducts({ cursor, filters, limit: 20, append });
     } finally {
       fetchingRef.current = false;
@@ -952,11 +952,11 @@ export default function CollectionCategoryPage() {
       })),
       ...(applied.maxPrice < 10000
         ? [
-            {
-              label: `Under ₹${applied.maxPrice.toLocaleString("en-IN")}`,
-              clear: () => setApplied((a) => ({ ...a, maxPrice: 10000 })),
-            },
-          ]
+          {
+            label: `Under ₹${applied.maxPrice.toLocaleString("en-IN")}`,
+            clear: () => setApplied((a) => ({ ...a, maxPrice: 10000 })),
+          },
+        ]
         : []),
     ],
     [applied],
@@ -966,7 +966,7 @@ export default function CollectionCategoryPage() {
 
   // ── Handlers ──
   const categoryData = categories.find(c => c.slug === category);
-  const title = products[0]?.category ?? categoryData?.name ?? (category ? category.charAt(0).toUpperCase() + category.slice(1).replace(/-/g, " ") : "");
+  const title = categoryData?.name || (category ? category.charAt(0).toUpperCase() + category.slice(1).replace(/-/g, " ") : "");
 
   const openDrawer = () => {
     setDraft({ ...applied });
