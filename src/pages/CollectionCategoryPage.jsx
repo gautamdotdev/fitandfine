@@ -889,7 +889,7 @@ export default function CollectionCategoryPage() {
     try {
       const filters = { 
         category, 
-        minPrice: 500, 
+        minPrice: 0, 
         maxPrice: applied.maxPrice,
         sort: sort === "low" ? "price" : sort === "high" ? "-price" : sort === "best" ? "-rating" : "-createdAt"
       };

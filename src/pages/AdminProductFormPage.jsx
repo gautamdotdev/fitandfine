@@ -382,6 +382,9 @@ export default function AdminProductFormPage() {
     if (!formData.category) newErrors.category = "Please select a category";
     if (!formData.price || formData.price <= 0) newErrors.price = "Valid price is required";
     if (formData.stock < 0) newErrors.stock = "Stock cannot be negative";
+    if (formData.salePrice && Number(formData.salePrice) >= Number(formData.price)) {
+      newErrors.salePrice = "Sale price must be lower than regular price";
+    }
     if (formData.sizes.length === 0) newErrors.sizes = "Select at least one size";
     if (previews.length === 0) newErrors.images = "At least one product image is required";
 
