@@ -181,19 +181,35 @@ export default function AdminProductFormPage() {
     }));
   };
 
+  // Add color with auto-generated name if missing
   const addColor = () =>
-    setFormData((prev) => ({
-      ...prev,
-      colors: [...prev.colors, { name: "", hex: "#000000" }],
-    }));
+    setFormData((prev) => {
+      // Try to generate a name if possible
+      const hex = "#000000";
+      let name = "";
+      // Optionally, generate a name from hex (simple fallback)
+      if (prev.colors.some((c) => c.hex === hex)) {
+        name = `Color ${prev.colors.length + 1}`;
+      }
+      return {
+        ...prev,
+        colors: [...prev.colors, { name, hex }],
+      };
+    });
   const removeColor = (i) =>
     setFormData((prev) => ({
       ...prev,
       colors: prev.colors.filter((_, idx) => idx !== i),
     }));
+  // Require color name or auto-generate if empty
   const updateColor = (i, field, val) => {
     const c = [...formData.colors];
-    c[i][field] = val;
+    if (field === "name" && val.trim() === "") {
+      // Auto-generate name from hex if empty
+      c[i][field] = `Color ${i + 1}`;
+    } else {
+      c[i][field] = val;
+    }
     setFormData((prev) => ({ ...prev, colors: c }));
   };
 

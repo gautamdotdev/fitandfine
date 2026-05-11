@@ -4,7 +4,9 @@ import { useCart, useToasts, useWishlist } from "../lib/store.js";
 import { useState } from "react";
 
 export function ProductCard({ product, badge }) {
-  const wished = useWishlist((s) => s.ids.includes(product.id) || s.ids.includes(product._id));
+  const wished = useWishlist(
+    (s) => s.ids.includes(product.id) || s.ids.includes(product._id),
+  );
   const toggleWish = useWishlist((s) => s.toggle);
   const add = useCart((s) => s.add);
   const push = useToasts((s) => s.push);
@@ -39,7 +41,11 @@ export function ProductCard({ product, badge }) {
           }}
         >
           <img
-            src={product.images?.[0]?.url || product.images?.[0] || "https://via.placeholder.com/400x500?text=No+Image"}
+            src={
+              product.images?.[0]?.url ||
+              product.images?.[0] ||
+              "https://via.placeholder.com/400x500?text=No+Image"
+            }
             alt={product.name}
             style={{
               width: "100%",
@@ -52,7 +58,13 @@ export function ProductCard({ product, badge }) {
             loading="lazy"
           />
           <img
-            src={product.images?.[1]?.url || product.images?.[0]?.url || product.images?.[1] || product.images?.[0] || "https://via.placeholder.com/400x500?text=No+Image"}
+            src={
+              product.images?.[1]?.url ||
+              product.images?.[0]?.url ||
+              product.images?.[1] ||
+              product.images?.[0] ||
+              "https://via.placeholder.com/400x500?text=No+Image"
+            }
             alt=""
             style={{
               position: "absolute",
@@ -145,23 +157,41 @@ export function ProductCard({ product, badge }) {
           transition: "all 0.4s",
           zIndex: 30,
           cursor: "pointer",
-          backgroundColor: wished ? "var(--color-destructive)" : "rgba(255,255,255,0.95)",
+          backgroundColor: wished
+            ? "var(--color-destructive)"
+            : "rgba(255,255,255,0.95)",
           color: wished ? "white" : "var(--color-foreground)",
           transform: wished ? "scale(1.1)" : "scale(1)",
           boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
           border: "none",
         }}
       >
-        <Heart size={14} style={{ fill: wished ? "white" : "none" }} strokeWidth={2} />
+        <Heart
+          size={14}
+          style={{ fill: wished ? "white" : "none" }}
+          strokeWidth={2}
+        />
       </button>
 
       {/* Info */}
       <div style={{ padding: "14px 14px 16px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: "8px",
+          }}
+        >
           <div style={{ flex: 1, minWidth: 0 }}>
             <p
               className="label-caps"
-              style={{ fontSize: "9px", color: "var(--color-gold)", fontWeight: 700, letterSpacing: "0.18em" }}
+              style={{
+                fontSize: "9px",
+                color: "var(--color-gold)",
+                fontWeight: 700,
+                letterSpacing: "0.18em",
+              }}
             >
               {product.category}
             </p>
@@ -180,7 +210,9 @@ export function ProductCard({ product, badge }) {
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                 }}
-                onMouseEnter={(e) => (e.target.style.color = "var(--color-gold)")}
+                onMouseEnter={(e) =>
+                  (e.target.style.color = "var(--color-gold)")
+                }
                 onMouseLeave={(e) => (e.target.style.color = "")}
               >
                 {product.name}
@@ -188,13 +220,33 @@ export function ProductCard({ product, badge }) {
             </Link>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", flexShrink: 0 }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              flexShrink: 0,
+            }}
+          >
             {onSale ? (
               <>
-                <span style={{ fontWeight: 700, fontSize: "13px", color: "var(--color-gold)" }}>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    fontSize: "13px",
+                    color: "var(--color-gold)",
+                  }}
+                >
                   ₹{product.salePrice.toLocaleString("en-IN")}
                 </span>
-                <span style={{ fontSize: "10px", color: "var(--color-muted-foreground)", textDecoration: "line-through", opacity: 0.6 }}>
+                <span
+                  style={{
+                    fontSize: "10px",
+                    color: "var(--color-muted-foreground)",
+                    textDecoration: "line-through",
+                    opacity: 0.6,
+                  }}
+                >
                   ₹{product.price.toLocaleString("en-IN")}
                 </span>
               </>
@@ -206,9 +258,65 @@ export function ProductCard({ product, badge }) {
           </div>
         </div>
 
-        <p style={{ fontSize: "10px", color: "var(--color-muted-foreground)", marginTop: "4px", opacity: 0.7, fontStyle: "italic" }}>
+        <p
+          style={{
+            fontSize: "10px",
+            color: "var(--color-muted-foreground)",
+            marginTop: "4px",
+            opacity: 0.7,
+            fontStyle: "italic",
+          }}
+        >
           {product.fabric}
         </p>
+
+        {/* Color Swatches */}
+        {Array.isArray(product.colors) && product.colors.length > 0 && (
+          <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+            {product.colors.map((color) => (
+              <button
+                key={color._id || color.hex || color.name}
+                title={color.name || color.hex}
+                style={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: "50%",
+                  backgroundColor: color.hex,
+                  border: "1.5px solid var(--color-border)",
+                  cursor: "pointer",
+                  outline: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  position: "relative",
+                }}
+                tabIndex={-1}
+              >
+                {/* Show color name below swatch on hover (tooltip alternative) */}
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "110%",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    background: "rgba(0,0,0,0.7)",
+                    color: "#fff",
+                    fontSize: 10,
+                    padding: "2px 6px",
+                    borderRadius: 6,
+                    whiteSpace: "nowrap",
+                    opacity: 0,
+                    pointerEvents: "none",
+                    transition: "opacity 0.2s",
+                  }}
+                  className="product-card-color-tooltip"
+                >
+                  {color.name || color.hex || "Color"}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <style>{`

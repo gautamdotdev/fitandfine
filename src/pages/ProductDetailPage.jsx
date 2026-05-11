@@ -483,7 +483,6 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error_msg, setErrorMsg] = useState("");
 
-
   const [imgIdx, setImgIdx] = useState(0);
   const [size, setSize] = useState(null);
   const [color, setColor] = useState("");
@@ -499,14 +498,13 @@ export default function ProductDetailPage() {
   const { ids, toggle, has } = useWishlist();
   const [copied, setCopied] = useState(false);
 
-
   const add = useCart((s) => s.add);
   const push = useToasts((s) => s.push);
 
   useEffect(() => {
     const fetchProduct = async () => {
       // Try finding in current context first
-      const found = products.find(p => p.slug === slug || p._id === slug);
+      const found = products.find((p) => p.slug === slug || p._id === slug);
       if (found) {
         setProduct(found);
         setLoading(false);
@@ -537,11 +535,15 @@ export default function ProductDetailPage() {
     }
   }, [product]);
 
-  if (loading || shopLoading) return <div style={{ padding: '100px', textAlign: 'center' }}>Loading product details...</div>;
+  if (loading || shopLoading)
+    return (
+      <div style={{ padding: "100px", textAlign: "center" }}>
+        Loading product details...
+      </div>
+    );
   if (!product) return <Navigate to="/not-found" replace />;
 
   const isWishlisted = has(product.id || product._id);
-
 
   const price = product.salePrice ?? product.price;
   const discount = product.salePrice
@@ -549,7 +551,10 @@ export default function ProductDetailPage() {
     : null;
   const related = products
     .filter(
-      (p) => p._id !== product._id && (p.categorySlug === product.categorySlug || p.category === product.category),
+      (p) =>
+        p._id !== product._id &&
+        (p.categorySlug === product.categorySlug ||
+          p.category === product.category),
     )
     .slice(0, 4);
 
@@ -645,7 +650,7 @@ export default function ProductDetailPage() {
         </Link>
         <ChevronRight size={11} />
         <Link
-          to={`/collections/${product.categorySlug || 't-shirts'}`}
+          to={`/collections/${product.categorySlug || "t-shirts"}`}
           style={{
             textDecoration: "none",
             color: "inherit",
@@ -1027,8 +1032,8 @@ export default function ProductDetailPage() {
                   (e.currentTarget.style.color = "var(--color-foreground)")
                 }
                 onMouseLeave={(e) =>
-                (e.currentTarget.style.color =
-                  "var(--color-muted-foreground)")
+                  (e.currentTarget.style.color =
+                    "var(--color-muted-foreground)")
                 }
               >
                 Size Guide
@@ -1115,47 +1120,84 @@ export default function ProductDetailPage() {
                   letterSpacing: "0",
                 }}
               >
-                {color}
+                {color || "Select"}
               </span>
             </p>
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-              {product.colors.map((c) => {
-                const isLight = ["#F5F5F0", "#FFFFF0", "#C8B99A"].includes(
-                  c.hex,
-                );
-                const active = color === c.name;
-                return (
-                  <button
-                    key={c.name}
-                    onClick={() => setColor(c.name)}
-                    title={c.name}
-                    style={{
-                      width: "34px",
-                      height: "34px",
-                      borderRadius: "50%",
-                      backgroundColor: c.hex,
-                      border: isLight
-                        ? "1.5px solid var(--color-border)"
-                        : "1.5px solid transparent",
-                      outline: active
-                        ? "2.5px solid var(--color-foreground)"
-                        : "2px solid transparent",
-                      outlineOffset: "2px",
-                      cursor: "pointer",
-                      transition: "all 0.2s",
-                      transform: active ? "scale(1.18)" : "scale(1)",
-                      boxShadow: active ? "0 2px 8px rgba(0,0,0,0.2)" : "none",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!active)
-                        e.currentTarget.style.transform = "scale(1.1)";
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!active) e.currentTarget.style.transform = "scale(1)";
-                    }}
-                  />
-                );
-              })}
+              {Array.isArray(product.colors) && product.colors.length > 0 ? (
+                product.colors.map((c) => {
+                  const isLight = ["#F5F5F0", "#FFFFF0", "#C8B99A"].includes(
+                    c.hex,
+                  );
+                  const active = color === (c.name || c.hex);
+                  return (
+                    <button
+                      key={c._id || c.hex || c.name}
+                      onClick={() => setColor(c.name || c.hex)}
+                      title={c.name || c.hex}
+                      style={{
+                        width: "34px",
+                        height: "34px",
+                        borderRadius: "50%",
+                        backgroundColor: c.hex,
+                        border: isLight
+                          ? "1.5px solid var(--color-border)"
+                          : "1.5px solid transparent",
+                        outline: active
+                          ? "2.5px solid var(--color-foreground)"
+                          : "2px solid transparent",
+                        outlineOffset: "2px",
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                        transform: active ? "scale(1.18)" : "scale(1)",
+                        boxShadow: active
+                          ? "0 2px 8px rgba(0,0,0,0.2)"
+                          : "none",
+                        position: "relative",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!active)
+                          e.currentTarget.style.transform = "scale(1.1)";
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!active)
+                          e.currentTarget.style.transform = "scale(1)";
+                      }}
+                    >
+                      {/* Show color name below swatch on hover */}
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: "110%",
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          background: "rgba(0,0,0,0.7)",
+                          color: "#fff",
+                          fontSize: 10,
+                          padding: "2px 6px",
+                          borderRadius: 6,
+                          whiteSpace: "nowrap",
+                          opacity: 0,
+                          pointerEvents: "none",
+                          transition: "opacity 0.2s",
+                        }}
+                        className="product-detail-color-tooltip"
+                      >
+                        {c.name || c.hex || "Color"}
+                      </span>
+                    </button>
+                  );
+                })
+              ) : (
+                <span
+                  style={{
+                    color: "var(--color-muted-foreground)",
+                    fontSize: 12,
+                  }}
+                >
+                  No colors
+                </span>
+              )}
             </div>
           </div>
 
