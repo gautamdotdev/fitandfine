@@ -11,7 +11,6 @@ import {
 import { ProductCard } from "../components/ProductCard.jsx";
 import { SkeletonBox, SkeletonProductCard } from "../components/Skeleton.jsx";
 
-
 function HomePageSkeleton() {
   return (
     <div className="page-transition">
@@ -54,29 +53,6 @@ function HomePageSkeleton() {
             borderRadius="0"
             style={{ position: "absolute", inset: 0 }}
           />
-        </div>
-      </section>
-
-      {/* CATEGORIES skeleton */}
-      <section
-        style={{ maxWidth: "1400px", margin: "0 auto", padding: "40px 20px" }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)",
-            gap: "16px",
-          }}
-          className="categories-grid"
-        >
-          {Array.from({ length: 4 }).map((_, i) => (
-            <SkeletonBox
-              key={i}
-              height="0"
-              borderRadius="8px"
-              style={{ aspectRatio: "3/4", height: "auto" }}
-            />
-          ))}
         </div>
       </section>
 
@@ -201,7 +177,6 @@ function HomePageSkeleton() {
   );
 }
 
-
 export default function HomePage() {
   const { products, loading, fetchProducts } = useShop();
   const [page, setPage] = useState(1);
@@ -235,27 +210,6 @@ export default function HomePage() {
 
   const featured = products.filter((p) => p.isBestseller);
   const newArrivals = products.filter((p) => p.newArrival);
-
-  const testimonials = [
-    {
-      name: "Arjun M.",
-      rating: 5,
-      text: "The fabric quality is genuinely exceptional. The linen shirt has become a wardrobe staple — and the packaging felt like an experience.",
-      initials: "AM",
-    },
-    {
-      name: "Rohan S.",
-      rating: 5,
-      text: "Finally a menswear brand that understands restraint. Quiet, considered pieces that feel made for me. Will be back.",
-      initials: "RS",
-    },
-    {
-      name: "Vikram K.",
-      rating: 4,
-      text: "Beautiful tailoring on the trousers. Fit is true to size and the wool blend feels premium without being heavy.",
-      initials: "VK",
-    },
-  ];
 
   return (
     <div className="page-transition">
@@ -377,9 +331,9 @@ export default function HomePage() {
 
       {/* FEATURED */}
       <section
-        style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 5px" }}
+        style={{ maxWidth: "1400px", margin: "0 auto", padding: "30px 5px" }}
       >
-        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+        <div style={{ textAlign: "center", marginBottom: "10px" }}>
           <p
             className="label-caps"
             style={{ color: "var(--color-gold)", marginBottom: "12px" }}
@@ -526,7 +480,7 @@ export default function HomePage() {
             display: "flex",
             alignItems: "flex-end",
             justifyContent: "space-between",
-            marginBottom: "40px",
+            marginBottom: "10px",
           }}
         >
           <div>

@@ -798,42 +798,15 @@ export default function AuthPage() {
       <div
         ref={formRef}
         style={{
-          flex: 1,
-          display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          padding: "clamp(24px, 5vw, 64px)",
+          padding: "clamp(0px, 3vw, 64px)",
           overflowY: "auto",
           maxWidth: "560px",
           margin: "0 auto",
           width: "100%",
         }}
       >
-        <div style={{ marginBottom: "40px" }}>
-          <Link
-            to="/"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              fontSize: "12px",
-              fontWeight: 600,
-              color: "var(--color-muted-foreground)",
-              textDecoration: "none",
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              transition: "color 0.2s",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.color = "var(--color-foreground)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = "var(--color-muted-foreground)")
-            }
-          >
-            ← Back to store
-          </Link>
-        </div>
         <div key={mode}>
           {mode === "login" ? (
             <LoginForm onSwitch={() => switchMode("register")} />
