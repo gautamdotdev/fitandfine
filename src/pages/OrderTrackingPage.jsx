@@ -179,13 +179,21 @@ export default function OrderTrackingPage() {
                             </div>
                             <div style={{ textAlign: "right" }}>
                                 <h3 className="ot-info-title">Order Summary</h3>
-                                <div style={{ display: "flex", justifyContent: "flex-end", gap: 16, marginBottom: 8 }}>
-                                    <span style={{ color: "var(--color-muted-foreground)", fontSize: 14 }}>Subtotal:</span>
-                                    <span style={{ fontWeight: 600 }}>₹{order.total?.toLocaleString("en-IN")}</span>
-                                </div>
-                                <div style={{ display: "flex", justifyContent: "flex-end", gap: 16, borderTop: "1px solid var(--color-border)", paddingTop: 12 }}>
-                                    <span style={{ color: "var(--color-foreground)", fontWeight: 700, fontSize: 18 }}>Total Paid:</span>
-                                    <span style={{ fontWeight: 900, fontSize: 18 }}>₹{order.total?.toLocaleString("en-IN")}</span>
+                                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 16 }}>
+                                        <span style={{ color: "var(--color-muted-foreground)", fontSize: 13 }}>Subtotal:</span>
+                                        <span style={{ fontWeight: 600, fontSize: 13 }}>₹{(order.subtotal || (order.total - (order.shippingCost || 0))).toLocaleString("en-IN")}</span>
+                                    </div>
+                                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 16 }}>
+                                        <span style={{ color: "var(--color-muted-foreground)", fontSize: 13 }}>Shipping:</span>
+                                        <span style={{ fontWeight: 600, fontSize: 13 }}>
+                                            {order.shippingCost === 0 ? "FREE" : `₹${(order.shippingCost || (order.total > 2999 ? 0 : 250)).toLocaleString("en-IN")}`}
+                                        </span>
+                                    </div>
+                                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 16, borderTop: "1px solid var(--color-border)", paddingTop: 12, marginTop: 4 }}>
+                                        <span style={{ color: "var(--color-foreground)", fontWeight: 700, fontSize: 16 }}>Total Paid:</span>
+                                        <span style={{ fontWeight: 900, fontSize: 18 }}>₹{order.total?.toLocaleString("en-IN")}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>

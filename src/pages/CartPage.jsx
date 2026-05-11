@@ -48,6 +48,8 @@ export default function CartPage() {
 
       const data = await orderApi.create({
         items: mappedItems,
+        subtotal: total,
+        shippingCost: shipping,
         total: grandTotal,
       });
 
@@ -58,7 +60,9 @@ export default function CartPage() {
             `${n + 1}. ${i.name} (Size ${i.size}, ${i.color}) — ₹${i.price.toLocaleString("en-IN")} x${i.qty}`,
         )
         .join("\n");
-      const text = `Hi ${CONTACT_NAME}, I'd like to order the following:\n${lines}\nTotal: ₹${grandTotal.toLocaleString("en-IN")}\nOrder details: ${data.orderLink}\nPlease confirm availability.`;
+      
+      const breakdown = `Subtotal: ₹${total.toLocaleString("en-IN")}\nShipping: ${shipping === 0 ? "FREE" : `₹${shipping.toLocaleString("en-IN")}`}\nTotal: ₹${grandTotal.toLocaleString("en-IN")}`;
+      const text = `Hi ${CONTACT_NAME}, I'd like to order the following:\n${lines}\n\n${breakdown}\n\nOrder details: ${data.orderLink}\nPlease confirm availability.`;
       const waUrl = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(text)}`;
       
       // Clear cart
