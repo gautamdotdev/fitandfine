@@ -1,5 +1,12 @@
-import { useMemo, useState, useRef, useEffect } from "react";
-import { Link, useParams, Navigate } from "react-router-dom";
+/**
+ * CollectionCategoryPage.jsx — single file, fully merged
+ *
+ * BUG FIX: ALL hooks now run BEFORE any early return.
+ * Previously useMemo was after `if (initialLoad && loading) return` → crash.
+ */
+
+import { useMemo, useState, useRef, useEffect, useCallback } from "react";
+import { Link, useParams } from "react-router-dom";
 import {
   ChevronRight,
   X,
@@ -10,6 +17,8 @@ import {
 import { useShop } from "../context/ShopContext.jsx";
 import { ProductCard } from "../components/ProductCard.jsx";
 import { useToasts } from "../lib/store.js";
+
+// ─── Constants ───────────────────────────────────────────────────────────────
 
 const ALL_SIZES = [
   "XS",
@@ -24,6 +33,7 @@ const ALL_SIZES = [
   "34",
   "36",
 ];
+
 const COLORS = [
   { name: "White", hex: "#F5F5F0" },
   { name: "Black", hex: "#1A1A1A" },
@@ -36,6 +46,7 @@ const COLORS = [
   { name: "Ivory", hex: "#FFFFF0" },
   { name: "Stone", hex: "#928E85" },
 ];
+
 const SORT_OPTIONS = [
   { value: "newest", label: "Newest First" },
   { value: "low", label: "Price: Low → High" },
@@ -43,7 +54,10 @@ const SORT_OPTIONS = [
   { value: "best", label: "Best Rated" },
 ];
 
-/* ── Custom Size Button ── */
+const DEFAULT_FILTERS = { sizes: [], colors: [], maxPrice: 10000 };
+
+// ─── SizeBtn ─────────────────────────────────────────────────────────────────
+
 function SizeBtn({ size, active, onClick }) {
   const [hov, setHov] = useState(false);
   return (
@@ -56,7 +70,7 @@ function SizeBtn({ size, active, onClick }) {
         height: "40px",
         padding: "0 10px",
         borderRadius: "8px",
-        border: `1.5px solid ${active ? "var(--color-foreground)" : hov ? "var(--color-foreground)" : "var(--color-border)"}`,
+        border: `1.5px solid ${active || hov ? "var(--color-foreground)" : "var(--color-border)"}`,
         backgroundColor: active ? "var(--color-foreground)" : "transparent",
         color: active ? "var(--color-background)" : "var(--color-foreground)",
         fontSize: "11px",
@@ -72,7 +86,8 @@ function SizeBtn({ size, active, onClick }) {
   );
 }
 
-/* ── Custom Color Swatch ── */
+// ─── ColorSwatch ─────────────────────────────────────────────────────────────
+
 function ColorSwatch({ color, active, onClick }) {
   const [hov, setHov] = useState(false);
   const isLight = ["White", "Ivory", "Ecru"].includes(color.name);
@@ -90,7 +105,7 @@ function ColorSwatch({ color, active, onClick }) {
         border: active
           ? "2.5px solid var(--color-foreground)"
           : isLight
-            ? `1.5px solid var(--color-border)`
+            ? "1.5px solid var(--color-border)"
             : "2px solid transparent",
         outline: active
           ? "2px solid var(--color-background)"
@@ -107,7 +122,8 @@ function ColorSwatch({ color, active, onClick }) {
   );
 }
 
-/* ── Custom Range Slider ── */
+// ─── RangeSlider ─────────────────────────────────────────────────────────────
+
 function RangeSlider({ min, max, step, value, onChange }) {
   const pct = ((value - min) / (max - min)) * 100;
   return (
@@ -170,7 +186,8 @@ function RangeSlider({ min, max, step, value, onChange }) {
   );
 }
 
-/* ── Custom Select ── */
+// ─── CustomSelect ─────────────────────────────────────────────────────────────
+
 function CustomSelect({ value, onChange, options }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -188,6 +205,12 @@ function CustomSelect({ value, onChange, options }) {
     <div ref={ref} style={{ position: "relative", userSelect: "none" }}>
       <button
         onClick={() => setOpen((o) => !o)}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.borderColor = "var(--color-foreground)")
+        }
+        onMouseLeave={(e) =>
+          (e.currentTarget.style.borderColor = "var(--color-border)")
+        }
         style={{
           display: "flex",
           alignItems: "center",
@@ -204,12 +227,6 @@ function CustomSelect({ value, onChange, options }) {
           fontFamily: "inherit",
           transition: "border-color 0.2s",
         }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.borderColor = "var(--color-foreground)")
-        }
-        onMouseLeave={(e) =>
-          (e.currentTarget.style.borderColor = "var(--color-border)")
-        }
       >
         <ArrowUpDown size={13} strokeWidth={1.8} />
         {current?.label}
@@ -244,6 +261,15 @@ function CustomSelect({ value, onChange, options }) {
                 onChange(o.value);
                 setOpen(false);
               }}
+              onMouseEnter={(e) => {
+                if (o.value !== value)
+                  e.currentTarget.style.backgroundColor =
+                    "var(--color-surface)";
+              }}
+              onMouseLeave={(e) => {
+                if (o.value !== value)
+                  e.currentTarget.style.backgroundColor = "transparent";
+              }}
               style={{
                 display: "block",
                 width: "100%",
@@ -262,15 +288,6 @@ function CustomSelect({ value, onChange, options }) {
                 border: "none",
                 fontFamily: "inherit",
               }}
-              onMouseEnter={(e) => {
-                if (o.value !== value)
-                  e.currentTarget.style.backgroundColor =
-                    "var(--color-surface)";
-              }}
-              onMouseLeave={(e) => {
-                if (o.value !== value)
-                  e.currentTarget.style.backgroundColor = "transparent";
-              }}
             >
               {o.label}
             </button>
@@ -281,7 +298,8 @@ function CustomSelect({ value, onChange, options }) {
   );
 }
 
-/* ── Filter Section Accordion ── */
+// ─── FilterSection Accordion ──────────────────────────────────────────────────
+
 function FilterSection({ title, children, defaultOpen = true }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
@@ -338,7 +356,8 @@ function FilterSection({ title, children, defaultOpen = true }) {
   );
 }
 
-/* ── Sidebar Filter Panel ── */
+// ─── FilterPanel ──────────────────────────────────────────────────────────────
+
 function FilterPanel({ draft, setDraft }) {
   const toggleSize = (s) =>
     setDraft((d) => ({
@@ -347,6 +366,7 @@ function FilterPanel({ draft, setDraft }) {
         ? d.sizes.filter((x) => x !== s)
         : [...d.sizes, s],
     }));
+
   const toggleColor = (c) =>
     setDraft((d) => ({
       ...d,
@@ -457,7 +477,8 @@ function FilterPanel({ draft, setDraft }) {
   );
 }
 
-/* ── Active Filter Chip ── */
+// ─── FilterChip ───────────────────────────────────────────────────────────────
+
 function FilterChip({ label, onClear }) {
   const [hov, setHov] = useState(false);
   return (
@@ -488,77 +509,376 @@ function FilterChip({ label, onClear }) {
   );
 }
 
-/* ── Main Page ── */
+// ─── FilterSidebar (desktop) ──────────────────────────────────────────────────
+
+function FilterSidebar({ draft, setDraft, hasDraftChanges, onApply, onReset }) {
+  return (
+    <aside className="ccp-sidebar">
+      <div
+        style={{
+          position: "sticky",
+          top: "80px",
+          backgroundColor: "var(--color-background)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: "4px",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "11px",
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+            }}
+          >
+            Filters
+          </span>
+          {(draft.sizes.length > 0 ||
+            draft.colors.length > 0 ||
+            draft.maxPrice < 10000) && (
+            <button
+              onClick={onReset}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.color = "var(--color-foreground)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = "var(--color-muted-foreground)")
+              }
+              style={{
+                fontSize: "11px",
+                color: "var(--color-muted-foreground)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                textDecoration: "underline",
+                textUnderlineOffset: "3px",
+                fontFamily: "inherit",
+                padding: 0,
+                transition: "color 0.2s",
+              }}
+            >
+              Reset
+            </button>
+          )}
+        </div>
+
+        <FilterPanel draft={draft} setDraft={setDraft} />
+
+        <div style={{ paddingTop: "20px" }}>
+          <button
+            onClick={onApply}
+            disabled={!hasDraftChanges}
+            onMouseEnter={(e) => {
+              if (hasDraftChanges) e.currentTarget.style.opacity = "0.85";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = "1";
+            }}
+            style={{
+              width: "100%",
+              padding: "12px",
+              borderRadius: "10px",
+              border: "none",
+              backgroundColor: hasDraftChanges
+                ? "var(--color-foreground)"
+                : "var(--color-border)",
+              color: hasDraftChanges
+                ? "var(--color-background)"
+                : "var(--color-muted-foreground)",
+              fontSize: "12px",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              cursor: hasDraftChanges ? "pointer" : "not-allowed",
+              transition: "all 0.25s",
+              fontFamily: "inherit",
+            }}
+          >
+            Apply Filters
+          </button>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+// ─── FilterDrawer (mobile) ────────────────────────────────────────────────────
+
+function FilterDrawer({
+  open,
+  visible,
+  draft,
+  setDraft,
+  filteredCount,
+  onClose,
+  onApply,
+  onReset,
+}) {
+  if (!open) return null;
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 200 }}>
+      {/* Backdrop */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundColor: "rgba(0,0,0,0.45)",
+          backdropFilter: "blur(4px)",
+          opacity: visible ? 1 : 0,
+          transition: "opacity 0.35s ease",
+        }}
+        onClick={onClose}
+      />
+      {/* Panel */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          maxHeight: "92vh",
+          backgroundColor: "var(--color-background)",
+          borderRadius: "20px 20px 0 0",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          transform: visible ? "translateY(0)" : "translateY(100%)",
+          transition: "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+        }}
+      >
+        {/* Handle */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            paddingTop: "12px",
+            paddingBottom: "4px",
+          }}
+        >
+          <div
+            style={{
+              width: "36px",
+              height: "4px",
+              borderRadius: "2px",
+              backgroundColor: "var(--color-border)",
+            }}
+          />
+        </div>
+
+        {/* Header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "12px 20px 16px",
+            borderBottom: "1px solid var(--color-border)",
+          }}
+        >
+          <div>
+            <h3
+              style={{
+                fontFamily: "var(--font-serif)",
+                fontSize: "1.3rem",
+                lineHeight: 1,
+              }}
+            >
+              Filters
+            </h3>
+            {(draft.sizes.length > 0 ||
+              draft.colors.length > 0 ||
+              draft.maxPrice < 10000) && (
+              <p
+                style={{
+                  fontSize: "11px",
+                  color: "var(--color-muted-foreground)",
+                  marginTop: "4px",
+                }}
+              >
+                {draft.sizes.length +
+                  draft.colors.length +
+                  (draft.maxPrice < 10000 ? 1 : 0)}{" "}
+                selected
+              </p>
+            )}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <button
+              onClick={onReset}
+              style={{
+                fontSize: "12px",
+                fontWeight: 600,
+                color: "var(--color-muted-foreground)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                textDecoration: "underline",
+                textUnderlineOffset: "3px",
+              }}
+            >
+              Reset
+            </button>
+            <button
+              onClick={onClose}
+              style={{
+                width: "32px",
+                height: "32px",
+                borderRadius: "50%",
+                border: "1px solid var(--color-border)",
+                backgroundColor: "var(--color-surface)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                color: "var(--color-foreground)",
+              }}
+            >
+              <X size={15} strokeWidth={2} />
+            </button>
+          </div>
+        </div>
+
+        {/* Scrollable content */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: "0 20px",
+            scrollbarWidth: "none",
+          }}
+        >
+          <FilterPanel draft={draft} setDraft={setDraft} />
+        </div>
+
+        {/* Footer */}
+        <div
+          style={{
+            padding: "16px 20px",
+            borderTop: "1px solid var(--color-border)",
+            backgroundColor: "var(--color-background)",
+            display: "flex",
+            gap: "10px",
+          }}
+        >
+          <button
+            onClick={onClose}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.borderColor = "var(--color-foreground)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.borderColor = "var(--color-border)")
+            }
+            style={{
+              flex: 1,
+              padding: "14px",
+              borderRadius: "12px",
+              border: "1.5px solid var(--color-border)",
+              backgroundColor: "transparent",
+              color: "var(--color-foreground)",
+              fontSize: "13px",
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "inherit",
+              transition: "border-color 0.2s",
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onApply}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+            style={{
+              flex: 2,
+              padding: "14px",
+              borderRadius: "12px",
+              border: "none",
+              backgroundColor: "var(--color-foreground)",
+              color: "var(--color-background)",
+              fontSize: "13px",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              transition: "opacity 0.2s",
+            }}
+          >
+            View {filteredCount} Results
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
 export default function CollectionCategoryPage() {
   const { category } = useParams();
-  const { products, loading } = useShop();
-  const items = products.filter((p) => p.categorySlug === category || p.category?.toLowerCase().replace(/\s+/g, '-') === category);
+  const { products, loading, fetchProducts } = useShop();
   const push = useToasts((s) => s.push);
 
-  if (
-    items.length === 0 &&
-    !["t-shirts", "shirts", "jeans", "trousers"].includes(category)
-  ) {
-    return <Navigate to="/not-found" replace />;
-  }
-
-  const title = items[0]?.category ?? category.replace("-", " ");
-
-  // Applied filters (what's actually filtering)
-  const [applied, setApplied] = useState({
-    sizes: [],
-    colors: [],
-    maxPrice: 10000,
-  });
-  // Draft filters (what user is staging in sidebar/drawer)
-  const [draft, setDraft] = useState({
-    sizes: [],
-    colors: [],
-    maxPrice: 10000,
-  });
-
+  // ── ALL HOOKS FIRST — never below any early return ──
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
+  const [applied, setApplied] = useState(DEFAULT_FILTERS);
+  const [draft, setDraft] = useState(DEFAULT_FILTERS);
   const [sort, setSort] = useState("newest");
-  const [drawerOpen, setDrawerOpen] = useState(false); // mounted
-  const [drawerVisible, setDrawerVisible] = useState(false); // animate-in
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerVisible, setDrawerVisible] = useState(false);
 
-  // Sync draft when drawer opens
-  const openDrawer = () => {
-    setDraft({ ...applied });
-    setDrawerOpen(true);
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => setDrawerVisible(true)),
+  const fetchFiltered = useCallback(() => {
+    const filters = { category, minPrice: 500, maxPrice: applied.maxPrice };
+    fetchProducts({ page, limit: 20, filters, append: page > 1 }).then(
+      (data) => {
+        if (data?.products?.length < 20) setHasMore(false);
+        setInitialLoad(false);
+      },
     );
-  };
+  }, [category, applied, page, fetchProducts]);
 
-  const closeDrawer = () => {
-    setDrawerVisible(false);
-    setTimeout(() => setDrawerOpen(false), 380); // match transition duration
-  };
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    setInitialLoad(true);
+  }, [category, applied]);
 
-  // Apply desktop sidebar
-  const applyFilters = () => setApplied({ ...draft });
+  useEffect(() => {
+    fetchFiltered();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, applied, page]);
 
-  // Apply drawer (mobile)
-  const applyDrawer = () => {
-    setApplied({ ...draft });
-    closeDrawer();
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+          document.body.offsetHeight - 400 &&
+        hasMore &&
+        !loading
+      ) {
+        setPage((p) => p + 1);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [hasMore, loading]);
 
-  // Reset
-  const resetDraft = () => setDraft({ sizes: [], colors: [], maxPrice: 10000 });
-  const resetAll = () => {
-    const empty = { sizes: [], colors: [], maxPrice: 10000 };
-    setDraft(empty);
-    setApplied(empty);
-  };
-
+  // ✅ useMemo BEFORE early return — this was the bug
   const filtered = useMemo(() => {
-    let r = items.slice();
+    let r = products.slice();
     if (applied.sizes.length)
-      r = r.filter((p) => p.sizes.some((s) => applied.sizes.includes(s)));
+      r = r.filter((p) => p.sizes?.some((s) => applied.sizes.includes(s)));
     if (applied.colors.length)
       r = r.filter((p) =>
-        p.colors.some((c) => applied.colors.includes(c.name)),
+        p.colors?.some((c) => applied.colors.includes(c.name)),
       );
     r = r.filter((p) => (p.salePrice ?? p.price) <= applied.maxPrice);
     if (sort === "low")
@@ -567,31 +887,70 @@ export default function CollectionCategoryPage() {
       r.sort((a, b) => (b.salePrice ?? b.price) - (a.salePrice ?? a.price));
     if (sort === "best") r.sort((a, b) => b.rating - a.rating);
     return r;
-  }, [items, applied, sort]);
+  }, [products, applied, sort]);
 
-  const activeChips = [
-    ...applied.sizes.map((s) => ({
-      label: `Size: ${s}`,
-      clear: () =>
-        setApplied((a) => ({ ...a, sizes: a.sizes.filter((x) => x !== s) })),
-    })),
-    ...applied.colors.map((c) => ({
-      label: c,
-      clear: () =>
-        setApplied((a) => ({ ...a, colors: a.colors.filter((x) => x !== c) })),
-    })),
-    ...(applied.maxPrice < 10000
-      ? [
-          {
-            label: `Under ₹${applied.maxPrice.toLocaleString("en-IN")}`,
-            clear: () => setApplied((a) => ({ ...a, maxPrice: 10000 })),
-          },
-        ]
-      : []),
-  ];
+  const activeChips = useMemo(
+    () => [
+      ...applied.sizes.map((s) => ({
+        label: `Size: ${s}`,
+        clear: () =>
+          setApplied((a) => ({ ...a, sizes: a.sizes.filter((x) => x !== s) })),
+      })),
+      ...applied.colors.map((c) => ({
+        label: c,
+        clear: () =>
+          setApplied((a) => ({
+            ...a,
+            colors: a.colors.filter((x) => x !== c),
+          })),
+      })),
+      ...(applied.maxPrice < 10000
+        ? [
+            {
+              label: `Under ₹${applied.maxPrice.toLocaleString("en-IN")}`,
+              clear: () => setApplied((a) => ({ ...a, maxPrice: 10000 })),
+            },
+          ]
+        : []),
+    ],
+    [applied],
+  );
 
   const hasDraftChanges = JSON.stringify(draft) !== JSON.stringify(applied);
 
+  // ── Early returns AFTER all hooks ──
+  if (initialLoad && loading) {
+    return (
+      <div style={{ padding: "100px", textAlign: "center" }}>Loading...</div>
+    );
+  }
+
+  // ── Handlers ──
+  const title = products[0]?.category ?? category.replace("-", " ");
+
+  const openDrawer = () => {
+    setDraft({ ...applied });
+    setDrawerOpen(true);
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => setDrawerVisible(true)),
+    );
+  };
+  const closeDrawer = () => {
+    setDrawerVisible(false);
+    setTimeout(() => setDrawerOpen(false), 380);
+  };
+  const applyFilters = () => setApplied({ ...draft });
+  const applyDrawer = () => {
+    setApplied({ ...draft });
+    closeDrawer();
+  };
+  const resetDraft = () => setDraft(DEFAULT_FILTERS);
+  const resetAll = () => {
+    setDraft(DEFAULT_FILTERS);
+    setApplied(DEFAULT_FILTERS);
+  };
+
+  // ── Render ──
   return (
     <div
       className="ccp-root"
@@ -679,10 +1038,9 @@ export default function CollectionCategoryPage() {
             <span style={{ fontWeight: 600, color: "var(--color-foreground)" }}>
               {filtered.length}
             </span>{" "}
-            of {items.length} products
+            of {products.length} products
           </p>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            {/* Mobile filter trigger */}
             <button
               onClick={openDrawer}
               className="ccp-filter-btn"
@@ -736,6 +1094,12 @@ export default function CollectionCategoryPage() {
           ))}
           <button
             onClick={resetAll}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.color = "var(--color-foreground)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.color = "var(--color-muted-foreground)")
+            }
             style={{
               fontSize: "11px",
               fontWeight: 600,
@@ -749,12 +1113,6 @@ export default function CollectionCategoryPage() {
               fontFamily: "inherit",
               transition: "color 0.2s",
             }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.color = "var(--color-foreground)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = "var(--color-muted-foreground)")
-            }
           >
             Clear all
           </button>
@@ -763,109 +1121,21 @@ export default function CollectionCategoryPage() {
 
       {/* Main Layout */}
       <div className="ccp-layout">
-        {/* Desktop Sidebar */}
-        <aside className="ccp-sidebar">
-          <div
-            style={{
-              position: "sticky",
-              top: "80px",
-              backgroundColor: "var(--color-background)",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: "4px",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "11px",
-                  fontWeight: 700,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                }}
-              >
-                Filters
-              </span>
-              {(draft.sizes.length > 0 ||
-                draft.colors.length > 0 ||
-                draft.maxPrice < 10000) && (
-                <button
-                  onClick={resetDraft}
-                  style={{
-                    fontSize: "11px",
-                    color: "var(--color-muted-foreground)",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    textDecoration: "underline",
-                    textUnderlineOffset: "3px",
-                    fontFamily: "inherit",
-                    padding: 0,
-                    transition: "color 0.2s",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.color = "var(--color-foreground)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color =
-                      "var(--color-muted-foreground)")
-                  }
-                >
-                  Reset
-                </button>
-              )}
-            </div>
+        <FilterSidebar
+          draft={draft}
+          setDraft={setDraft}
+          hasDraftChanges={hasDraftChanges}
+          onApply={applyFilters}
+          onReset={resetDraft}
+        />
 
-            <FilterPanel draft={draft} setDraft={setDraft} />
-
-            {/* Apply Button */}
-            <div style={{ paddingTop: "20px" }}>
-              <button
-                onClick={applyFilters}
-                disabled={!hasDraftChanges}
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  borderRadius: "10px",
-                  border: "none",
-                  backgroundColor: hasDraftChanges
-                    ? "var(--color-foreground)"
-                    : "var(--color-border)",
-                  color: hasDraftChanges
-                    ? "var(--color-background)"
-                    : "var(--color-muted-foreground)",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  cursor: hasDraftChanges ? "pointer" : "not-allowed",
-                  transition: "all 0.25s",
-                  fontFamily: "inherit",
-                }}
-                onMouseEnter={(e) => {
-                  if (hasDraftChanges) e.currentTarget.style.opacity = "0.85";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.opacity = "1";
-                }}
-              >
-                Apply Filters
-              </button>
-            </div>
-          </div>
-        </aside>
-
-        {/* Products Grid */}
         <div>
           <div className="ccp-grid">
             {filtered.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>
+
           {filtered.length === 0 && (
             <div style={{ textAlign: "center", padding: "80px 0" }}>
               <p style={{ fontSize: "32px", marginBottom: "12px" }}>🔍</p>
@@ -889,6 +1159,15 @@ export default function CollectionCategoryPage() {
               </p>
               <button
                 onClick={resetAll}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    "var(--color-foreground)";
+                  e.currentTarget.style.color = "var(--color-background)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                  e.currentTarget.style.color = "var(--color-foreground)";
+                }}
                 style={{
                   padding: "10px 24px",
                   borderRadius: "8px",
@@ -901,25 +1180,24 @@ export default function CollectionCategoryPage() {
                   fontFamily: "inherit",
                   transition: "all 0.2s",
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    "var(--color-foreground)";
-                  e.currentTarget.style.color = "var(--color-background)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                  e.currentTarget.style.color = "var(--color-foreground)";
-                }}
               >
                 Clear Filters
               </button>
             </div>
           )}
+
           {filtered.length > 0 && (
             <div style={{ textAlign: "center", marginTop: "56px" }}>
               <button
                 onClick={() =>
                   push({ type: "info", message: "No more products to load" })
+                }
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.borderColor =
+                    "var(--color-foreground)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.borderColor = "var(--color-border)")
                 }
                 style={{
                   padding: "12px 40px",
@@ -935,13 +1213,6 @@ export default function CollectionCategoryPage() {
                   fontFamily: "inherit",
                   transition: "all 0.2s",
                 }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.borderColor =
-                    "var(--color-foreground)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.borderColor = "var(--color-border)")
-                }
               >
                 Load More
               </button>
@@ -950,206 +1221,17 @@ export default function CollectionCategoryPage() {
         </div>
       </div>
 
-      {/* ── Mobile Filter Drawer ── */}
-      {drawerOpen && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 200 }}>
-          {/* Backdrop */}
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              backgroundColor: "rgba(0,0,0,0.45)",
-              backdropFilter: "blur(4px)",
-              opacity: drawerVisible ? 1 : 0,
-              transition: "opacity 0.35s ease",
-            }}
-            onClick={closeDrawer}
-          />
-          {/* Drawer Panel */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              maxHeight: "92vh",
-              backgroundColor: "var(--color-background)",
-              borderRadius: "20px 20px 0 0",
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
-              transform: drawerVisible ? "translateY(0)" : "translateY(100%)",
-              transition: "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-            }}
-          >
-            {/* Drawer Handle */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                paddingTop: "12px",
-                paddingBottom: "4px",
-              }}
-            >
-              <div
-                style={{
-                  width: "36px",
-                  height: "4px",
-                  borderRadius: "2px",
-                  backgroundColor: "var(--color-border)",
-                }}
-              />
-            </div>
-
-            {/* Drawer Header */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "12px 20px 16px",
-                borderBottom: "1px solid var(--color-border)",
-              }}
-            >
-              <div>
-                <h3
-                  style={{
-                    fontFamily: "var(--font-serif)",
-                    fontSize: "1.3rem",
-                    lineHeight: 1,
-                  }}
-                >
-                  Filters
-                </h3>
-                {(draft.sizes.length > 0 ||
-                  draft.colors.length > 0 ||
-                  draft.maxPrice < 10000) && (
-                  <p
-                    style={{
-                      fontSize: "11px",
-                      color: "var(--color-muted-foreground)",
-                      marginTop: "4px",
-                    }}
-                  >
-                    {draft.sizes.length +
-                      draft.colors.length +
-                      (draft.maxPrice < 10000 ? 1 : 0)}{" "}
-                    selected
-                  </p>
-                )}
-              </div>
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "12px" }}
-              >
-                <button
-                  onClick={resetDraft}
-                  style={{
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    color: "var(--color-muted-foreground)",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    textDecoration: "underline",
-                    textUnderlineOffset: "3px",
-                  }}
-                >
-                  Reset
-                </button>
-                <button
-                  onClick={closeDrawer}
-                  style={{
-                    width: "32px",
-                    height: "32px",
-                    borderRadius: "50%",
-                    border: "1px solid var(--color-border)",
-                    backgroundColor: "var(--color-surface)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    color: "var(--color-foreground)",
-                    transition: "background 0.2s",
-                  }}
-                >
-                  <X size={15} strokeWidth={2} />
-                </button>
-              </div>
-            </div>
-
-            {/* Scrollable Filter Content */}
-            <div
-              style={{
-                flex: 1,
-                overflowY: "auto",
-                padding: "0 20px",
-                scrollbarWidth: "none",
-              }}
-            >
-              <FilterPanel draft={draft} setDraft={setDraft} />
-            </div>
-
-            {/* Sticky Apply Footer */}
-            <div
-              style={{
-                padding: "16px 20px",
-                borderTop: "1px solid var(--color-border)",
-                backgroundColor: "var(--color-background)",
-                display: "flex",
-                gap: "10px",
-              }}
-            >
-              <button
-                onClick={closeDrawer}
-                style={{
-                  flex: 1,
-                  padding: "14px",
-                  borderRadius: "12px",
-                  border: "1.5px solid var(--color-border)",
-                  backgroundColor: "transparent",
-                  color: "var(--color-foreground)",
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  transition: "border-color 0.2s",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.borderColor =
-                    "var(--color-foreground)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.borderColor = "var(--color-border)")
-                }
-              >
-                Cancel
-              </button>
-              <button
-                onClick={applyDrawer}
-                style={{
-                  flex: 2,
-                  padding: "14px",
-                  borderRadius: "12px",
-                  border: "none",
-                  backgroundColor: "var(--color-foreground)",
-                  color: "var(--color-background)",
-                  fontSize: "13px",
-                  fontWeight: 700,
-                  letterSpacing: "0.06em",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  transition: "opacity 0.2s",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-              >
-                View {filtered.length} Results
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Mobile Drawer */}
+      <FilterDrawer
+        open={drawerOpen}
+        visible={drawerVisible}
+        draft={draft}
+        setDraft={setDraft}
+        filteredCount={filtered.length}
+        onClose={closeDrawer}
+        onApply={applyDrawer}
+        onReset={resetDraft}
+      />
 
       <style>{`
         .ccp-layout {
@@ -1157,60 +1239,32 @@ export default function CollectionCategoryPage() {
           grid-template-columns: 1fr;
           gap: 0;
         }
-        .ccp-sidebar {
-          display: none;
-        }
+        .ccp-sidebar { display: none; }
         .ccp-grid {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
           gap: 20px;
         }
-        .ccp-filter-btn {
-          display: flex !important;
-        }
+        .ccp-filter-btn { display: flex !important; }
+
         @media (min-width: 480px) {
-          .ccp-grid {
-            gap: 24px;
-          }
+          .ccp-grid { gap: 24px; }
         }
         @media (min-width: 768px) {
-          .ccp-grid {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-          }
+          .ccp-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; }
         }
         @media (min-width: 1024px) {
-          .ccp-layout {
-            grid-template-columns: 260px 1fr;
-            gap: 48px;
-          }
-          .ccp-sidebar {
-            display: block !important;
-          }
-          .ccp-filter-btn {
-            display: none !important;
-          }
-          .ccp-grid {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 28px;
-          }
+          .ccp-layout { grid-template-columns: 260px 1fr; gap: 48px; }
+          .ccp-sidebar { display: block !important; }
+          .ccp-filter-btn { display: none !important; }
+          .ccp-grid { grid-template-columns: repeat(3, 1fr); gap: 28px; }
         }
         @media (min-width: 1280px) {
-          .ccp-grid {
-            grid-template-columns: repeat(4, 1fr);
-          }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slideUp {
-          from { transform: translateY(100%); }
-          to { transform: translateY(0); }
+          .ccp-grid { grid-template-columns: repeat(4, 1fr); }
         }
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(6px); }
-          to { opacity: 1; transform: translateY(0); }
+          to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>

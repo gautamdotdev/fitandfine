@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { ArrowRight, Star } from "lucide-react";
-import { useShop } from "../context/ShopContext.jsx";
+
 import {
   categories,
   HERO_IMAGE,
@@ -8,12 +9,48 @@ import {
   STORY_IMAGE,
 } from "../lib/products.js";
 import { ProductCard } from "../components/ProductCard.jsx";
+import { useShop } from "../context/ShopContext.jsx";
 
 export default function HomePage() {
-  const { products, loading } = useShop();
-  if (loading) return <div style={{ padding: '100px', textAlign: 'center' }}>Loading...</div>;
-  const featured = products.filter(p => p.isBestseller).slice(0, 6);
-  const newArrivals = products.filter((p) => p.newArrival).slice(0, 8);
+  const { products, loading, fetchProducts } = useShop();
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
+
+  // Fetch products on mount and when page changes
+  useEffect(() => {
+    fetchProducts({ page, limit: 24, append: page > 1 }).then((data) => {
+      // If less than limit returned, no more products
+      if (data && data.products && data.products.length < 24) setHasMore(false);
+      setInitialLoad(false);
+    });
+    // eslint-disable-next-line
+  }, [page]);
+
+  // Infinite scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+          document.body.offsetHeight - 400 &&
+        hasMore &&
+        !loading
+      ) {
+        setPage((prev) => prev + 1);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [hasMore, loading]);
+
+  if (initialLoad && loading)
+    return (
+      <div style={{ padding: "100px", textAlign: "center" }}>Loading...</div>
+    );
+
+  // Featured and newArrivals can be derived from all loaded products
+  const featured = products.filter((p) => p.isBestseller);
+  const newArrivals = products.filter((p) => p.newArrival);
 
   const testimonials = [
     {
