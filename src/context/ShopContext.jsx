@@ -10,15 +10,25 @@ const CACHE_TTL = 60000; // 60 seconds
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem("user");
+    try {
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(true);
+
   const pushToast = useToasts((s) => s.push);
 
   const login = async (credentials) => {
     try {
       const data = await authApi.login(credentials);
       setUser(data.user);
+      localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("token", data.token);
+
       pushToast({
         title: "Success",
         message: "Logged in successfully",
@@ -38,6 +48,8 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
     pushToast({
       title: "Logged Out",
       message: "You have been logged out",
@@ -53,10 +65,15 @@ export const AuthProvider = ({ children }) => {
     }
     try {
       const data = await authApi.getMe();
-      setUser(data.user || data);
+      const userData = data.user || data;
+      setUser(userData);
+      localStorage.setItem("user", JSON.stringify(userData));
     } catch (error) {
-      logout();
+      if (error.status === 401 || error.status === 403) {
+        logout();
+      }
     } finally {
+
       setLoading(false);
     }
   };
