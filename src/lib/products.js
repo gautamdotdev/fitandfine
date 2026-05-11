@@ -301,7 +301,8 @@ export const categories = [
   {
     slug: "trousers",
     name: "Trousers",
-    image: img("1519085360753-af0119f7cbe7", 800),
+    image:
+      "https://imgs.search.brave.com/o9PW0epkGU_Bw5Ol24LioBnO5XdrAb4a1mCW1wUS4Sc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jYW1w/dXNzdXRyYS5jb20v/Y2RuL3Nob3AvZmls/ZXMvQ1NNU1NUUjkx/NjZfNV9hMzBhYjcy/NC04YTdkLTRjNTIt/YmRiMi01N2NhNThl/NjYxYmEuanBnP3Y9/MTc1MzQzMDMxNyZ3/aWR0aD0yMDAw",
   },
 ];
 
@@ -314,8 +315,8 @@ export const STORY_IMAGE =
 
 const rawNum = import.meta.env.VITE_WHATSAPP_NUMBER || "918780142005";
 export const WHATSAPP_NUMBER = rawNum.length === 10 ? `91${rawNum}` : rawNum;
-export const CONTACT_NAME = import.meta.env.VITE_CONTACT_NAME || "Zala Bhavyarajsinh";
-
+export const CONTACT_NAME =
+  import.meta.env.VITE_CONTACT_NAME || "Zala Bhavyarajsinh";
 
 export function whatsappProductUrl(p, size, color, qty) {
   const price = (p.salePrice ?? p.price) * qty;
