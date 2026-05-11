@@ -11,6 +11,7 @@ import CollectionsIndexPage from "./pages/CollectionsIndexPage.jsx";
 import CollectionCategoryPage from "./pages/CollectionCategoryPage.jsx";
 import NewArrivalsPage from "./pages/NewArrivalsPage.jsx";
 import SalePage from "./pages/SalePage.jsx";
+import SearchPage from "./pages/SearchPage.jsx";
 import ProductDetailPage from "./pages/ProductDetailPage.jsx";
 import CartPage from "./pages/CartPage.jsx";
 import WishlistPage from "./pages/WishlistPage.jsx";
@@ -62,6 +63,7 @@ export default function App() {
             />
             <Route path="/new-arrivals" element={<NewArrivalsPage />} />
             <Route path="/sale" element={<SalePage />} />
+            <Route path="/search" element={<SearchPage />} />
             <Route path="/product/:slug" element={<ProductDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />

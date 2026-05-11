@@ -593,7 +593,10 @@ export function Header() {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && query) { navigate("/collections/t-shirts"); setSearchOpen(false); }
+                      if (e.key === "Enter" && query) { 
+                        navigate(`/search?q=${encodeURIComponent(query)}`); 
+                        setSearchOpen(false); 
+                      }
                       if (e.key === "Escape") { setSearchOpen(false); setQuery(""); }
                     }}
                     placeholder="Search FIT & FINE..."
@@ -648,6 +651,27 @@ export function Header() {
                         ))
                       )}
                     </div>
+                    {results.length > 0 && (
+                      <div style={{ marginTop: "24px", paddingTop: "16px", borderTop: "1px solid var(--color-border)", textAlign: "center" }}>
+                        <Link
+                          to={`/search?q=${encodeURIComponent(query)}`}
+                          onClick={() => setSearchOpen(false)}
+                          style={{
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.1em",
+                            color: "var(--color-gold)",
+                            textDecoration: "none",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px"
+                          }}
+                        >
+                          View all {products.filter(p => p.name.toLowerCase().includes(query.toLowerCase())).length} results
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
