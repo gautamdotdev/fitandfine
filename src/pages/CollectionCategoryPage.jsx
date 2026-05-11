@@ -1055,7 +1055,7 @@ export default function CollectionCategoryPage() {
       </nav>
 
       {/* Page Header */}
-      <div style={{ marginTop: "28px", marginBottom: "32px" }}>
+      <div style={{ marginTop: "28px", marginBottom: "10px" }}>
         <div
           style={{
             display: "flex",

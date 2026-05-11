@@ -57,7 +57,7 @@ export default function NewArrivalsPage() {
       </nav>
 
       {/* Header */}
-      <div style={{ marginTop: "28px", marginBottom: "32px" }}>
+      <div style={{ marginTop: "28px", marginBottom: "10px" }}>
         <p
           className="label-caps"
           style={{
