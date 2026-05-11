@@ -1,17 +1,22 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { useShop } from "../context/ShopContext.jsx";
 import { ProductCard } from "../components/ProductCard.jsx";
 
 export default function NewArrivalsPage() {
-  const { products, loading } = useShop();
+  const { products, loading, fetchProducts } = useShop();
+  useEffect(() => {
+    fetchProducts({ filters: { newArrival: true } });
+    // eslint-disable-next-line
+  }, []);
   if (loading)
     return (
       <div style={{ padding: "100px 20px", textAlign: "center" }}>
         Loading...
       </div>
     );
-  const items = products.filter((p) => p.newArrival);
+  const items = products;
 
   return (
     <div
@@ -36,12 +41,12 @@ export default function NewArrivalsPage() {
             color: "inherit",
             transition: "color 0.2s",
           }}
-          onMouseEnter={(e) =>
-            (e.target.style.color = "var(--color-foreground)")
-          }
-          onMouseLeave={(e) =>
-            (e.target.style.color = "var(--color-muted-foreground)")
-          }
+          onMouseEnter={(e) => {
+            e.target.style.color = "var(--color-foreground)";
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.color = "var(--color-muted-foreground)";
+          }}
         >
           Home
         </Link>
@@ -111,11 +116,11 @@ export default function NewArrivalsPage() {
       )}
 
       <style>{`
-        .na-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
-        @media (min-width: 480px) { .na-grid { gap: 24px; } }
-        @media (min-width: 768px) { .na-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; } }
-        @media (min-width: 1280px) { .na-grid { grid-template-columns: repeat(4, 1fr); gap: 28px; } }
-      `}</style>
+          .na-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
+          @media (min-width: 480px) { .na-grid { gap: 24px; } }
+          @media (min-width: 768px) { .na-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; } }
+          @media (min-width: 1280px) { .na-grid { grid-template-columns: repeat(4, 1fr); gap: 28px; } }
+        `}</style>
     </div>
   );
 }

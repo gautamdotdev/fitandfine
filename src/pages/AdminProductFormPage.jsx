@@ -88,6 +88,7 @@ const CATEGORIES = [
   "T-Shirts",
   "Shirts",
   "Jeans",
+  "Combo",
   "Trousers",
   "Knitwear",
   "Outerwear",
@@ -148,11 +149,13 @@ export default function AdminProductFormPage() {
           for (const item of palette) {
             let hex;
 
-            if (item && typeof item.hex === 'function') {
+            if (item && typeof item.hex === "function") {
               hex = item.hex();
             } else if (Array.isArray(item)) {
               const [r, g, b] = item;
-              hex = "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+              hex =
+                "#" +
+                [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
             }
 
             if (!hex) continue;
@@ -172,13 +175,13 @@ export default function AdminProductFormPage() {
           console.error("Color extraction failed:", error);
           resolve([]);
         } finally {
-          if (img.src.startsWith('blob:')) {
+          if (img.src.startsWith("blob:")) {
             URL.revokeObjectURL(img.src);
           }
         }
       };
       img.onerror = () => {
-        if (img.src.startsWith('blob:')) {
+        if (img.src.startsWith("blob:")) {
           URL.revokeObjectURL(img.src);
         }
         resolve([]);
@@ -241,7 +244,11 @@ export default function AdminProductFormPage() {
           setPreviews(product.images || []);
         }
       } catch (error) {
-        pushToast({ title: "Error", message: "Could not load product details.", type: "error" });
+        pushToast({
+          title: "Error",
+          message: "Could not load product details.",
+          type: "error",
+        });
         console.error("Load product error:", error);
       } finally {
         setLoading(false);
@@ -341,14 +348,14 @@ export default function AdminProductFormPage() {
     setIsExtractingColors(true);
     try {
       const detected = await extractColorsFromImage(file);
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        colors: [...prev.colors, ...detected].slice(0, 6) // Keep it reasonable
+        colors: [...prev.colors, ...detected].slice(0, 6), // Keep it reasonable
       }));
       pushToast({
         title: "Colors Detected",
         message: `Extracted ${detected.length} colors from image.`,
-        type: "success"
+        type: "success",
       });
     } catch (err) {
       console.error("Color extraction error:", err);
@@ -378,15 +385,22 @@ export default function AdminProductFormPage() {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Product name is required";
-    if (!formData.description.trim()) newErrors.description = "Description is required";
+    if (!formData.description.trim())
+      newErrors.description = "Description is required";
     if (!formData.category) newErrors.category = "Please select a category";
-    if (!formData.price || formData.price <= 0) newErrors.price = "Valid price is required";
+    if (!formData.price || formData.price <= 0)
+      newErrors.price = "Valid price is required";
     if (formData.stock < 0) newErrors.stock = "Stock cannot be negative";
-    if (formData.salePrice && Number(formData.salePrice) >= Number(formData.price)) {
+    if (
+      formData.salePrice &&
+      Number(formData.salePrice) >= Number(formData.price)
+    ) {
       newErrors.salePrice = "Sale price must be lower than regular price";
     }
-    if (formData.sizes.length === 0) newErrors.sizes = "Select at least one size";
-    if (previews.length === 0) newErrors.images = "At least one product image is required";
+    if (formData.sizes.length === 0)
+      newErrors.sizes = "Select at least one size";
+    if (previews.length === 0)
+      newErrors.images = "At least one product image is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -399,12 +413,12 @@ export default function AdminProductFormPage() {
       pushToast({
         title: "Validation Error",
         message: "Please check the highlighted fields.",
-        type: "error"
+        type: "error",
       });
       // Scroll to first error
       const firstError = Object.keys(errors)[0];
       const el = document.getElementsByName(firstError)[0];
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
@@ -422,7 +436,7 @@ export default function AdminProductFormPage() {
       data.append("isBestseller", formData.isBestseller);
       data.append("sizes", JSON.stringify(formData.sizes));
       data.append("colors", JSON.stringify(formData.colors));
-      const existingImages = previews.filter(p => !p.isNew);
+      const existingImages = previews.filter((p) => !p.isNew);
       data.append("existingImages", JSON.stringify(existingImages));
 
       formData.images.forEach((file) => data.append("images", file));
@@ -560,11 +574,16 @@ export default function AdminProductFormPage() {
                     value={formData.name}
                     onChange={(e) => {
                       set("name", e.target.value);
-                      if (errors.name) setErrors(prev => ({ ...prev, name: "" }));
+                      if (errors.name)
+                        setErrors((prev) => ({ ...prev, name: "" }));
                     }}
                     placeholder="e.g. Classic Oxford Shirt"
                   />
-                  {errors.name && <div className="apf-error-msg"><AlertCircle size={12} /> {errors.name}</div>}
+                  {errors.name && (
+                    <div className="apf-error-msg">
+                      <AlertCircle size={12} /> {errors.name}
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -575,11 +594,16 @@ export default function AdminProductFormPage() {
                     value={formData.description}
                     onChange={(e) => {
                       set("description", e.target.value);
-                      if (errors.description) setErrors(prev => ({ ...prev, description: "" }));
+                      if (errors.description)
+                        setErrors((prev) => ({ ...prev, description: "" }));
                     }}
                     placeholder="Describe the product, its fit, quality and feel…"
                   />
-                  {errors.description && <div className="apf-error-msg"><AlertCircle size={12} /> {errors.description}</div>}
+                  {errors.description && (
+                    <div className="apf-error-msg">
+                      <AlertCircle size={12} /> {errors.description}
+                    </div>
+                  )}
                 </div>
 
                 <div className="apf-grid-2">
@@ -587,24 +611,42 @@ export default function AdminProductFormPage() {
                     <label className="apf-label">Category *</label>
                     <div className="apf-custom-select" ref={categoryRef}>
                       <div
-                        className={`apf-select-trigger ${isCategoryOpen ? 'active' : ''} ${errors.category ? 'error' : ''}`}
+                        className={`apf-select-trigger ${isCategoryOpen ? "active" : ""} ${errors.category ? "error" : ""}`}
                         onClick={() => setIsCategoryOpen(!isCategoryOpen)}
                       >
-                        <span style={{ color: formData.category ? 'inherit' : 'var(--color-muted-foreground)' }}>
+                        <span
+                          style={{
+                            color: formData.category
+                              ? "inherit"
+                              : "var(--color-muted-foreground)",
+                          }}
+                        >
                           {formData.category || "Select Category"}
                         </span>
-                        <ChevronDown size={16} style={{ transition: 'transform 0.2s', transform: isCategoryOpen ? 'rotate(180deg)' : 'none' }} />
+                        <ChevronDown
+                          size={16}
+                          style={{
+                            transition: "transform 0.2s",
+                            transform: isCategoryOpen
+                              ? "rotate(180deg)"
+                              : "none",
+                          }}
+                        />
                       </div>
                       {isCategoryOpen && (
                         <div className="apf-select-dropdown">
                           {CATEGORIES.map((c) => (
                             <div
                               key={c}
-                              className={`apf-select-option ${formData.category === c ? 'selected' : ''}`}
+                              className={`apf-select-option ${formData.category === c ? "selected" : ""}`}
                               onClick={() => {
                                 set("category", c);
                                 setIsCategoryOpen(false);
-                                if (errors.category) setErrors(prev => ({ ...prev, category: "" }));
+                                if (errors.category)
+                                  setErrors((prev) => ({
+                                    ...prev,
+                                    category: "",
+                                  }));
                               }}
                             >
                               {c}
@@ -613,7 +655,11 @@ export default function AdminProductFormPage() {
                         </div>
                       )}
                     </div>
-                    {errors.category && <div className="apf-error-msg"><AlertCircle size={12} /> {errors.category}</div>}
+                    {errors.category && (
+                      <div className="apf-error-msg">
+                        <AlertCircle size={12} /> {errors.category}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="apf-label">Fabric / Material</label>
@@ -646,11 +692,16 @@ export default function AdminProductFormPage() {
                     value={formData.price}
                     onChange={(e) => {
                       set("price", e.target.value);
-                      if (errors.price) setErrors(prev => ({ ...prev, price: "" }));
+                      if (errors.price)
+                        setErrors((prev) => ({ ...prev, price: "" }));
                     }}
                     placeholder="0"
                   />
-                  {errors.price && <div className="apf-error-msg"><AlertCircle size={12} /> {errors.price}</div>}
+                  {errors.price && (
+                    <div className="apf-error-msg">
+                      <AlertCircle size={12} /> {errors.price}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="apf-label">Sale Price (₹)</label>
@@ -673,10 +724,15 @@ export default function AdminProductFormPage() {
                     value={formData.stock}
                     onChange={(e) => {
                       set("stock", e.target.value);
-                      if (errors.stock) setErrors(prev => ({ ...prev, stock: "" }));
+                      if (errors.stock)
+                        setErrors((prev) => ({ ...prev, stock: "" }));
                     }}
                   />
-                  {errors.stock && <div className="apf-error-msg"><AlertCircle size={12} /> {errors.stock}</div>}
+                  {errors.stock && (
+                    <div className="apf-error-msg">
+                      <AlertCircle size={12} /> {errors.stock}
+                    </div>
+                  )}
                 </div>
               </div>
               {formData.salePrice && formData.price && (
@@ -724,13 +780,16 @@ export default function AdminProductFormPage() {
                         type="button"
                         onClick={() => {
                           toggleSize(size);
-                          if (errors.sizes) setErrors(prev => ({ ...prev, sizes: "" }));
+                          if (errors.sizes)
+                            setErrors((prev) => ({ ...prev, sizes: "" }));
                         }}
-                        className={`size-btn ${errors.sizes ? 'error' : ''}`}
+                        className={`size-btn ${errors.sizes ? "error" : ""}`}
                         style={{
                           borderColor: active
                             ? "var(--color-foreground)"
-                            : errors.sizes ? "#ef4444" : "var(--color-border)",
+                            : errors.sizes
+                              ? "#ef4444"
+                              : "var(--color-border)",
                           background: active
                             ? "var(--color-foreground)"
                             : "transparent",
@@ -754,7 +813,11 @@ export default function AdminProductFormPage() {
                     );
                   })}
                 </div>
-                {errors.sizes && <div className="apf-error-msg"><AlertCircle size={12} /> {errors.sizes}</div>}
+                {errors.sizes && (
+                  <div className="apf-error-msg">
+                    <AlertCircle size={12} /> {errors.sizes}
+                  </div>
+                )}
                 {formData.sizes.length > 0 && (
                   <div
                     style={{
@@ -802,8 +865,8 @@ export default function AdminProductFormPage() {
                       transition: "background 0.15s",
                     }}
                     onMouseEnter={(e) =>
-                    (e.currentTarget.style.background =
-                      "var(--color-surface)")
+                      (e.currentTarget.style.background =
+                        "var(--color-surface)")
                     }
                     onMouseLeave={(e) =>
                       (e.currentTarget.style.background = "none")
@@ -951,7 +1014,11 @@ export default function AdminProductFormPage() {
                 {/* Drop zone */}
                 <label
                   className={`apf-drop-zone${isDragOver ? " drag-over" : ""}${errors.images ? " error" : ""}`}
-                  style={errors.images ? { borderColor: "#ef4444", background: "#fffafb" } : {}}
+                  style={
+                    errors.images
+                      ? { borderColor: "#ef4444", background: "#fffafb" }
+                      : {}
+                  }
                   onDragOver={(e) => {
                     e.preventDefault();
                     setIsDragOver(true);
@@ -959,7 +1026,8 @@ export default function AdminProductFormPage() {
                   onDragLeave={() => setIsDragOver(false)}
                   onDrop={(e) => {
                     handleDrop(e);
-                    if (errors.images) setErrors(prev => ({ ...prev, images: "" }));
+                    if (errors.images)
+                      setErrors((prev) => ({ ...prev, images: "" }));
                   }}
                 >
                   <ImagePlus size={22} />
@@ -979,61 +1047,132 @@ export default function AdminProductFormPage() {
                     hidden
                     onChange={(e) => {
                       handleImageChange(e);
-                      if (errors.images) setErrors(prev => ({ ...prev, images: "" }));
+                      if (errors.images)
+                        setErrors((prev) => ({ ...prev, images: "" }));
                     }}
                     accept="image/*"
                   />
                 </label>
               </div>
-              {errors.images && <div className="apf-error-msg" style={{ justifyContent: 'center' }}><AlertCircle size={12} /> {errors.images}</div>}
+              {errors.images && (
+                <div
+                  className="apf-error-msg"
+                  style={{ justifyContent: "center" }}
+                >
+                  <AlertCircle size={12} /> {errors.images}
+                </div>
+              )}
 
               {/* ── Detected Colors Preview ── */}
               {isExtractingColors && (
-                <div style={{
-                  padding: "16px",
-                  textAlign: "center",
-                  background: "var(--color-surface)",
-                  borderRadius: 12,
-                  border: "1px dashed var(--color-border)",
-                  marginTop: 12
-                }}>
-                  <Loader2 size={18} className="animate-spin" style={{ color: "var(--color-muted-foreground)", marginBottom: 8, display: "inline-block" }} />
-                  <p style={{ fontSize: 11, fontWeight: 600, color: "var(--color-muted-foreground)" }}>Extracting colors...</p>
+                <div
+                  style={{
+                    padding: "16px",
+                    textAlign: "center",
+                    background: "var(--color-surface)",
+                    borderRadius: 12,
+                    border: "1px dashed var(--color-border)",
+                    marginTop: 12,
+                  }}
+                >
+                  <Loader2
+                    size={18}
+                    className="animate-spin"
+                    style={{
+                      color: "var(--color-muted-foreground)",
+                      marginBottom: 8,
+                      display: "inline-block",
+                    }}
+                  />
+                  <p
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: "var(--color-muted-foreground)",
+                    }}
+                  >
+                    Extracting colors...
+                  </p>
                 </div>
               )}
 
               {formData.colors.length > 0 && (
                 <div style={{ marginTop: 24 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-                    <Palette size={14} style={{ color: "var(--color-muted-foreground)" }} />
-                    <span style={{ fontSize: 11, fontWeight: 700, color: "var(--color-muted-foreground)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      marginBottom: 16,
+                    }}
+                  >
+                    <Palette
+                      size={14}
+                      style={{ color: "var(--color-muted-foreground)" }}
+                    />
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: "var(--color-muted-foreground)",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
                       Detected Palette
                     </span>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(2, 1fr)",
+                      gap: 12,
+                    }}
+                  >
                     {formData.colors.map((c, i) => (
-                      <div key={c.hex + i} style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        padding: "8px 10px",
-                        background: "var(--color-surface)",
-                        borderRadius: 12,
-                        border: "1.2px solid var(--color-border)"
-                      }}>
-                        <div style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: "50%",
-                          background: c.hex,
-                          border: "1px solid rgba(0,0,0,0.1)",
-                          flexShrink: 0
-                        }} />
+                      <div
+                        key={c.hex + i}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          padding: "8px 10px",
+                          background: "var(--color-surface)",
+                          borderRadius: 12,
+                          border: "1.2px solid var(--color-border)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: "50%",
+                            background: c.hex,
+                            border: "1px solid rgba(0,0,0,0.1)",
+                            flexShrink: 0,
+                          }}
+                        />
                         <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          <div
+                            style={{
+                              fontSize: 12,
+                              fontWeight: 700,
+                              color: "var(--color-foreground)",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
                             {c.name}
                           </div>
-                          <div style={{ fontSize: 10, fontWeight: 500, color: "var(--color-muted-foreground)", fontFamily: "monospace" }}>
+                          <div
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 500,
+                              color: "var(--color-muted-foreground)",
+                              fontFamily: "monospace",
+                            }}
+                          >
                             {c.hex.toUpperCase()}
                           </div>
                         </div>
