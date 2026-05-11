@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { useShop } from "../context/ShopContext.jsx";
 import { ProductCard } from "../components/ProductCard.jsx";
+import { PageSkeleton } from "../components/Skeleton.jsx";
+
 
 export default function NewArrivalsPage() {
   const { products, loading, fetchProducts } = useShop();
@@ -10,12 +12,7 @@ export default function NewArrivalsPage() {
     fetchProducts({ filters: { newArrival: true } });
     // eslint-disable-next-line
   }, []);
-  if (loading)
-    return (
-      <div style={{ padding: "100px 20px", textAlign: "center" }}>
-        Loading...
-      </div>
-    );
+  if (loading) return <PageSkeleton />;
   const items = products;
 
   return (

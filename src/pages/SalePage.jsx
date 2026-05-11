@@ -1,8 +1,9 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { useShop } from "../context/ShopContext.jsx";
 import { ProductCard } from "../components/ProductCard.jsx";
-import { useEffect } from "react";
+import { PageSkeleton } from "../components/Skeleton.jsx";
 
 export default function SalePage() {
   const { products, loading, fetchProducts } = useShop();
@@ -13,19 +14,8 @@ export default function SalePage() {
     fetchProducts({ limit: 100 });
   }, [fetchProducts]);
 
-  if (loading && products.length === 0) {
-    return (
-      <div style={{ padding: "100px 20px", textAlign: "center" }}>
-        <div
-          className="loading-spinner"
-          style={{ margin: "0 auto 20px" }}
-        ></div>
-        <p style={{ fontSize: "14px", color: "var(--color-muted-foreground)" }}>
-          Loading sale products...
-        </p>
-      </div>
-    );
-  }
+  if (loading && products.length === 0) return <PageSkeleton />;
+
 
   const items = products.filter((p) => p.salePrice);
 

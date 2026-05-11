@@ -9,6 +9,8 @@ import {
   STORY_IMAGE,
 } from "../lib/products.js";
 import { ProductCard } from "../components/ProductCard.jsx";
+import { SkeletonBox, SkeletonProductCard } from "../components/Skeleton.jsx";
+
 
 function HomePageSkeleton() {
   return (
@@ -176,12 +178,6 @@ function HomePageSkeleton() {
       </section>
 
       <style>{`
-        @keyframes skeleton-shimmer {
-          0% { opacity: 1; }
-          50% { opacity: 0.4; }
-          100% { opacity: 1; }
-        }
-        .skeleton-pulse { animation: skeleton-shimmer 1.6s ease-in-out infinite; }
         .hero-grid { grid-template-columns: 1fr; }
         .hero-content { padding: 48px 0px; order: 2; text-align: center; align-items: center; }
         .hero-image { order: 1; }
@@ -205,36 +201,6 @@ function HomePageSkeleton() {
   );
 }
 
-function SkeletonBox({
-  width = "100%",
-  height = "20px",
-  borderRadius = "4px",
-  style = {},
-}) {
-  return (
-    <div
-      className="skeleton-pulse"
-      style={{
-        width,
-        height,
-        borderRadius,
-        backgroundColor: "var(--color-border)",
-        ...style,
-      }}
-    />
-  );
-}
-
-function SkeletonProductCard() {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-      <SkeletonBox height="360px" borderRadius="8px" />
-      <SkeletonBox width="60%" height="14px" />
-      <SkeletonBox width="40%" height="14px" />
-      <SkeletonBox width="25%" height="14px" />
-    </div>
-  );
-}
 
 export default function HomePage() {
   const { products, loading, fetchProducts } = useShop();

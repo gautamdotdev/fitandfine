@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { useShop } from "../context/ShopContext.jsx";
 import { ProductCard } from "../components/ProductCard.jsx";
+import { SkeletonProductCard } from "../components/Skeleton.jsx";
+
 import { useToasts } from "../lib/store.js";
 import { categories } from "../lib/products.js";
 
@@ -819,43 +821,6 @@ function FilterDrawer({
   );
 }
 
-// ─── Skeleton Components ──────────────────────────────────────────────────────
-
-function SkeletonCard() {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-      <div
-        style={{
-          aspectRatio: "3/4",
-          width: "100%",
-          borderRadius: "12px",
-          backgroundColor: "var(--color-surface)",
-          animation: "pulse 1.5s infinite ease-in-out",
-        }}
-      />
-      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-        <div
-          style={{
-            height: "16px",
-            width: "60%",
-            borderRadius: "4px",
-            backgroundColor: "var(--color-surface)",
-            animation: "pulse 1.5s infinite ease-in-out",
-          }}
-        />
-        <div
-          style={{
-            height: "14px",
-            width: "40%",
-            borderRadius: "4px",
-            backgroundColor: "var(--color-surface)",
-            animation: "pulse 1.5s infinite ease-in-out",
-          }}
-        />
-      </div>
-    </div>
-  );
-}
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
@@ -1167,16 +1132,36 @@ export default function CollectionCategoryPage() {
           <div className="ccp-grid">
             {/* 3. Loading skeleton logic */}
             {initialLoad && loading ? (
-              Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)
+              Array.from({ length: 12 }).map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    border: "1.5px solid var(--color-border)",
+                    backgroundColor: "var(--color-background)",
+                  }}
+                >
+                  <SkeletonProductCard />
+                </div>
+              ))
             ) : (
+
               <>
                 {filtered.map((p) => (
                   <ProductCard key={p.id} product={p} />
                 ))}
                 {loading &&
                   Array.from({ length: 4 }).map((_, i) => (
-                    <SkeletonCard key={i} />
+                    <div
+                      key={i}
+                      style={{
+                        border: "1.5px solid var(--color-border)",
+                        backgroundColor: "var(--color-background)",
+                      }}
+                    >
+                      <SkeletonProductCard />
+                    </div>
                   ))}
+
               </>
             )}
           </div>
@@ -1278,11 +1263,7 @@ export default function CollectionCategoryPage() {
         @media (min-width: 1280px) {
           .ccp-grid { grid-template-columns: repeat(4, 1fr); }
         }
-        @keyframes pulse {
-          0% { opacity: 0.6; }
-          50% { opacity: 1; }
-          100% { opacity: 0.6; }
-        }
+
       `}</style>
     </div>
   );
