@@ -17,6 +17,7 @@ import {
 import { useShop } from "../context/ShopContext.jsx";
 import { ProductCard } from "../components/ProductCard.jsx";
 import { useToasts } from "../lib/store.js";
+import { categories } from "../lib/products.js";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -964,7 +965,8 @@ export default function CollectionCategoryPage() {
   const hasDraftChanges = JSON.stringify(draft) !== JSON.stringify(applied);
 
   // ── Handlers ──
-  const title = products[0]?.category ?? category.replace("-", " ");
+  const categoryData = categories.find(c => c.slug === category);
+  const title = products[0]?.category ?? categoryData?.name ?? (category ? category.charAt(0).toUpperCase() + category.slice(1).replace(/-/g, " ") : "");
 
   const openDrawer = () => {
     setDraft({ ...applied });

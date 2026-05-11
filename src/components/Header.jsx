@@ -14,7 +14,7 @@ const navLinks = [
       { to: "/collections/t-shirts", label: "T-Shirts", desc: "Essential & graphic tees" },
       { to: "/collections/shirts", label: "Shirts", desc: "Casual to formal fits" },
       { to: "/collections/jeans", label: "Jeans", desc: "Slim, straight & relaxed" },
-      { to: "/collections/cargo", label: "Cargo", desc: "Utility meets street style" },
+      { to: "/collections/combo", label: "Combo", desc: "Best value deals" },
     ],
   },
   {

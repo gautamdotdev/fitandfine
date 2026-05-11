@@ -19,6 +19,7 @@ import {
   Info,
   ChevronDown,
   Palette,
+  AlertCircle,
 } from "lucide-react";
 import { getPalette } from "colorthief";
 import namer from "color-namer";
@@ -39,6 +40,20 @@ const FORM_STYLES = `
   .apf-right { display: grid; gap: 24px; position: sticky; top: 24px; }
   .apf-img-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
   .apf-img-thumb { position: relative; aspect-ratio: 3/4; border-radius: 12px; overflow: hidden; border: 1px solid var(--color-border); }
+  
+  /* Custom Dropdown */
+  .apf-custom-select { position: relative; width: 100%; }
+  .apf-select-trigger { width: 100%; padding: 13px 15px; border-radius: 11px; border: 1.5px solid var(--color-border); background: var(--color-surface); font-size: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s; }
+  .apf-select-trigger:hover { border-color: var(--color-foreground); }
+  .apf-select-trigger.active { border-color: var(--color-foreground); box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
+  .apf-select-dropdown { position: absolute; top: calc(100% + 8px); left: 0; right: 0; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 50; overflow: hidden; animation: selectIn 0.2s ease; }
+  @keyframes selectIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  .apf-select-option { padding: 12px 16px; font-size: 14px; cursor: pointer; transition: background 0.2s; }
+  .apf-select-option:hover { background: var(--color-surface); }
+  .apf-select-option.selected { background: var(--color-surface); color: var(--color-gold, #b45309); font-weight: 700; }
+  
+  .apf-error-msg { font-size: 11px; color: #ef4444; font-weight: 600; margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+  .apf-input.error { border-color: #ef4444 !important; background: #fffafb; }
   .apf-img-del { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.55); color: #fff; border: none; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity 0.2s; }
   .apf-img-thumb:hover .apf-img-del { opacity: 1; }
   .apf-drop-zone { aspect-ratio: 3/4; border-radius: 12px; border: 2px dashed var(--color-border); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.2s; color: var(--color-muted-foreground); }
@@ -76,6 +91,7 @@ const CATEGORIES = [
   "Trousers",
   "Knitwear",
   "Outerwear",
+  "Cargo",
 ];
 const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "28", "30", "32", "34", "36"];
 
@@ -176,7 +192,7 @@ export default function AdminProductFormPage() {
     description: "",
     price: "",
     salePrice: "",
-    category: "T-Shirts",
+    category: "", // Default to empty
     fabric: "",
     sizes: [],
     colors: [],
@@ -188,6 +204,9 @@ export default function AdminProductFormPage() {
 
   const [formData, setFormData] = useState(initialFormState);
   const [previews, setPreviews] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const categoryRef = useRef(null);
 
   /* ── Prefill on edit ── */
   useEffect(() => {
@@ -210,7 +229,7 @@ export default function AdminProductFormPage() {
             description: product.description || "",
             price: product.price || "",
             salePrice: product.salePrice || "",
-            category: product.category || "T-Shirts",
+            category: product.category || "",
             fabric: product.fabric || "",
             sizes: product.sizes || [],
             colors: product.colors || [],
@@ -230,6 +249,15 @@ export default function AdminProductFormPage() {
     };
 
     loadProduct();
+
+    // Close category dropdown on outside click
+    const handleClickOutside = (e) => {
+      if (categoryRef.current && !categoryRef.current.contains(e.target)) {
+        setIsCategoryOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [id, products, pushToast]);
 
   if (!isAdmin) {
@@ -347,8 +375,36 @@ export default function AdminProductFormPage() {
     setPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = "Product name is required";
+    if (!formData.description.trim()) newErrors.description = "Description is required";
+    if (!formData.category) newErrors.category = "Please select a category";
+    if (!formData.price || formData.price <= 0) newErrors.price = "Valid price is required";
+    if (formData.stock < 0) newErrors.stock = "Stock cannot be negative";
+    if (formData.sizes.length === 0) newErrors.sizes = "Select at least one size";
+    if (previews.length === 0) newErrors.images = "At least one product image is required";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      pushToast({
+        title: "Validation Error",
+        message: "Please check the highlighted fields.",
+        type: "error"
+      });
+      // Scroll to first error
+      const firstError = Object.keys(errors)[0];
+      const el = document.getElementsByName(firstError)[0];
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
     setLoading(true);
     try {
       const data = new FormData();
@@ -495,54 +551,66 @@ export default function AdminProductFormPage() {
                 <div>
                   <label className="apf-label">Product Name *</label>
                   <input
-                    className="apf-input"
+                    className={`apf-input ${errors.name ? "error" : ""}`}
+                    name="name"
                     type="text"
-                    required
                     value={formData.name}
-                    onChange={(e) => set("name", e.target.value)}
+                    onChange={(e) => {
+                      set("name", e.target.value);
+                      if (errors.name) setErrors(prev => ({ ...prev, name: "" }));
+                    }}
                     placeholder="e.g. Classic Oxford Shirt"
                   />
+                  {errors.name && <div className="apf-error-msg"><AlertCircle size={12} /> {errors.name}</div>}
                 </div>
 
                 <div>
                   <label className="apf-label">Description *</label>
                   <textarea
-                    className="apf-input apf-textarea"
-                    required
+                    className={`apf-input apf-textarea ${errors.description ? "error" : ""}`}
+                    name="description"
                     value={formData.description}
-                    onChange={(e) => set("description", e.target.value)}
+                    onChange={(e) => {
+                      set("description", e.target.value);
+                      if (errors.description) setErrors(prev => ({ ...prev, description: "" }));
+                    }}
                     placeholder="Describe the product, its fit, quality and feel…"
                   />
+                  {errors.description && <div className="apf-error-msg"><AlertCircle size={12} /> {errors.description}</div>}
                 </div>
 
                 <div className="apf-grid-2">
                   <div>
-                    <label className="apf-label">Category</label>
-                    <div style={{ position: "relative" }}>
-                      <select
-                        className="apf-input"
-                        value={formData.category}
-                        onChange={(e) => set("category", e.target.value)}
-                        style={{ appearance: "none", paddingRight: 36 }}
+                    <label className="apf-label">Category *</label>
+                    <div className="apf-custom-select" ref={categoryRef}>
+                      <div
+                        className={`apf-select-trigger ${isCategoryOpen ? 'active' : ''} ${errors.category ? 'error' : ''}`}
+                        onClick={() => setIsCategoryOpen(!isCategoryOpen)}
                       >
-                        {CATEGORIES.map((c) => (
-                          <option key={c} value={c}>
-                            {c}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown
-                        size={15}
-                        style={{
-                          position: "absolute",
-                          right: 14,
-                          top: "50%",
-                          transform: "translateY(-50%)",
-                          pointerEvents: "none",
-                          color: "var(--color-muted-foreground)",
-                        }}
-                      />
+                        <span style={{ color: formData.category ? 'inherit' : 'var(--color-muted-foreground)' }}>
+                          {formData.category || "Select Category"}
+                        </span>
+                        <ChevronDown size={16} style={{ transition: 'transform 0.2s', transform: isCategoryOpen ? 'rotate(180deg)' : 'none' }} />
+                      </div>
+                      {isCategoryOpen && (
+                        <div className="apf-select-dropdown">
+                          {CATEGORIES.map((c) => (
+                            <div
+                              key={c}
+                              className={`apf-select-option ${formData.category === c ? 'selected' : ''}`}
+                              onClick={() => {
+                                set("category", c);
+                                setIsCategoryOpen(false);
+                                if (errors.category) setErrors(prev => ({ ...prev, category: "" }));
+                              }}
+                            >
+                              {c}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
+                    {errors.category && <div className="apf-error-msg"><AlertCircle size={12} /> {errors.category}</div>}
                   </div>
                   <div>
                     <label className="apf-label">Fabric / Material</label>
@@ -568,14 +636,18 @@ export default function AdminProductFormPage() {
                 <div>
                   <label className="apf-label">Regular Price (₹) *</label>
                   <input
-                    className="apf-input"
+                    className={`apf-input ${errors.price ? "error" : ""}`}
+                    name="price"
                     type="number"
-                    required
                     min="0"
                     value={formData.price}
-                    onChange={(e) => set("price", e.target.value)}
+                    onChange={(e) => {
+                      set("price", e.target.value);
+                      if (errors.price) setErrors(prev => ({ ...prev, price: "" }));
+                    }}
                     placeholder="0"
                   />
+                  {errors.price && <div className="apf-error-msg"><AlertCircle size={12} /> {errors.price}</div>}
                 </div>
                 <div>
                   <label className="apf-label">Sale Price (₹)</label>
@@ -589,14 +661,19 @@ export default function AdminProductFormPage() {
                   />
                 </div>
                 <div>
-                  <label className="apf-label">Stock Qty</label>
+                  <label className="apf-label">Stock Qty *</label>
                   <input
-                    className="apf-input"
+                    className={`apf-input ${errors.stock ? "error" : ""}`}
+                    name="stock"
                     type="number"
                     min="0"
                     value={formData.stock}
-                    onChange={(e) => set("stock", e.target.value)}
+                    onChange={(e) => {
+                      set("stock", e.target.value);
+                      if (errors.stock) setErrors(prev => ({ ...prev, stock: "" }));
+                    }}
                   />
+                  {errors.stock && <div className="apf-error-msg"><AlertCircle size={12} /> {errors.stock}</div>}
                 </div>
               </div>
               {formData.salePrice && formData.price && (
@@ -642,12 +719,15 @@ export default function AdminProductFormPage() {
                       <button
                         key={size}
                         type="button"
-                        onClick={() => toggleSize(size)}
-                        className="size-btn"
+                        onClick={() => {
+                          toggleSize(size);
+                          if (errors.sizes) setErrors(prev => ({ ...prev, sizes: "" }));
+                        }}
+                        className={`size-btn ${errors.sizes ? 'error' : ''}`}
                         style={{
                           borderColor: active
                             ? "var(--color-foreground)"
-                            : "var(--color-border)",
+                            : errors.sizes ? "#ef4444" : "var(--color-border)",
                           background: active
                             ? "var(--color-foreground)"
                             : "transparent",
@@ -671,6 +751,7 @@ export default function AdminProductFormPage() {
                     );
                   })}
                 </div>
+                {errors.sizes && <div className="apf-error-msg"><AlertCircle size={12} /> {errors.sizes}</div>}
                 {formData.sizes.length > 0 && (
                   <div
                     style={{
@@ -866,13 +947,17 @@ export default function AdminProductFormPage() {
 
                 {/* Drop zone */}
                 <label
-                  className={`apf-drop-zone${isDragOver ? " drag-over" : ""}`}
+                  className={`apf-drop-zone${isDragOver ? " drag-over" : ""}${errors.images ? " error" : ""}`}
+                  style={errors.images ? { borderColor: "#ef4444", background: "#fffafb" } : {}}
                   onDragOver={(e) => {
                     e.preventDefault();
                     setIsDragOver(true);
                   }}
                   onDragLeave={() => setIsDragOver(false)}
-                  onDrop={handleDrop}
+                  onDrop={(e) => {
+                    handleDrop(e);
+                    if (errors.images) setErrors(prev => ({ ...prev, images: "" }));
+                  }}
                 >
                   <ImagePlus size={22} />
                   <span style={{ fontSize: 11, fontWeight: 700 }}>Upload</span>
@@ -889,11 +974,15 @@ export default function AdminProductFormPage() {
                     type="file"
                     multiple
                     hidden
-                    onChange={handleImageChange}
+                    onChange={(e) => {
+                      handleImageChange(e);
+                      if (errors.images) setErrors(prev => ({ ...prev, images: "" }));
+                    }}
                     accept="image/*"
                   />
                 </label>
               </div>
+              {errors.images && <div className="apf-error-msg" style={{ justifyContent: 'center' }}><AlertCircle size={12} /> {errors.images}</div>}
 
               {/* ── Detected Colors Preview ── */}
               {isExtractingColors && (
