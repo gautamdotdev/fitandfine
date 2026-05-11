@@ -16,7 +16,6 @@ import { useNavigate } from "react-router-dom";
 import { orderApi } from "../lib/api.js";
 import { CONTACT_NAME, WHATSAPP_NUMBER } from "../lib/products.js";
 
-
 export default function CartPage() {
   const { items, remove, setQty, subtotal, count } = useCart();
   const { user } = useAuth();
@@ -25,7 +24,7 @@ export default function CartPage() {
 
   const total = subtotal();
   const itemCount = count();
-  const shipping = total > 2999 ? 0 : 250;
+  const shipping = total > 2999 ? 0 : 120;
   const grandTotal = total + shipping;
   const [loading, setLoading] = useState(false);
 
@@ -38,12 +37,12 @@ export default function CartPage() {
 
     setLoading(true);
     try {
-      const mappedItems = items.map(i => ({
+      const mappedItems = items.map((i) => ({
         product: i.productId,
         quantity: i.qty,
         price: i.price,
         size: i.size,
-        color: i.color
+        color: i.color,
       }));
 
       const data = await orderApi.create({
@@ -60,15 +59,15 @@ export default function CartPage() {
             `${n + 1}. ${i.name} (Size ${i.size}, ${i.color}) — ₹${i.price.toLocaleString("en-IN")} x${i.qty}`,
         )
         .join("\n");
-      
+
       const breakdown = `Subtotal: ₹${total.toLocaleString("en-IN")}\nShipping: ${shipping === 0 ? "FREE" : `₹${shipping.toLocaleString("en-IN")}`}\nTotal: ₹${grandTotal.toLocaleString("en-IN")}`;
       const text = `Hi ${CONTACT_NAME}, I'd like to order the following:\n${lines}\n\n${breakdown}\n\nOrder details: ${data.orderLink}\nPlease confirm availability.`;
       const waUrl = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(text)}`;
-      
+
       // Clear cart
       const { clear } = useCart.getState();
       clear();
-      
+
       window.open(waUrl, "_blank");
       navigate("/profile"); // Redirect to orders page
     } catch (err) {
