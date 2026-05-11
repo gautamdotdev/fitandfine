@@ -172,7 +172,7 @@ export default function SearchPage() {
 
         /* Hero */
         .search-hero {
-          padding: 40px 0 36px;
+          padding: 0px 0 28px;
           max-width: 640px;
         }
         .search-heading {
