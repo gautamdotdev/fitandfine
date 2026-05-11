@@ -57,8 +57,8 @@ export default function SearchPage() {
   return (
     <div className="page-transition search-root">
 
-      {/* Search Bar Section */}
-      <section className="search-hero">
+      {/* Search Bar Section - Hidden because header handles it now */}
+      <section className="search-hero" style={{ display: "none" }}>
         <p className="label-caps" style={{ color: "var(--color-gold)", fontSize: "10px", letterSpacing: "0.18em", marginBottom: "20px" }}>
           Explore FIT &amp; FINE
         </p>
@@ -167,7 +167,7 @@ export default function SearchPage() {
         .search-root {
           max-width: 1400px;
           margin: 0 auto;
-          padding: 0 20px 100px;
+          padding: 0px 5px;
         }
 
         /* Hero */
@@ -227,9 +227,8 @@ export default function SearchPage() {
           justify-content: space-between;
           flex-wrap: wrap;
           gap: 8px;
-          padding-bottom: 24px;
           border-bottom: 1px solid var(--color-border);
-          margin-bottom: 32px;
+          margin-bottom: 5px;
         }
         .results-count {
           font-size: 11px;
@@ -246,7 +245,7 @@ export default function SearchPage() {
         .search-grid {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
-          gap: 20px;
+          gap: 5px;
         }
         @media (min-width: 640px) {
           .search-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; }
@@ -325,10 +324,12 @@ export default function SearchPage() {
         }
 
         /* Mobile tweaks */
-        @media (max-width: 480px) {
+        @media (max-width: 768px) {
+          .mobile-hide { display: none !important; }
+          .search-root { padding-top: 10px; }
           .search-hero { padding: 5px 0 24px; }
           .search-input { font-size: 16px; }
-          .state-center { padding: 60px 0; }
+          .state-center { padding: 40px 0; }
         }
       `}</style>
     </div>

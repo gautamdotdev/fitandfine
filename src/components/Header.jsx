@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ChevronRight,
   ArrowUpRight,
+  ArrowLeft,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useCart, useTheme, useWishlist } from "../lib/store.js";
@@ -119,10 +120,10 @@ export function Header() {
           .slice(0, 6)
       : [];
 
+  const isSearchPage = location.pathname.startsWith("/search");
   const isCartOrWishlist =
     location.pathname.includes("/cart") ||
-    location.pathname.includes("/wishlist") ||
-    location.pathname.startsWith("/search");
+    location.pathname.includes("/wishlist");
 
   const handleDropdownEnter = (menu) => {
     clearTimeout(collectionsTimer.current);
@@ -145,8 +146,8 @@ export function Header() {
           transition:
             "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease",
           transform:
-            hidden && !mobileOpen ? "translateY(-100%)" : "translateY(0)",
-          opacity: hidden && !mobileOpen ? 0 : 1,
+            hidden && !mobileOpen && !isSearchPage ? "translateY(-100%)" : "translateY(0)",
+          opacity: hidden && !mobileOpen && !isSearchPage ? 0 : 1,
           willChange: "transform",
         }}
       >
@@ -186,27 +187,135 @@ export function Header() {
             position: "relative",
           }}
         >
-          {/* Logo */}
-          <Link
-            to="/"
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontSize: "1.25rem",
-              fontWeight: 600,
-              letterSpacing: "-0.01em",
-              display: "flex",
-              alignItems: "baseline",
-              zIndex: 50,
-              flexShrink: 0,
-              textDecoration: "none",
-              color: "var(--color-foreground)",
-            }}
-          >
-            FIT & FINE
-            <span style={{ color: "var(--color-gold)", marginLeft: "1px" }}>
-              .
-            </span>
-          </Link>
+          {isSearchPage ? (
+            /* Search Page Header */
+            <div
+              className="search-page-header"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "16px",
+                width: "100%",
+                height: "100%",
+                maxWidth: "800px",
+                margin: "0 auto",
+              }}
+            >
+              <button
+                onClick={() => navigate(-1)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: "8px",
+                  cursor: "pointer",
+                  color: "var(--color-foreground)",
+                  display: "flex",
+                  alignItems: "center",
+                  transition: "transform 0.2s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.transform = "translateX(-4px)")}
+                onMouseLeave={(e) => (e.currentTarget.style.transform = "translateX(0)")}
+              >
+                <ArrowLeft size={22} />
+              </button>
+              <div
+                style={{
+                  flex: 1,
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <Search
+                  size={18}
+                  style={{
+                    position: "absolute",
+                    left: "16px",
+                    color: "var(--color-gold)",
+                  }}
+                />
+                <input
+                  type="text"
+                  autoFocus
+                  placeholder="Search for items, brands and more..."
+                  value={new URLSearchParams(location.search).get("q") || ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const params = new URLSearchParams(location.search);
+                    if (val) params.set("q", val);
+                    else params.delete("q");
+                    navigate(`/search?${params.toString()}`, { replace: true });
+                  }}
+                  style={{
+                    width: "100%",
+                    height: "46px",
+                    padding: "0 44px 0 48px",
+                    borderRadius: "24px",
+                    border: "1px solid var(--color-border)",
+                    backgroundColor: "var(--color-surface)",
+                    color: "var(--color-foreground)",
+                    fontSize: "15px",
+                    outline: "none",
+                    transition: "all 0.3s",
+                    boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "var(--color-gold)";
+                    e.target.style.boxShadow = "0 4px 20px rgba(0,0,0,0.1)";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "var(--color-border)";
+                    e.target.style.boxShadow = "0 2px 10px rgba(0,0,0,0.05)";
+                  }}
+                />
+                {new URLSearchParams(location.search).get("q") && (
+                  <button
+                    onClick={() => {
+                      const params = new URLSearchParams(location.search);
+                      params.delete("q");
+                      navigate(`/search?${params.toString()}`, { replace: true });
+                    }}
+                    style={{
+                      position: "absolute",
+                      right: "12px",
+                      background: "none",
+                      border: "none",
+                      padding: "8px",
+                      cursor: "pointer",
+                      color: "var(--color-muted-foreground)",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* Regular Header Content */
+            <>
+              {/* Logo */}
+              <Link
+                to="/"
+                style={{
+                  fontFamily: "var(--font-serif)",
+                  fontSize: "1.25rem",
+                  fontWeight: 600,
+                  letterSpacing: "-0.01em",
+                  display: "flex",
+                  alignItems: "baseline",
+                  zIndex: 50,
+                  flexShrink: 0,
+                  textDecoration: "none",
+                  color: "var(--color-foreground)",
+                }}
+              >
+                FIT & FINE
+                <span style={{ color: "var(--color-gold)", marginLeft: "1px" }}>
+                  .
+                </span>
+              </Link>
 
           {/* Desktop Nav */}
           <div
@@ -560,7 +669,13 @@ export function Header() {
             {!isCartOrWishlist && (
               <button
                 data-search-btn
-                onClick={() => setSearchOpen((s) => !s)}
+                onClick={() => {
+                  if (window.innerWidth <= 768) {
+                    navigate("/search");
+                  } else {
+                    setSearchOpen((s) => !s);
+                  }
+                }}
                 aria-label="Search"
                 style={{
                   padding: "8px",
@@ -731,7 +846,9 @@ export function Header() {
               <Menu size={20} strokeWidth={1.5} />
             </button>
           </div>
-        </div>
+        </>
+      )}
+    </div>
 
         {/* Search Overlay — fixed to viewport center */}
         {searchOpen && (
