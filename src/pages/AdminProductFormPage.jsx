@@ -134,27 +134,46 @@ export default function AdminProductFormPage() {
 
   /* ── Prefill on edit ── */
   useEffect(() => {
-    if (id && products.length > 0) {
-      const product = products.find((p) => p._id === id);
-      if (product) {
-        setFormData({
-          name: product.name || "",
-          description: product.description || "",
-          price: product.price || "",
-          salePrice: product.salePrice || "",
-          category: product.category || "T-Shirts",
-          fabric: product.fabric || "",
-          sizes: product.sizes || [],
-          colors: product.colors || [],
-          stock: product.stock || 0,
-          newArrival: product.newArrival ?? true,
-          isBestseller: product.isBestseller ?? false,
-          images: [],
-        });
-        setPreviews(product.images || []);
+    const loadProduct = async () => {
+      if (!id) return;
+      
+      setLoading(true);
+      try {
+        // 1. Try to find in context first
+        let product = products.find((p) => p._id === id || p.id === id);
+        
+        // 2. If not in context (e.g. on refresh), fetch from API
+        if (!product) {
+          product = await productApi.getOne(id);
+        }
+
+        if (product) {
+          setFormData({
+            name: product.name || "",
+            description: product.description || "",
+            price: product.price || "",
+            salePrice: product.salePrice || "",
+            category: product.category || "T-Shirts",
+            fabric: product.fabric || "",
+            sizes: product.sizes || [],
+            colors: product.colors || [],
+            stock: product.stock || 0,
+            newArrival: product.newArrival ?? true,
+            isBestseller: product.isBestseller ?? false,
+            images: [],
+          });
+          setPreviews(product.images || []);
+        }
+      } catch (error) {
+        pushToast({ title: "Error", message: "Could not load product details.", type: "error" });
+        console.error("Load product error:", error);
+      } finally {
+        setLoading(false);
       }
-    }
-  }, [id, products]);
+    };
+
+    loadProduct();
+  }, [id, products, pushToast]);
 
   if (!isAdmin) {
     return (
@@ -203,14 +222,18 @@ export default function AdminProductFormPage() {
     }));
   // Require color name or auto-generate if empty
   const updateColor = (i, field, val) => {
-    const c = [...formData.colors];
-    if (field === "name" && val.trim() === "") {
-      // Auto-generate name from hex if empty
-      c[i][field] = `Color ${i + 1}`;
-    } else {
-      c[i][field] = val;
-    }
-    setFormData((prev) => ({ ...prev, colors: c }));
+    setFormData((prev) => {
+      const newColors = [...prev.colors];
+      // Create a fresh object for the specific color being updated
+      const updatedColor = { ...newColors[i], [field]: val };
+      
+      if (field === "name" && val.trim() === "") {
+        updatedColor.name = `Color ${i + 1}`;
+      }
+      
+      newColors[i] = updatedColor;
+      return { ...prev, colors: newColors };
+    });
   };
 
   const processFiles = (files) => {
@@ -258,6 +281,9 @@ export default function AdminProductFormPage() {
       data.append("isBestseller", formData.isBestseller);
       data.append("sizes", JSON.stringify(formData.sizes));
       data.append("colors", JSON.stringify(formData.colors));
+      const existingImages = previews.filter(p => !p.isNew);
+      data.append("existingImages", JSON.stringify(existingImages));
+
       formData.images.forEach((file) => data.append("images", file));
 
       if (id) {
