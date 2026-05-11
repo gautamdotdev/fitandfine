@@ -19,6 +19,8 @@ import AuthPage from "./pages/AuthPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import AdminProductsPage from "./pages/AdminProductsPage.jsx";
 import AdminProductFormPage from "./pages/AdminProductFormPage.jsx";
+import AdminOrdersPage from "./pages/AdminOrdersPage.jsx";
+import OrderTrackingPage from "./pages/OrderTrackingPage.jsx";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -66,6 +68,8 @@ export default function App() {
             <Route path="/admin" element={<AdminProductsPage />} />
             <Route path="/admin/products/add" element={<AdminProductFormPage />} />
             <Route path="/admin/products/edit/:id" element={<AdminProductFormPage />} />
+            <Route path="/admin/orders" element={<AdminOrdersPage />} />
+            <Route path="/order/:uuid" element={<OrderTrackingPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </main>

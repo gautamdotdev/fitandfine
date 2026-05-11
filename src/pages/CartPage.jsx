@@ -19,7 +19,7 @@ import { CONTACT_NAME, WHATSAPP_NUMBER } from "../lib/products.js";
 
 export default function CartPage() {
   const { items, remove, setQty, subtotal, count } = useCart();
-  const { token } = useAuth();
+  const { user } = useAuth();
   const push = useToasts((s) => s.push);
   const navigate = useNavigate();
 
@@ -30,7 +30,7 @@ export default function CartPage() {
   const [loading, setLoading] = useState(false);
 
   async function handleCheckout() {
-    if (!token) {
+    if (!user) {
       push({ type: "info", message: "Please sign in to complete your order." });
       navigate("/auth#login");
       return;
@@ -38,8 +38,16 @@ export default function CartPage() {
 
     setLoading(true);
     try {
+      const mappedItems = items.map(i => ({
+        product: i.productId,
+        quantity: i.qty,
+        price: i.price,
+        size: i.size,
+        color: i.color
+      }));
+
       const data = await orderApi.create({
-        items,
+        items: mappedItems,
         total: grandTotal,
       });
 

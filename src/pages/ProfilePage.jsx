@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/ShopContext";
+import UserOrders from "../components/UserOrders";
+
 import {
   User,
   Package,
@@ -370,287 +372,10 @@ function OrdersTab() {
         <span
           style={{ fontSize: "11px", color: "var(--color-muted-foreground)" }}
         >
-          {ORDERS.length} orders
+          {UserOrders.length} orders
         </span>
       </div>
-      {ORDERS.map((order) => (
-        <Card key={order.id}>
-          {/* Order Header */}
-          <button
-            onClick={() => setExpanded(expanded === order.id ? null : order.id)}
-            style={{
-              width: "100%",
-              padding: "16px 20px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              gap: "12px",
-              flexWrap: "wrap",
-              fontFamily: "inherit",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "16px",
-                flexWrap: "wrap",
-              }}
-            >
-              <div style={{ textAlign: "left" }}>
-                <p
-                  style={{
-                    fontSize: "12px",
-                    fontWeight: 700,
-                    letterSpacing: "0.04em",
-                  }}
-                >
-                  {order.id}
-                </p>
-                <p
-                  style={{
-                    fontSize: "11px",
-                    color: "var(--color-muted-foreground)",
-                    marginTop: "2px",
-                  }}
-                >
-                  {order.date}
-                </p>
-              </div>
-              <StatusBadge status={order.status} />
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-              <span
-                style={{
-                  fontFamily: "var(--font-serif)",
-                  fontSize: "1.1rem",
-                  fontWeight: 600,
-                }}
-              >
-                ₹{order.total.toLocaleString("en-IN")}
-              </span>
-              <ChevronRight
-                size={14}
-                style={{
-                  transform:
-                    expanded === order.id ? "rotate(90deg)" : "rotate(0)",
-                  transition: "transform 0.25s",
-                  color: "var(--color-muted-foreground)",
-                }}
-              />
-            </div>
-          </button>
-
-          {/* Expanded */}
-          <div
-            style={{
-              maxHeight: expanded === order.id ? "600px" : "0",
-              overflow: "hidden",
-              transition: "max-height 0.4s cubic-bezier(0.16,1,0.3,1)",
-            }}
-          >
-            <div
-              style={{
-                borderTop: "1px solid var(--color-border)",
-                padding: "20px",
-              }}
-            >
-              {/* Items */}
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "12px",
-                  marginBottom: "20px",
-                }}
-              >
-                {order.items.map((item, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      display: "flex",
-                      gap: "12px",
-                      alignItems: "center",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "56px",
-                        height: "72px",
-                        borderRadius: "8px",
-                        overflow: "hidden",
-                        flexShrink: 0,
-                        backgroundColor: "var(--color-muted)",
-                      }}
-                    >
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: "13px", fontWeight: 600 }}>
-                        {item.name}
-                      </p>
-                      <p
-                        style={{
-                          fontSize: "11px",
-                          color: "var(--color-muted-foreground)",
-                          marginTop: "2px",
-                        }}
-                      >
-                        Size {item.size} · {item.color}
-                      </p>
-                      <p
-                        style={{
-                          fontSize: "13px",
-                          fontWeight: 600,
-                          marginTop: "4px",
-                          color: "var(--color-gold)",
-                        }}
-                      >
-                        ₹{item.price.toLocaleString("en-IN")}
-                      </p>
-                    </div>
-                    <div style={{ display: "flex", gap: "4px" }}>
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star
-                          key={s}
-                          size={12}
-                          style={{
-                            color: "var(--color-gold)",
-                            fill: s <= 4 ? "var(--color-gold)" : "none",
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Tracking + Actions */}
-              <div
-                style={{
-                  padding: "12px 14px",
-                  borderRadius: "10px",
-                  backgroundColor: "var(--color-surface)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  flexWrap: "wrap",
-                  gap: "10px",
-                  marginBottom: "14px",
-                }}
-              >
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
-                >
-                  <Truck
-                    size={14}
-                    style={{ color: "var(--color-gold)" }}
-                    strokeWidth={1.8}
-                  />
-                  <span
-                    style={{
-                      fontSize: "11px",
-                      color: "var(--color-muted-foreground)",
-                    }}
-                  >
-                    Tracking:{" "}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "11px",
-                      fontWeight: 700,
-                      letterSpacing: "0.04em",
-                    }}
-                  >
-                    {order.tracking}
-                  </span>
-                </div>
-                <button
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    color: "var(--color-foreground)",
-                    textDecoration: "underline",
-                    textUnderlineOffset: "3px",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  Track Package →
-                </button>
-              </div>
-
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                <button
-                  style={{
-                    padding: "8px 16px",
-                    borderRadius: "8px",
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    border: "1.5px solid var(--color-border)",
-                    backgroundColor: "transparent",
-                    color: "var(--color-foreground)",
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    transition: "all 0.2s",
-                    letterSpacing: "0.04em",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.borderColor =
-                      "var(--color-foreground)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.borderColor = "var(--color-border)")
-                  }
-                >
-                  <RotateCcw
-                    size={11}
-                    style={{ display: "inline", marginRight: "5px" }}
-                  />
-                  Return / Exchange
-                </button>
-                <button
-                  style={{
-                    padding: "8px 16px",
-                    borderRadius: "8px",
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    border: "1.5px solid var(--color-border)",
-                    backgroundColor: "transparent",
-                    color: "var(--color-foreground)",
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    transition: "all 0.2s",
-                    letterSpacing: "0.04em",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.borderColor =
-                      "var(--color-foreground)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.borderColor = "var(--color-border)")
-                  }
-                >
-                  Download Invoice
-                </button>
-              </div>
-            </div>
-          </div>
-        </Card>
-      ))}
+      <UserOrders />
     </div>
   );
 }
@@ -979,8 +704,8 @@ function AddressesTab() {
                       transition: "all 0.15s",
                     }}
                     onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor =
-                        "var(--color-surface)")
+                    (e.currentTarget.style.backgroundColor =
+                      "var(--color-surface)")
                     }
                     onMouseLeave={(e) =>
                       (e.currentTarget.style.backgroundColor = "transparent")
@@ -1065,8 +790,8 @@ function AddressesTab() {
                     (e.currentTarget.style.color = "var(--color-foreground)")
                   }
                   onMouseLeave={(e) =>
-                    (e.currentTarget.style.color =
-                      "var(--color-muted-foreground)")
+                  (e.currentTarget.style.color =
+                    "var(--color-muted-foreground)")
                   }
                 >
                   Set as default
@@ -1804,29 +1529,6 @@ export default function ProfilePage() {
             </span>
           </div>
         </div>
-      </div>
-
-      {/* Stats row */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: "12px",
-          marginBottom: "32px",
-        }}
-        className="profile-stats"
-      >
-        <StatTile
-          label="Total Orders"
-          value={displayUser.totalOrders}
-          sub="Since joining"
-        />
-        <StatTile
-          label="Total Spent"
-          value={`₹${(displayUser.totalSpent / 1000).toFixed(1)}k`}
-          sub="Lifetime value"
-        />
-        <StatTile label="Wishlist" value={WISHLIST.length} sub="Items saved" />
       </div>
 
       {/* Main layout */}

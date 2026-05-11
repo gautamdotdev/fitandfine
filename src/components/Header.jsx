@@ -17,32 +17,32 @@ const navLinks = [
       { to: "/collections/combo", label: "Combo", desc: "Best value deals" },
     ],
   },
-  {
-    to: "/shop",
-    label: "Shop",
-    children: [
-      {
-        to: "/shop/bestsellers",
-        label: "Best Sellers",
-        desc: "Most loved products",
-      },
-      {
-        to: "/shop/trending",
-        label: "Trending Now",
-        desc: "Current streetwear picks",
-      },
-      {
-        to: "/shop/premium",
-        label: "Premium",
-        desc: "Luxury crafted pieces",
-      },
-      {
-        to: "/shop/summer-edit",
-        label: "Summer Edit",
-        desc: "Lightweight seasonal wear",
-      },
-    ],
-  },
+  // {
+  //   to: "/shop",
+  //   label: "Shop",
+  //   children: [
+  //     {
+  //       to: "/shop/bestsellers",
+  //       label: "Best Sellers",
+  //       desc: "Most loved products",
+  //     },
+  //     {
+  //       to: "/shop/trending",
+  //       label: "Trending Now",
+  //       desc: "Current streetwear picks",
+  //     },
+  //     {
+  //       to: "/shop/premium",
+  //       label: "Premium",
+  //       desc: "Luxury crafted pieces",
+  //     },
+  //     {
+  //       to: "/shop/summer-edit",
+  //       label: "Summer Edit",
+  //       desc: "Lightweight seasonal wear",
+  //     },
+  //   ],
+  // },
   { to: "/new-arrivals", label: "New Arrivals" },
   { to: "/sale", label: "Sale" },
 ];
@@ -475,12 +475,15 @@ export function Header() {
                       Profile
                     </button>
                     {isAdmin && (
-                      <button
-                        style={{ width: "100%", background: "none", border: "none", padding: "10px 18px", textAlign: "left", fontSize: "12px", color: "var(--color-gold)", cursor: "pointer", borderBottom: "1px solid var(--color-border)", fontWeight: 600 }}
-                        onClick={() => { navigate("/admin"); setShowUserMenu(false); }}
-                      >
-                        Admin Panel
-                      </button>
+                      <>
+                        <button
+                          style={{ width: "100%", background: "none", border: "none", padding: "10px 18px", textAlign: "left", fontSize: "12px", color: "var(--color-gold)", cursor: "pointer", borderBottom: "1px solid var(--color-border)", fontWeight: 600 }}
+                          onClick={() => { navigate("/admin"); setShowUserMenu(false); }}
+                        >
+                          Admin Panel
+                        </button>
+
+                      </>
                     )}
                     <button
                       style={{ width: "100%", background: "none", border: "none", padding: "10px 18px", textAlign: "left", fontSize: "12px", color: "var(--color-destructive)", cursor: "pointer" }}

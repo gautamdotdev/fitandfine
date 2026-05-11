@@ -765,7 +765,26 @@ export default function AdminProductsPage() {
               {totalProducts} products · Manage catalog, stock & visibility
             </p>
           </div>
-          <div className="adm-header-actions" style={{ display: "flex", gap: 10 }}>
+          <div className="adm-header-actions" style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <button
+              onClick={() => navigate("/admin/orders")}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "12px 24px",
+                borderRadius: 14,
+                background: "var(--color-surface)",
+                color: "var(--color-foreground)",
+                border: "1px solid var(--color-border)",
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: "pointer",
+                transition: "all 0.25s cubic-bezier(0.23, 1, 0.32, 1)",
+              }}
+            >
+              <Package size={18} /> Manage Orders
+            </button>
             <button
               onClick={() => navigate("/admin/products/add")}
               onMouseEnter={(e) => {
