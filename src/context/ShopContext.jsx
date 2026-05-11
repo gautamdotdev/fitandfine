@@ -91,6 +91,7 @@ export const ShopProvider = ({ children }) => {
   const [nextCursor, setNextCursor] = useState(null);
   const [hasMore, setHasMore] = useState(true);
   const [total, setTotal] = useState(0);
+  const [backgroundTasks, setBackgroundTasks] = useState([]);
   
   const pushToast = useToasts((s) => s.push);
   
@@ -181,15 +182,59 @@ export const ShopProvider = ({ children }) => {
   // Invalidate cache on mutations
   const invalidateCache = () => cache.clear();
 
+  const saveProduct = async (id, data, metadata) => {
+    const taskId = Date.now().toString();
+    const newTask = {
+      id: taskId,
+      name: metadata.name,
+      status: "processing",
+      type: id ? "update" : "create",
+      timestamp: new Date()
+    };
+    
+    setBackgroundTasks(prev => [newTask, ...prev]);
+    
+    try {
+      if (id) {
+        await productApi.update(id, data);
+      } else {
+        await productApi.create(data);
+      }
+      
+      // Success: Update task and refresh
+      setBackgroundTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: "success" } : t));
+      invalidateCache();
+      fetchProducts({ limit: 20, append: false });
+      
+      pushToast({ 
+        title: "Success", 
+        message: `${metadata.name} saved successfully.`, 
+        type: "success" 
+      });
+
+      // Clear successful task after delay
+      setTimeout(() => {
+        setBackgroundTasks(prev => prev.filter(t => t.id !== taskId));
+      }, 5000);
+
+    } catch (error) {
+      setBackgroundTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: "error", error: error.message } : t));
+      pushToast({ title: "Save Failed", message: error.message, type: "error" });
+    }
+  };
+
   const value = {
     products,
     loading,
     nextCursor,
     hasMore,
     total,
+    backgroundTasks,
     fetchProducts,
+    saveProduct,
     invalidateCache,
-    setProducts, // For optimistic UI if needed
+    setProducts,
+    setBackgroundTasks,
   };
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>;

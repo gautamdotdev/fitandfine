@@ -18,6 +18,9 @@ import {
   LayoutGrid,
   LayoutList,
   X,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 
 /* ─── Styles ─── */
@@ -342,7 +345,7 @@ function StatCard({ icon: Icon, label, value, accent, sub }) {
 
 /* ─── Main Page ─── */
 export default function AdminProductsPage() {
-  const { products, loading, fetchProducts, nextCursor, hasMore, total, setProducts, invalidateCache } = useShop();
+  const { products, loading, fetchProducts, nextCursor, hasMore, total, setProducts, invalidateCache, backgroundTasks } = useShop();
   const { isAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const pushToast = useToasts((s) => s.push);
@@ -643,6 +646,95 @@ export default function AdminProductsPage() {
       />
 
       <div className="adm-wrap">
+        {/* ── Background Tasks ── */}
+        {backgroundTasks.length > 0 && (
+          <div style={{ marginBottom: 32, display: "flex", flexDirection: "column", gap: 12 }}>
+            {backgroundTasks.map((task) => (
+              <div
+                key={task.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 16,
+                  padding: "16px 20px",
+                  background: "var(--color-surface)",
+                  borderRadius: 18,
+                  border: "1.2px solid var(--color-border)",
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+                  animation: "taskIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+                }}
+              >
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "12px",
+                    background:
+                      task.status === "processing"
+                        ? "rgba(0,0,0,0.05)"
+                        : task.status === "success"
+                        ? "#ecfdf5"
+                        : "#fef2f2",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  {task.status === "processing" ? (
+                    <Loader2 size={18} className="animate-spin" style={{ color: "var(--color-muted-foreground)" }} />
+                  ) : task.status === "success" ? (
+                    <CheckCircle2 size={18} style={{ color: "#10b981" }} />
+                  ) : (
+                    <AlertCircle size={18} style={{ color: "#ef4444" }} />
+                  )}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: "var(--color-foreground)" }}>
+                      {task.type === "create" ? "Adding" : "Updating"} "{task.name}"
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        padding: "2px 8px",
+                        borderRadius: 6,
+                        background:
+                          task.status === "processing"
+                            ? "var(--color-foreground)"
+                            : task.status === "success"
+                            ? "#10b981"
+                            : "#ef4444",
+                        color: "#fff",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.02em",
+                      }}
+                    >
+                      {task.status}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--color-muted-foreground)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {task.status === "processing"
+                      ? "Uploading assets and synchronizing with server..."
+                      : task.status === "success"
+                      ? "Changes successfully saved to the product catalog."
+                      : `Upload failed: ${task.error || "Unknown server error"}`}
+                  </div>
+                </div>
+              </div>
+            ))}
+            <style>{`
+              @keyframes taskIn {
+                from { opacity: 0; transform: translateY(-12px) scale(0.98); }
+                to { opacity: 1; transform: translateY(0) scale(1); }
+              }
+              .animate-spin { animation: spin 1s linear infinite; }
+              @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+            `}</style>
+          </div>
+        )}
+
         {/* ── Header ── */}
         <div className="adm-header">
           <div>

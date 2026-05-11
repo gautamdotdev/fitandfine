@@ -18,7 +18,10 @@ import {
   Star,
   Info,
   ChevronDown,
+  Palette,
 } from "lucide-react";
+import { getPalette } from "colorthief";
+import namer from "color-namer";
 
 /* ─── Responsive Styles ─── */
 const FORM_STYLES = `
@@ -106,13 +109,60 @@ export default function AdminProductFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
-  const { products, fetchProducts } = useShop();
+  const { products, fetchProducts, saveProduct } = useShop();
   const refreshProducts = () => fetchProducts();
 
   const pushToast = useToasts((s) => s.push);
   const [loading, setLoading] = useState(false);
   const dropRef = useRef(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isExtractingColors, setIsExtractingColors] = useState(false);
+
+  const extractColorsFromImage = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = async () => {
+          try {
+            // ColorThief 3.x uses named exports and is async
+            const palette = await getPalette(img, 5); 
+            
+            const extracted = palette.map(color => {
+              const rgb = color.array(); // In 3.x, getColor/getPalette returns Color objects
+              const hex = color.hex();
+              
+              // Get color name from hex
+              const names = namer(hex).ntc; 
+              const name = names[0].name;
+              
+              return { name, hex };
+            });
+            
+            // Deduplicate and filter out very similar colors if needed
+            // For now just keep unique names
+            const unique = [];
+            const seenNames = new Set();
+            for (const c of extracted) {
+              if (!seenNames.has(c.name)) {
+                unique.push(c);
+                seenNames.add(c.name);
+              }
+              if (unique.length >= 4) break;
+            }
+            
+            resolve(unique);
+          } catch (err) {
+            reject(err);
+          }
+        };
+        img.onerror = () => reject(new Error("Failed to load image for color extraction"));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+  };
 
   const initialFormState = {
     name: "",
@@ -245,6 +295,31 @@ export default function AdminProductFormPage() {
       file,
     }));
     setPreviews((prev) => [...prev, ...newPreviews]);
+
+    // Automatic Color Extraction from the FIRST image
+    if (arr.length > 0 && formData.colors.length === 0) {
+      handleAutoColorExtraction(arr[0]);
+    }
+  };
+
+  const handleAutoColorExtraction = async (file) => {
+    setIsExtractingColors(true);
+    try {
+      const detected = await extractColorsFromImage(file);
+      setFormData(prev => ({
+        ...prev,
+        colors: [...prev.colors, ...detected].slice(0, 6) // Keep it reasonable
+      }));
+      pushToast({ 
+        title: "Colors Detected", 
+        message: `Extracted ${detected.length} colors from image.`, 
+        type: "success" 
+      });
+    } catch (err) {
+      console.error("Color extraction error:", err);
+    } finally {
+      setIsExtractingColors(false);
+    }
   };
 
   const handleImageChange = (e) => processFiles(e.target.files);
@@ -286,27 +361,15 @@ export default function AdminProductFormPage() {
 
       formData.images.forEach((file) => data.append("images", file));
 
-      if (id) {
-        await productApi.update(id, data);
-        pushToast({
-          title: "Updated",
-          message: "Product saved successfully.",
-          type: "success",
-        });
-      } else {
-        await productApi.create(data);
-        pushToast({
-          title: "Published",
-          message: "New product added to catalog.",
-          type: "success",
-        });
-      }
-      refreshProducts();
+      // Fire and forget
+      saveProduct(id, data, { name: formData.name });
+      
+      // Navigate immediately
       navigate("/admin");
     } catch (error) {
       pushToast({ title: "Error", message: error.message, type: "error" });
     } finally {
-      setLoading(false);
+      // We don't set loading false here because we've navigated away
     }
   };
 
@@ -824,6 +887,62 @@ export default function AdminProductFormPage() {
                   />
                 </label>
               </div>
+
+              {/* ── Detected Colors Preview ── */}
+              {isExtractingColors && (
+                <div style={{ 
+                  padding: "16px", 
+                  textAlign: "center", 
+                  background: "var(--color-surface)", 
+                  borderRadius: 12,
+                  border: "1px dashed var(--color-border)",
+                  marginTop: 12
+                }}>
+                  <Loader2 size={18} className="animate-spin" style={{ color: "var(--color-muted-foreground)", marginBottom: 8, display: "inline-block" }} />
+                  <p style={{ fontSize: 11, fontWeight: 600, color: "var(--color-muted-foreground)" }}>Extracting colors...</p>
+                </div>
+              )}
+
+              {formData.colors.length > 0 && (
+                <div style={{ marginTop: 24 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                    <Palette size={14} style={{ color: "var(--color-muted-foreground)" }} />
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "var(--color-muted-foreground)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                      Detected Palette
+                    </span>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+                    {formData.colors.map((c, i) => (
+                      <div key={c.hex + i} style={{ 
+                        display: "flex", 
+                        alignItems: "center", 
+                        gap: 10, 
+                        padding: "8px 10px", 
+                        background: "var(--color-surface)", 
+                        borderRadius: 12,
+                        border: "1.2px solid var(--color-border)"
+                      }}>
+                        <div style={{ 
+                          width: 24, 
+                          height: 24, 
+                          borderRadius: "50%", 
+                          background: c.hex,
+                          border: "1px solid rgba(0,0,0,0.1)",
+                          flexShrink: 0
+                        }} />
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {c.name}
+                          </div>
+                          <div style={{ fontSize: 10, fontWeight: 500, color: "var(--color-muted-foreground)", fontFamily: "monospace" }}>
+                            {c.hex.toUpperCase()}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <p
                 style={{
