@@ -264,7 +264,7 @@ export function Footer() {
           }}
           className="footer-bottom"
         >
-          <p>© 2025 FIT & FINE. All rights reserved.</p>
+          <p>© 2026 FIT & FINE. All rights reserved.</p>
           <div style={{ display: "flex", gap: "20px" }}>
             <a href="#" style={{ color: "inherit", textDecoration: "none" }}>
               Privacy Policy

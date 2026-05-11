@@ -11,7 +11,7 @@ export default function NewArrivalsPage() {
   return (
     <div
       className="page-transition"
-      style={{ maxWidth: "1400px", margin: "0 auto", padding: "24px 20px 100px" }}
+      style={{ maxWidth: "1400px", margin: "0 auto", padding: "0px 20px 100px" }}
     >
       {/* Breadcrumb */}
       <nav style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "var(--color-muted-foreground)", letterSpacing: "0.04em" }}>
@@ -29,9 +29,6 @@ export default function NewArrivalsPage() {
         <p className="label-caps" style={{ color: "var(--color-gold)", fontSize: "10px", letterSpacing: "0.12em" }}>
           Just Landed
         </p>
-        <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(2rem, 5vw, 3.2rem)", lineHeight: 1.1, letterSpacing: "-0.02em", marginTop: "8px", marginBottom: "10px" }}>
-          New Arrivals
-        </h1>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
           <p style={{ fontSize: "13px", color: "var(--color-muted-foreground)" }}>
             <span style={{ fontWeight: 600, color: "var(--color-foreground)" }}>{items.length}</span> products

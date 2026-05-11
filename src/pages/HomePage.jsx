@@ -11,23 +11,246 @@ import {
 import { ProductCard } from "../components/ProductCard.jsx";
 import { useShop } from "../context/ShopContext.jsx";
 
+function SkeletonBox({
+  width = "100%",
+  height = "20px",
+  borderRadius = "4px",
+  style = {},
+}) {
+  return (
+    <div
+      className="skeleton-pulse"
+      style={{
+        width,
+        height,
+        borderRadius,
+        backgroundColor: "var(--color-border)",
+        ...style,
+      }}
+    />
+  );
+}
+
+function SkeletonProductCard() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      <SkeletonBox height="360px" borderRadius="8px" />
+      <SkeletonBox width="60%" height="14px" />
+      <SkeletonBox width="40%" height="14px" />
+      <SkeletonBox width="25%" height="14px" />
+    </div>
+  );
+}
+
+function HomePageSkeleton() {
+  return (
+    <div className="page-transition">
+      {/* HERO skeleton */}
+      <section
+        style={{ display: "grid", minHeight: "88vh" }}
+        className="hero-grid"
+      >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            padding: "32px 64px 64px 64px",
+            gap: "24px",
+          }}
+          className="hero-content"
+        >
+          <SkeletonBox width="140px" height="12px" borderRadius="50px" />
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+          >
+            <SkeletonBox width="80%" height="60px" borderRadius="6px" />
+            <SkeletonBox width="70%" height="60px" borderRadius="6px" />
+            <SkeletonBox width="60%" height="60px" borderRadius="6px" />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <SkeletonBox width="90%" height="16px" />
+            <SkeletonBox width="75%" height="16px" />
+          </div>
+          <SkeletonBox width="200px" height="52px" borderRadius="50px" />
+        </div>
+        <div
+          style={{ position: "relative", minHeight: "50vh" }}
+          className="hero-image"
+        >
+          <SkeletonBox
+            width="100%"
+            height="100%"
+            borderRadius="0"
+            style={{ position: "absolute", inset: 0 }}
+          />
+        </div>
+      </section>
+
+      {/* CATEGORIES skeleton */}
+      <section
+        style={{ maxWidth: "1400px", margin: "0 auto", padding: "40px 20px" }}
+      >
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, 1fr)",
+            gap: "16px",
+          }}
+          className="categories-grid"
+        >
+          {Array.from({ length: 4 }).map((_, i) => (
+            <SkeletonBox
+              key={i}
+              height="0"
+              borderRadius="8px"
+              style={{ aspectRatio: "3/4", height: "auto" }}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* FEATURED skeleton */}
+      <section
+        style={{ maxWidth: "1400px", margin: "0 auto", padding: "48px 20px" }}
+      >
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: "56px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "16px",
+          }}
+        >
+          <SkeletonBox width="80px" height="12px" />
+          <SkeletonBox width="220px" height="40px" borderRadius="6px" />
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, 1fr)",
+            gap: "24px",
+          }}
+          className="featured-grid"
+        >
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonProductCard key={i} />
+          ))}
+        </div>
+      </section>
+
+      {/* EDITORIAL skeleton */}
+      <section
+        style={{ display: "grid", marginTop: "80px" }}
+        className="editorial-grid"
+      >
+        <SkeletonBox
+          height="0"
+          borderRadius="0"
+          style={{ aspectRatio: "4/3", height: "auto" }}
+          className="editorial-image"
+        />
+        <div
+          style={{
+            backgroundColor: "var(--color-surface)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            padding: "64px 40px",
+            gap: "20px",
+          }}
+          className="editorial-content"
+        >
+          <SkeletonBox width="60px" height="12px" />
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+          >
+            <SkeletonBox width="80%" height="40px" borderRadius="6px" />
+            <SkeletonBox width="60%" height="40px" borderRadius="6px" />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <SkeletonBox height="14px" />
+            <SkeletonBox width="85%" height="14px" />
+          </div>
+          <SkeletonBox width="120px" height="14px" />
+        </div>
+      </section>
+
+      {/* NEW ARRIVALS skeleton */}
+      <section
+        style={{ maxWidth: "1400px", margin: "0 auto", padding: "40px 20px" }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            marginBottom: "40px",
+          }}
+        >
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+          >
+            <SkeletonBox width="60px" height="12px" />
+            <SkeletonBox width="180px" height="36px" borderRadius="6px" />
+          </div>
+          <SkeletonBox width="60px" height="12px" />
+        </div>
+        <div style={{ display: "flex", gap: "24px", overflow: "hidden" }}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} style={{ minWidth: "260px" }}>
+              <SkeletonProductCard />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <style>{`
+        @keyframes skeleton-shimmer {
+          0% { opacity: 1; }
+          50% { opacity: 0.4; }
+          100% { opacity: 1; }
+        }
+        .skeleton-pulse { animation: skeleton-shimmer 1.6s ease-in-out infinite; }
+        .hero-grid { grid-template-columns: 1fr; }
+        .hero-content { padding: 48px 20px; order: 2; text-align: center; align-items: center; }
+        .hero-image { order: 1; }
+        .categories-grid { grid-template-columns: repeat(2, 1fr); }
+        .featured-grid { grid-template-columns: repeat(2, 1fr); }
+        .editorial-grid { grid-template-columns: 1fr; }
+        .editorial-image { aspect-ratio: 4/3; }
+        .editorial-content { padding: 48px 20px !important; text-align: center; align-items: center; }
+        @media (min-width: 1024px) {
+          .hero-grid { grid-template-columns: repeat(2, 1fr) !important; min-height: 90vh !important; }
+          .hero-content { order: 1 !important; padding: 80px 80px !important; }
+          .hero-image { order: 2 !important; min-height: 100% !important; }
+          .categories-grid { grid-template-columns: repeat(4, 1fr) !important; }
+          .featured-grid { grid-template-columns: repeat(3, 1fr) !important; }
+          .editorial-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .editorial-image { aspect-ratio: auto !important; }
+          .editorial-content { padding: 80px 100px !important; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const { products, loading, fetchProducts } = useShop();
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
 
-  // Fetch products on mount and when page changes
   useEffect(() => {
     fetchProducts({ page, limit: 24, append: page > 1 }).then((data) => {
-      // If less than limit returned, no more products
       if (data && data.products && data.products.length < 24) setHasMore(false);
       setInitialLoad(false);
     });
     // eslint-disable-next-line
   }, [page]);
 
-  // Infinite scroll
   useEffect(() => {
     const handleScroll = () => {
       if (
@@ -43,12 +266,8 @@ export default function HomePage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [hasMore, loading]);
 
-  if (initialLoad && loading)
-    return (
-      <div style={{ padding: "100px", textAlign: "center" }}>Loading...</div>
-    );
+  if (initialLoad && loading) return <HomePageSkeleton />;
 
-  // Featured and newArrivals can be derived from all loaded products
   const featured = products.filter((p) => p.isBestseller);
   const newArrivals = products.filter((p) => p.newArrival);
 
@@ -114,7 +333,7 @@ export default function HomePage() {
                 letterSpacing: "0.18em",
               }}
             >
-              New Season • SS 2025
+              New Season • 2026
             </span>
           </div>
           <h1
@@ -255,7 +474,7 @@ export default function HomePage() {
                   {c.name}
                 </h3>
                 <p
-                  className="label-caps"
+                  className="label-caps shop-now-label"
                   style={{
                     marginTop: "4px",
                     display: "flex",
@@ -263,7 +482,6 @@ export default function HomePage() {
                     gap: "6px",
                     fontSize: "9px",
                   }}
-                  className="shop-now-label"
                 >
                   Shop Now <ArrowRight size={12} />
                 </p>
@@ -675,6 +893,12 @@ export default function HomePage() {
       </section>
 
       <style>{`
+        @keyframes skeleton-shimmer {
+          0% { opacity: 1; }
+          50% { opacity: 0.4; }
+          100% { opacity: 1; }
+        }
+        .skeleton-pulse { animation: skeleton-shimmer 1.6s ease-in-out infinite; }
         .hero-grid { grid-template-columns: 1fr; }
         .hero-content { padding: 48px 20px; order: 2; text-align: center; align-items: center; }
         .hero-image { order: 1; }
@@ -715,7 +939,6 @@ export default function HomePage() {
           .story-grid { grid-template-columns: repeat(2, 1fr) !important; text-align: left; }
         }
 
-        
         .category-card:hover .category-img { transform: scale(1.05); }
         .shop-now-label { opacity: 0; transition: opacity 0.3s; }
         .category-card:hover .shop-now-label { opacity: 1; }

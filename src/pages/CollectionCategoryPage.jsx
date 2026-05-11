@@ -997,7 +997,7 @@ export default function CollectionCategoryPage() {
       style={{
         maxWidth: "1400px",
         margin: "0 auto",
-        padding: "24px 20px 100px",
+        padding: "0px 20px 100px",
       }}
     >
       {/* Breadcrumb */}
@@ -1040,17 +1040,7 @@ export default function CollectionCategoryPage() {
 
       {/* Page Header */}
       <div style={{ marginTop: "28px", marginBottom: "32px" }}>
-        <h1
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontSize: "clamp(2rem, 5vw, 3.2rem)",
-            lineHeight: 1.1,
-            letterSpacing: "-0.02em",
-            marginBottom: "10px",
-          }}
-        >
-          {title}
-        </h1>
+
         <div
           style={{
             display: "flex",
