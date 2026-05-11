@@ -59,8 +59,14 @@ export default function CartPage() {
         )
         .join("\n");
       const text = `Hi ${CONTACT_NAME}, I'd like to order the following:\n${lines}\nTotal: ₹${grandTotal.toLocaleString("en-IN")}\nOrder details: ${data.orderLink}\nPlease confirm availability.`;
-      const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+      const waUrl = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(text)}`;
+      
+      // Clear cart
+      const { clear } = useCart.getState();
+      clear();
+      
       window.open(waUrl, "_blank");
+      navigate("/profile"); // Redirect to orders page
     } catch (err) {
       push({ type: "error", message: err.message });
     } finally {

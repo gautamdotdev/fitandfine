@@ -312,7 +312,8 @@ export const EDITORIAL_IMAGE =
 export const STORY_IMAGE =
   "https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?w=1200&q=85&auto=format&fit=crop";
 
-export const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || "918780142005";
+const rawNum = import.meta.env.VITE_WHATSAPP_NUMBER || "918780142005";
+export const WHATSAPP_NUMBER = rawNum.length === 10 ? `91${rawNum}` : rawNum;
 export const CONTACT_NAME = import.meta.env.VITE_CONTACT_NAME || "Zala Bhavyarajsinh";
 
 
