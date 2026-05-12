@@ -65,7 +65,7 @@ const HEADER_STYLES = `
 
   @media (max-width: 900px) {
     .adm-menu-btn { display: flex; }
-    .adm-topbar { padding: 0 16px; height: 64px; }
+    .adm-topbar { padding: 0 5px; height: 64px; }
     .adm-topbar-logo-text { font-size: 1.2rem !important; }
   }
 `;
@@ -102,7 +102,9 @@ export function AdminHeader({ setSidebarOpen }) {
   return (
     <>
       <style>{HEADER_STYLES}</style>
-      <header className={`adm-topbar ${visible ? "adm-topbar--visible" : "adm-topbar--hidden"}`}>
+      <header
+        className={`adm-topbar ${visible ? "adm-topbar--visible" : "adm-topbar--hidden"}`}
+      >
         <div className="adm-topbar-left">
           <div
             className="adm-topbar-logo-text"
@@ -124,7 +126,11 @@ export function AdminHeader({ setSidebarOpen }) {
         </div>
 
         <div className="adm-topbar-right">
-          <button className="adm-topbar-notif-btn" style={{ display: "flex" }} aria-label="Notifications">
+          <button
+            className="adm-topbar-notif-btn"
+            style={{ display: "flex" }}
+            aria-label="Notifications"
+          >
             <Bell size={16} strokeWidth={1.8} />
             <span className="adm-notif-dot" />
           </button>

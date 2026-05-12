@@ -200,7 +200,7 @@ const SIDEBAR_STYLES = `
     .adm-main { margin-left: 0; }
     .adm-menu-btn { display: flex; order: 2; }
     .adm-close-btn { display: flex; }
-    .adm-content { padding: 0px 10px 0px; }
+    .adm-content { padding: 0px 5px 0px; }
     .adm-topbar { padding: 0 16px; height: 64px; }
   }
 
@@ -209,24 +209,25 @@ const SIDEBAR_STYLES = `
 
 const NAV = [
   {
-    label: "MAIN", items: [
+    label: "MAIN",
+    items: [
       { to: "/admin", icon: LayoutDashboard, text: "Home", end: true },
       { to: "/admin/orders", icon: ShoppingCart, text: "Orders", badge: "5" },
       { to: "/admin/products", icon: Package, text: "Products" },
       { to: "/admin/customers", icon: Users, text: "Customers" },
-    ]
+    ],
   },
   {
-    label: "SALES CHANNELS", items: [
+    label: "SALES CHANNELS",
+    items: [
       { to: "/admin/analytics", icon: BarChart3, text: "Analytics" },
       { to: "/admin/marketing", icon: Zap, text: "Marketing" },
       { to: "/admin/discounts", icon: Tag, text: "Discounts" },
-    ]
+    ],
   },
   {
-    label: "SETTINGS", items: [
-      { to: "/admin/settings", icon: Settings, text: "Settings" },
-    ]
+    label: "SETTINGS",
+    items: [{ to: "/admin/settings", icon: Settings, text: "Settings" }],
   },
 ];
 
@@ -250,12 +251,18 @@ export default function AdminLayout() {
               <Store size={16} color="#fff" />
             </div>
             <div>
-              <div className="adm-logo-text" style={{ fontFamily: 'var(--font-serif)', fontSize: '1.1rem' }}>
-                FIT & FINE<span style={{ color: 'var(--color-gold)' }}>.</span>
+              <div
+                className="adm-logo-text"
+                style={{ fontFamily: "var(--font-serif)", fontSize: "1.1rem" }}
+              >
+                FIT & FINE<span style={{ color: "var(--color-gold)" }}>.</span>
               </div>
               <div className="adm-logo-sub">Store owner</div>
             </div>
-            <button className="adm-close-btn" onClick={() => setSidebarOpen(false)}>
+            <button
+              className="adm-close-btn"
+              onClick={() => setSidebarOpen(false)}
+            >
               <X size={18} />
             </button>
           </div>
@@ -286,7 +293,10 @@ export default function AdminLayout() {
           </nav>
 
           <div className="adm-sidebar-footer">
-            <div className="adm-user-row" onClick={() => navigate("/admin/settings")}>
+            <div
+              className="adm-user-row"
+              onClick={() => navigate("/admin/settings")}
+            >
               <div className="adm-avatar">RA</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="adm-user-name">Rayan Anderson</div>

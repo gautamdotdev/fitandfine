@@ -4,10 +4,21 @@ import { productApi } from "../../lib/api";
 import { useToasts } from "../../lib/store";
 import { useNavigate } from "react-router-dom";
 import {
-  Plus, Edit2, Trash2,
-  Search, Filter, Package, AlertTriangle,
-  LayoutGrid, LayoutList, X, Loader2, CheckCircle2,
-  AlertCircle, Download, ChevronDown,
+  Plus,
+  Edit2,
+  Trash2,
+  Search,
+  Filter,
+  Package,
+  AlertTriangle,
+  LayoutGrid,
+  LayoutList,
+  X,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  Download,
+  ChevronDown,
 } from "lucide-react";
 
 const STYLES = `
@@ -55,7 +66,7 @@ const STYLES = `
   /* Table */
   .admp-table-wrap {
     background: #fff; border: 1px solid #e8e6e0;
-    border-radius: 16px; overflow: hidden;
+    border-radius: 2px; overflow: hidden;
     box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   }
   .admp-table { width: 100%; border-collapse: collapse; }
@@ -214,24 +225,50 @@ const STYLES = `
     .admp-add-btn span { display: none; }
     .admp-bulk-bar { width: calc(100% - 32px); border-radius: 12px; flex-wrap: wrap; justify-content: center; bottom: 16px; }
   }
+
+  .admp-table td.col-name { max-width: 140px; }
 `;
 
 function StatusBadge({ p }) {
   if (p.stock === 0)
-    return <span className="admp-status" style={{ background: "#fff7ed", color: "#d97706" }}>
-      <span className="admp-status-dot" style={{ background: "#f59e0b" }} />Out Stock
-    </span>;
+    return (
+      <span
+        className="admp-status"
+        style={{ background: "#fff7ed", color: "#d97706" }}
+      >
+        <span className="admp-status-dot" style={{ background: "#f59e0b" }} />
+        Out Stock
+      </span>
+    );
   if (p.stock <= 5)
-    return <span className="admp-status" style={{ background: "#fef2f2", color: "#dc2626" }}>
-      <span className="admp-status-dot" style={{ background: "#ef4444" }} />Low Stock
-    </span>;
+    return (
+      <span
+        className="admp-status"
+        style={{ background: "#fef2f2", color: "#dc2626" }}
+      >
+        <span className="admp-status-dot" style={{ background: "#ef4444" }} />
+        Low Stock
+      </span>
+    );
   if (!p.salePrice && !p.newArrival)
-    return <span className="admp-status" style={{ background: "#f8f8f8", color: "#888" }}>
-      <span className="admp-status-dot" style={{ background: "#aaa" }} />Draft
-    </span>;
-  return <span className="admp-status" style={{ background: "#ecfdf5", color: "#059669" }}>
-    <span className="admp-status-dot" style={{ background: "#10b981" }} />Published
-  </span>;
+    return (
+      <span
+        className="admp-status"
+        style={{ background: "#f8f8f8", color: "#888" }}
+      >
+        <span className="admp-status-dot" style={{ background: "#aaa" }} />
+        Draft
+      </span>
+    );
+  return (
+    <span
+      className="admp-status"
+      style={{ background: "#ecfdf5", color: "#059669" }}
+    >
+      <span className="admp-status-dot" style={{ background: "#10b981" }} />
+      Published
+    </span>
+  );
 }
 
 function ConfirmModal({ product, loading, onConfirm, onCancel }) {
@@ -239,19 +276,102 @@ function ConfirmModal({ product, loading, onConfirm, onCancel }) {
   return (
     <div className="admp-confirm-backdrop" onClick={onCancel}>
       <div className="admp-confirm-modal" onClick={(e) => e.stopPropagation()}>
-        <div style={{ width: 48, height: 48, borderRadius: 14, background: "#fef2f2", border: "1.5px solid #fecaca", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+        <div
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: 14,
+            background: "#fef2f2",
+            border: "1.5px solid #fecaca",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 16,
+          }}
+        >
           <Trash2 size={20} color="#ef4444" />
         </div>
-        <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>Delete Product?</h3>
-        <p style={{ fontSize: 13, color: "#888", marginBottom: 20, lineHeight: 1.6 }}>
-          "<strong>{product.name}</strong>" will be permanently removed from your catalog.
+        <h3
+          style={{
+            fontSize: 18,
+            fontWeight: 800,
+            marginBottom: 6,
+            fontFamily: "'DM Sans', sans-serif",
+          }}
+        >
+          Delete Product?
+        </h3>
+        <p
+          style={{
+            fontSize: 13,
+            color: "#888",
+            marginBottom: 20,
+            lineHeight: 1.6,
+          }}
+        >
+          "<strong>{product.name}</strong>" will be permanently removed from
+          your catalog.
         </p>
         <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={onCancel} disabled={loading} style={{ flex: 1, padding: "11px", borderRadius: 10, border: "1.5px solid #e8e6e0", background: "transparent", fontWeight: 600, cursor: "pointer", fontSize: 13, fontFamily: "inherit" }}>Cancel</button>
-          <button onClick={onConfirm} disabled={loading} style={{ flex: 1.4, padding: "11px", borderRadius: 10, border: "none", background: "#ef4444", color: "#fff", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontSize: 13, fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, opacity: loading ? 0.7 : 1 }}>
-            {loading
-              ? <><span style={{ width: 13, height: 13, border: "2px solid rgba(255,255,255,0.3)", borderTop: "2px solid #fff", borderRadius: "50%", display: "inline-block", animation: "admpSpin 0.7s linear infinite" }} />Deleting…</>
-              : <><Trash2 size={13} />Delete</>}
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            style={{
+              flex: 1,
+              padding: "11px",
+              borderRadius: 10,
+              border: "1.5px solid #e8e6e0",
+              background: "transparent",
+              fontWeight: 600,
+              cursor: "pointer",
+              fontSize: 13,
+              fontFamily: "inherit",
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            style={{
+              flex: 1.4,
+              padding: "11px",
+              borderRadius: 10,
+              border: "none",
+              background: "#ef4444",
+              color: "#fff",
+              fontWeight: 700,
+              cursor: loading ? "not-allowed" : "pointer",
+              fontSize: 13,
+              fontFamily: "inherit",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+              opacity: loading ? 0.7 : 1,
+            }}
+          >
+            {loading ? (
+              <>
+                <span
+                  style={{
+                    width: 13,
+                    height: 13,
+                    border: "2px solid rgba(255,255,255,0.3)",
+                    borderTop: "2px solid #fff",
+                    borderRadius: "50%",
+                    display: "inline-block",
+                    animation: "admpSpin 0.7s linear infinite",
+                  }}
+                />
+                Deleting…
+              </>
+            ) : (
+              <>
+                <Trash2 size={13} />
+                Delete
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -260,7 +380,16 @@ function ConfirmModal({ product, loading, onConfirm, onCancel }) {
 }
 
 export default function AdminProductsPage() {
-  const { products, loading, fetchProducts, hasMore, total, setProducts, invalidateCache, backgroundTasks } = useShop();
+  const {
+    products,
+    loading,
+    fetchProducts,
+    hasMore,
+    total,
+    setProducts,
+    invalidateCache,
+    backgroundTasks,
+  } = useShop();
   const { isAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const pushToast = useToasts((s) => s.push);
@@ -284,23 +413,40 @@ export default function AdminProductsPage() {
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
-      const matchSearch = !search || p.name?.toLowerCase().includes(search.toLowerCase()) || p.slug?.toLowerCase().includes(search.toLowerCase());
+      const matchSearch =
+        !search ||
+        p.name?.toLowerCase().includes(search.toLowerCase()) ||
+        p.slug?.toLowerCase().includes(search.toLowerCase());
       const matchCat = filterCat === "All" || p.category === filterCat;
       return matchSearch && matchCat;
     });
   }, [products, search, filterCat]);
 
-  const allSelected = filtered.length > 0 && filtered.every((p) => selected.has(p._id));
+  const allSelected =
+    filtered.length > 0 && filtered.every((p) => selected.has(p._id));
   const someSelected = filtered.some((p) => selected.has(p._id));
 
   const toggleAll = () => {
     if (allSelected) {
-      setSelected((prev) => { const n = new Set(prev); filtered.forEach((p) => n.delete(p._id)); return n; });
+      setSelected((prev) => {
+        const n = new Set(prev);
+        filtered.forEach((p) => n.delete(p._id));
+        return n;
+      });
     } else {
-      setSelected((prev) => { const n = new Set(prev); filtered.forEach((p) => n.add(p._id)); return n; });
+      setSelected((prev) => {
+        const n = new Set(prev);
+        filtered.forEach((p) => n.add(p._id));
+        return n;
+      });
     }
   };
-  const toggleOne = (id) => setSelected((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggleOne = (id) =>
+    setSelected((prev) => {
+      const n = new Set(prev);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
 
   const confirmDelete = async () => {
     if (!confirmProduct) return;
@@ -309,9 +455,17 @@ export default function AdminProductsPage() {
       await productApi.delete(confirmProduct._id);
       setProducts((prev) => prev.filter((p) => p._id !== confirmProduct._id));
       invalidateCache();
-      pushToast({ title: "Deleted", message: "Product removed.", type: "success" });
+      pushToast({
+        title: "Deleted",
+        message: "Product removed.",
+        type: "success",
+      });
       setConfirmProduct(null);
-      setSelected((prev) => { const n = new Set(prev); n.delete(confirmProduct._id); return n; });
+      setSelected((prev) => {
+        const n = new Set(prev);
+        n.delete(confirmProduct._id);
+        return n;
+      });
     } catch (error) {
       pushToast({ title: "Error", message: error.message, type: "error" });
     } finally {
@@ -325,20 +479,36 @@ export default function AdminProductsPage() {
       try {
         await productApi.delete(id);
         setProducts((prev) => prev.filter((p) => p._id !== id));
-      } catch { }
+      } catch {}
     }
     invalidateCache();
     setSelected(new Set());
-    pushToast({ message: `${selected.size} products deleted`, type: "success" });
+    pushToast({
+      message: `${selected.size} products deleted`,
+      type: "success",
+    });
   };
 
-  if (authLoading) return <div style={{ padding: "60px 0", textAlign: "center", color: "#aaa", fontSize: 14 }}>Verifying credentials…</div>;
-  if (!isAdmin) return (
-    <div style={{ padding: "60px 0", textAlign: "center" }}>
-      <AlertTriangle size={28} color="#ef4444" style={{ marginBottom: 12 }} />
-      <p style={{ fontWeight: 700 }}>Access Denied</p>
-    </div>
-  );
+  if (authLoading)
+    return (
+      <div
+        style={{
+          padding: "60px 0",
+          textAlign: "center",
+          color: "#aaa",
+          fontSize: 14,
+        }}
+      >
+        Verifying credentials…
+      </div>
+    );
+  if (!isAdmin)
+    return (
+      <div style={{ padding: "60px 0", textAlign: "center" }}>
+        <AlertTriangle size={28} color="#ef4444" style={{ marginBottom: 12 }} />
+        <p style={{ fontWeight: 700 }}>Access Denied</p>
+      </div>
+    );
 
   return (
     <>
@@ -354,17 +524,40 @@ export default function AdminProductsPage() {
       {/* Bulk bar */}
       {selected.size > 0 && (
         <div className="admp-bulk-bar">
-          <span style={{ fontSize: 13, fontWeight: 700 }}>{selected.size} Selected</span>
-          <button className="admp-bulk-btn" onClick={() => pushToast({ message: "Export coming soon", type: "success" })}>
+          <span style={{ fontSize: 13, fontWeight: 700 }}>
+            {selected.size} Selected
+          </span>
+          <button
+            className="admp-bulk-btn"
+            onClick={() =>
+              pushToast({ message: "Export coming soon", type: "success" })
+            }
+          >
             <Download size={13} /> Export
           </button>
-          <button className="admp-bulk-btn" onClick={() => pushToast({ message: "Bulk edit coming soon", type: "success" })}>
+          <button
+            className="admp-bulk-btn"
+            onClick={() =>
+              pushToast({ message: "Bulk edit coming soon", type: "success" })
+            }
+          >
             <Edit2 size={13} /> Edit
           </button>
           <button className="admp-bulk-btn del" onClick={bulkDelete}>
             <Trash2 size={13} /> Delete
           </button>
-          <button onClick={() => setSelected(new Set())} style={{ background: "none", border: "none", color: "#aaa", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
+          <button
+            onClick={() => setSelected(new Set())}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#aaa",
+              cursor: "pointer",
+              padding: 4,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
             <X size={14} />
           </button>
         </div>
@@ -372,13 +565,29 @@ export default function AdminProductsPage() {
 
       <div className="admp-page">
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20, gap: 16, flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            marginBottom: 20,
+            gap: 16,
+            flexWrap: "wrap",
+          }}
+        >
           <div>
-            <h1 className="admp-heading">Products</h1>
-            <p className="admp-sub">{total || products.length} products · Manage catalog, stock & visibility</p>
+            <p className="admp-sub">
+              {total || products.length} products · Manage catalog, stock &
+              visibility
+            </p>
           </div>
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <button className="admp-filter-btn hide-sm" onClick={() => pushToast({ message: "Export coming soon", type: "success" })}>
+            <button
+              className="admp-filter-btn hide-sm"
+              onClick={() =>
+                pushToast({ message: "Export coming soon", type: "success" })
+              }
+            >
               <Download size={14} /> Export
             </button>
           </div>
@@ -386,16 +595,56 @@ export default function AdminProductsPage() {
 
         {/* Background tasks */}
         {backgroundTasks?.length > 0 && (
-          <div style={{ marginBottom: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+          <div
+            style={{
+              marginBottom: 16,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+            }}
+          >
             {backgroundTasks.map((task) => (
-              <div key={task.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", background: "#fff", borderRadius: 12, border: "1px solid #e8e6e0", fontSize: 13 }}>
-                {task.status === "processing"
-                  ? <Loader2 size={16} style={{ animation: "admpSpin 1s linear infinite", color: "#888", flexShrink: 0 }} />
-                  : task.status === "success"
-                    ? <CheckCircle2 size={16} style={{ color: "#10b981", flexShrink: 0 }} />
-                    : <AlertCircle size={16} style={{ color: "#ef4444", flexShrink: 0 }} />}
-                <span style={{ fontWeight: 600 }}>{task.type === "create" ? "Adding" : "Updating"} "{task.name}"</span>
-                <span style={{ color: "#aaa", marginLeft: "auto", fontSize: 12 }}>{task.status}</span>
+              <div
+                key={task.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 14,
+                  padding: "12px 16px",
+                  background: "#fff",
+                  borderRadius: 12,
+                  border: "1px solid #e8e6e0",
+                  fontSize: 13,
+                }}
+              >
+                {task.status === "processing" ? (
+                  <Loader2
+                    size={16}
+                    style={{
+                      animation: "admpSpin 1s linear infinite",
+                      color: "#888",
+                      flexShrink: 0,
+                    }}
+                  />
+                ) : task.status === "success" ? (
+                  <CheckCircle2
+                    size={16}
+                    style={{ color: "#10b981", flexShrink: 0 }}
+                  />
+                ) : (
+                  <AlertCircle
+                    size={16}
+                    style={{ color: "#ef4444", flexShrink: 0 }}
+                  />
+                )}
+                <span style={{ fontWeight: 600 }}>
+                  {task.type === "create" ? "Adding" : "Updating"} "{task.name}"
+                </span>
+                <span
+                  style={{ color: "#aaa", marginLeft: "auto", fontSize: 12 }}
+                >
+                  {task.status}
+                </span>
               </div>
             ))}
           </div>
@@ -425,8 +674,15 @@ export default function AdminProductsPage() {
             ))}
           </div>
           <div className="admp-view-toggle" style={{ marginLeft: "auto" }}>
-            {[["table", LayoutList], ["grid", LayoutGrid]].map(([mode, Icon]) => (
-              <button key={mode} className={`admp-view-btn${viewMode === mode ? " active" : ""}`} onClick={() => setViewMode(mode)}>
+            {[
+              ["table", LayoutList],
+              ["grid", LayoutGrid],
+            ].map(([mode, Icon]) => (
+              <button
+                key={mode}
+                className={`admp-view-btn${viewMode === mode ? " active" : ""}`}
+                onClick={() => setViewMode(mode)}
+              >
                 <Icon size={14} />
               </button>
             ))}
@@ -439,18 +695,25 @@ export default function AdminProductsPage() {
             <table className="admp-table">
               <thead>
                 <tr>
-                  <th className="col-check" style={{ width: 40, paddingLeft: 16 }}>
+                  <th
+                    className="col-check"
+                    style={{ width: 40, paddingLeft: 16 }}
+                  >
                     <input
                       type="checkbox"
                       className="admp-checkbox"
                       checked={allSelected}
-                      ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected; }}
+                      ref={(el) => {
+                        if (el) el.indeterminate = someSelected && !allSelected;
+                      }}
                       onChange={toggleAll}
                     />
                   </th>
                   <th className="col-name">Product Name</th>
                   <th className="col-id hide-md">ID & Date</th>
-                  <th className="col-price" style={{ textAlign: "right" }}>Price</th>
+                  <th className="col-price" style={{ textAlign: "right" }}>
+                    Price
+                  </th>
                   <th className="col-stock hide-sm">Stock</th>
                 </tr>
               </thead>
@@ -463,49 +726,167 @@ export default function AdminProductsPage() {
                       className={`admp-row${isSel ? " selected" : ""}`}
                       onClick={() => navigate(`/admin/products/view/${p._id}`)}
                     >
-                      <td className="col-check" onClick={(e) => e.stopPropagation()} style={{ paddingLeft: 16, width: 40 }}>
-                        <input type="checkbox" className="admp-checkbox" checked={isSel} onChange={() => toggleOne(p._id)} />
+                      <td
+                        className="col-check"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ paddingLeft: 16, width: 40 }}
+                      >
+                        <input
+                          type="checkbox"
+                          className="admp-checkbox"
+                          checked={isSel}
+                          onChange={() => toggleOne(p._id)}
+                        />
                       </td>
                       <td className="col-name">
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                          }}
+                        >
                           <div style={{ position: "relative", flexShrink: 0 }}>
                             <img
                               src={p.images?.[0]?.url || p.images?.[0] || ""}
                               alt={p.name}
-                              style={{ width: 40, height: 50, objectFit: "cover", borderRadius: 8, display: "block", background: "#f0ede6" }}
+                              style={{
+                                width: 40,
+                                height: 50,
+                                objectFit: "cover",
+                                borderRadius: 8,
+                                display: "block",
+                                background: "#f0ede6",
+                              }}
                             />
                             {p.stock <= 5 && p.stock > 0 && (
-                              <span style={{ position: "absolute", top: -3, right: -3, background: "#f59e0b", color: "#fff", fontSize: 7, padding: "1px 3px", borderRadius: 20, fontWeight: 800 }}>LOW</span>
+                              <span
+                                style={{
+                                  position: "absolute",
+                                  top: -3,
+                                  right: -3,
+                                  background: "#f59e0b",
+                                  color: "#fff",
+                                  fontSize: 7,
+                                  padding: "1px 3px",
+                                  borderRadius: 20,
+                                  fontWeight: 800,
+                                }}
+                              >
+                                LOW
+                              </span>
                             )}
                           </div>
                           <div style={{ minWidth: 0 }}>
-                            <div style={{ fontWeight: 700, fontSize: 13, lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 200 }}>{p.name}</div>
-                            <div style={{ fontSize: 11, color: "#bbb", marginTop: 1 }}>{p.category}</div>
+                            <div
+                              style={{
+                                fontWeight: 700,
+                                fontSize: 13,
+                                lineHeight: 1.3,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                maxWidth: 200,
+                              }}
+                            >
+                              {p.name}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: 11,
+                                color: "#bbb",
+                                marginTop: 1,
+                              }}
+                            >
+                              {p.category}
+                            </div>
                           </div>
                         </div>
                       </td>
                       <td className="col-id hide-md">
-                        <div style={{ fontFamily: "monospace", fontSize: 11, color: "#888" }}>#{p._id?.slice(-7)?.toUpperCase()}</div>
-                        <div style={{ fontSize: 11, color: "#bbb", marginTop: 2 }}>
-                          {p.createdAt ? new Date(p.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
+                        <div
+                          style={{
+                            fontFamily: "monospace",
+                            fontSize: 11,
+                            color: "#888",
+                          }}
+                        >
+                          #{p._id?.slice(-7)?.toUpperCase()}
+                        </div>
+                        <div
+                          style={{ fontSize: 11, color: "#bbb", marginTop: 2 }}
+                        >
+                          {p.createdAt
+                            ? new Date(p.createdAt).toLocaleDateString(
+                                "en-IN",
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                },
+                              )
+                            : "—"}
                         </div>
                       </td>
                       <td className="col-price" style={{ textAlign: "right" }}>
-                        <div style={{ fontWeight: 800, fontSize: 13 }}>₹{p.price?.toLocaleString("en-IN")}</div>
-                        {p.salePrice && <div style={{ fontSize: 10, color: "#b45309", fontWeight: 600 }}>Sale ₹{p.salePrice?.toLocaleString("en-IN")}</div>}
+                        <div style={{ fontWeight: 800, fontSize: 13 }}>
+                          ₹{p.price?.toLocaleString("en-IN")}
+                        </div>
+                        {p.salePrice && (
+                          <div
+                            style={{
+                              fontSize: 10,
+                              color: "#b45309",
+                              fontWeight: 600,
+                            }}
+                          >
+                            Sale ₹{p.salePrice?.toLocaleString("en-IN")}
+                          </div>
+                        )}
                       </td>
                       <td className="col-stock hide-sm">
-                        <span style={{ fontWeight: 700, fontSize: 13, color: p.stock <= 5 ? "#ef4444" : "#1a1a1a" }}>{p.stock?.toLocaleString() ?? "—"}</span>
-                        {p.stock > 0 && <span style={{ fontSize: 11, color: "#bbb", marginLeft: 3 }}>units</span>}
+                        <span
+                          style={{
+                            fontWeight: 700,
+                            fontSize: 13,
+                            color: p.stock <= 5 ? "#ef4444" : "#1a1a1a",
+                          }}
+                        >
+                          {p.stock?.toLocaleString() ?? "—"}
+                        </span>
+                        {p.stock > 0 && (
+                          <span
+                            style={{
+                              fontSize: 11,
+                              color: "#bbb",
+                              marginLeft: 3,
+                            }}
+                          >
+                            units
+                          </span>
+                        )}
                       </td>
-
                     </tr>
                   );
                 })}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={7} style={{ padding: "60px", textAlign: "center", color: "#bbb" }}>
-                      <Package size={32} style={{ margin: "0 auto 10px", opacity: 0.3, display: "block" }} />
+                    <td
+                      colSpan={7}
+                      style={{
+                        padding: "60px",
+                        textAlign: "center",
+                        color: "#bbb",
+                      }}
+                    >
+                      <Package
+                        size={32}
+                        style={{
+                          margin: "0 auto 10px",
+                          opacity: 0.3,
+                          display: "block",
+                        }}
+                      />
                       <div style={{ fontSize: 14 }}>No products found</div>
                     </td>
                   </tr>
@@ -526,30 +907,117 @@ export default function AdminProductsPage() {
                   className={`admp-grid-card${isSel ? " selected" : ""}`}
                   onClick={() => navigate(`/admin/products/view/${p._id}`)}
                 >
-                  <div style={{ position: "relative", aspectRatio: "4/5", overflow: "hidden" }}>
+                  <div
+                    style={{
+                      position: "relative",
+                      aspectRatio: "4/5",
+                      overflow: "hidden",
+                    }}
+                  >
                     <img
                       src={p.images?.[0]?.url || p.images?.[0] || ""}
                       alt={p.name}
-                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        display: "block",
+                      }}
                     />
-                    <div style={{ position: "absolute", top: 8, left: 8 }} onClick={(e) => e.stopPropagation()}>
-                      <input type="checkbox" className="admp-checkbox" checked={isSel} onChange={() => toggleOne(p._id)} />
+                    <div
+                      style={{ position: "absolute", top: 8, left: 8 }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        className="admp-checkbox"
+                        checked={isSel}
+                        onChange={() => toggleOne(p._id)}
+                      />
                     </div>
-                    {p.salePrice && <span style={{ position: "absolute", top: 8, right: 8, background: "#7c3aed", color: "#fff", fontSize: 9, padding: "3px 7px", borderRadius: 20, fontWeight: 800 }}>SALE</span>}
-                    {p.stock === 0 && <span style={{ position: "absolute", bottom: 8, left: 8, background: "#ef4444", color: "#fff", fontSize: 9, padding: "3px 7px", borderRadius: 20, fontWeight: 800 }}>OUT</span>}
+                    {p.salePrice && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 8,
+                          right: 8,
+                          background: "#7c3aed",
+                          color: "#fff",
+                          fontSize: 9,
+                          padding: "3px 7px",
+                          borderRadius: 20,
+                          fontWeight: 800,
+                        }}
+                      >
+                        SALE
+                      </span>
+                    )}
+                    {p.stock === 0 && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          bottom: 8,
+                          left: 8,
+                          background: "#ef4444",
+                          color: "#fff",
+                          fontSize: 9,
+                          padding: "3px 7px",
+                          borderRadius: 20,
+                          fontWeight: 800,
+                        }}
+                      >
+                        OUT
+                      </span>
+                    )}
                   </div>
                   <div style={{ padding: "10px 10px 12px" }}>
-                    <div style={{ fontWeight: 700, fontSize: 12.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 2 }}>{p.name}</div>
-                    <div style={{ fontSize: 11, color: "#bbb", marginBottom: 6 }}>{p.category}</div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div
+                      style={{
+                        fontWeight: 700,
+                        fontSize: 12.5,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        marginBottom: 2,
+                      }}
+                    >
+                      {p.name}
+                    </div>
+                    <div
+                      style={{ fontSize: 11, color: "#bbb", marginBottom: 6 }}
+                    >
+                      {p.category}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
                       <div>
-                        <span style={{ fontWeight: 800, fontSize: 13 }}>₹{p.price?.toLocaleString("en-IN")}</span>
-                        {p.salePrice && <div style={{ fontSize: 10, color: "#b45309", fontWeight: 600 }}>₹{p.salePrice?.toLocaleString("en-IN")}</div>}
+                        <span style={{ fontWeight: 800, fontSize: 13 }}>
+                          ₹{p.price?.toLocaleString("en-IN")}
+                        </span>
+                        {p.salePrice && (
+                          <div
+                            style={{
+                              fontSize: 10,
+                              color: "#b45309",
+                              fontWeight: 600,
+                            }}
+                          >
+                            ₹{p.salePrice?.toLocaleString("en-IN")}
+                          </div>
+                        )}
                       </div>
                       {/* Edit btn: hidden on mobile via CSS */}
                       <button
                         className="admp-action-btn admp-grid-edit"
-                        onClick={(e) => { e.stopPropagation(); navigate(`/admin/products/edit/${p._id}`); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/admin/products/edit/${p._id}`);
+                        }}
                         title="Edit"
                       >
                         <Edit2 size={13} />
@@ -564,13 +1032,38 @@ export default function AdminProductsPage() {
 
         {/* Pagination */}
         <div className="admp-pagination">
-          <button className="admp-page-btn" disabled={page === 1 || loading} onClick={() => { setPage((p) => p - 1); window.scrollTo({ top: 0 }); }}>Previous</button>
+          <button
+            className="admp-page-btn"
+            disabled={page === 1 || loading}
+            onClick={() => {
+              setPage((p) => p - 1);
+              window.scrollTo({ top: 0 });
+            }}
+          >
+            Previous
+          </button>
           <span className="admp-page-info">Page {page}</span>
-          <button className="admp-page-btn" disabled={!hasMore || loading} onClick={() => { setPage((p) => p + 1); window.scrollTo({ top: 0 }); }}>Next</button>
+          <button
+            className="admp-page-btn"
+            disabled={!hasMore || loading}
+            onClick={() => {
+              setPage((p) => p + 1);
+              window.scrollTo({ top: 0 });
+            }}
+          >
+            Next
+          </button>
         </div>
 
         {filtered.length > 0 && (
-          <div style={{ textAlign: "center", fontSize: 12, color: "#bbb", marginTop: 8 }}>
+          <div
+            style={{
+              textAlign: "center",
+              fontSize: 12,
+              color: "#bbb",
+              marginTop: 8,
+            }}
+          >
             Showing {filtered.length} of {total || products.length} products
           </div>
         )}
