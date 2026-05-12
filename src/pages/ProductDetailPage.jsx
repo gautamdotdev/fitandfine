@@ -627,6 +627,9 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error_msg, setErrorMsg] = useState("");
 
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [relatedLoading, setRelatedLoading] = useState(true);
+
   const [imgIdx, setImgIdx] = useState(0);
   const [size, setSize] = useState(null);
   const [color, setColor] = useState("");
@@ -671,32 +674,48 @@ export default function ProductDetailPage() {
     let cancelled = false;
 
     const fetchProduct = async () => {
-      // Cache hit: product already in ShopContext list
+      setLoading(true);
+      setRelatedLoading(true);
+      // Cache hit: product already in ShopContext list — compute related from context
       const found = products.find((p) => p.slug === slug || p._id === slug);
       if (found) {
         if (!cancelled) {
           setProduct(found);
+          const fromContext = products
+            .filter(
+              (p) =>
+                (p._id || p.id) !== (found._id || found.id) &&
+                (p.categorySlug === found.categorySlug ||
+                  p.category === found.category),
+            )
+            .slice(0, 4);
+          setRelatedProducts(fromContext);
           setLoading(false);
+          setRelatedLoading(false);
         }
         return;
       }
 
-      // Always fetch directly by slug -- do NOT gate on shopLoading.
-      // On direct URL load / hard reload, ShopContext may not have
-      // fetched the full list yet, so we resolve independently.
+      // Hard reload / direct URL — fetch product + related in one API call
       try {
-        setLoading(true);
         const data = await productApi.getOne(slug);
-        const p = data.data || data;
+
+        // Backend now returns { product, relatedProducts }
+        const p = data.product || data.data || data;
+        const related = data.relatedProducts || [];
+
         if (!cancelled) {
           setProduct({ ...p, id: p._id });
+          setRelatedProducts(related.map((r) => ({ ...r, id: r._id })));
           setLoading(false);
+          setRelatedLoading(false);
         }
       } catch (err) {
         console.error("Error fetching product:", err);
         if (!cancelled) {
           setErrorMsg("Product not found");
           setLoading(false);
+          setRelatedLoading(false);
         }
       }
     };
@@ -732,15 +751,6 @@ export default function ProductDetailPage() {
   const discount = product.salePrice
     ? Math.round((1 - product.salePrice / product.price) * 100)
     : null;
-  const related = products
-    .filter(
-      (p) =>
-        p._id !== product._id &&
-        (p.categorySlug === product.categorySlug ||
-          p.category === product.category),
-    )
-    .slice(0, 4);
-
   const handleAdd = () => {
     if (!size) {
       setError("Please select a size to continue");
@@ -1692,9 +1702,45 @@ export default function ProductDetailPage() {
           style={{ display: "grid", gap: "5px" }}
           className="pdp-related-grid"
         >
-          {related.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
+          {relatedLoading
+            ? [0, 1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                  }}
+                >
+                  <SkeletonBox
+                    h="0"
+                    style={{
+                      paddingBottom: "133%",
+                      borderRadius: "12px",
+                      height: "0",
+                    }}
+                  />
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "7px",
+                      padding: "0 2px",
+                    }}
+                  >
+                    <SkeletonBox w="70%" h="13px" />
+                    <SkeletonBox w="45%" h="11px" />
+                    <SkeletonBox
+                      w="20%"
+                      h="14px"
+                      style={{ marginTop: "2px" }}
+                    />
+                  </div>
+                </div>
+              ))
+            : relatedProducts.map((p) => (
+                <ProductCard key={p.id || p._id} product={p} />
+              ))}
         </div>
       </section>
 

@@ -29,7 +29,13 @@ export function ProductCard({ product, badge }) {
       {/* Image */}
       <Link
         to={`/product/${product.slug || product._id || product.id}`}
-        style={{ display: "block", textDecoration: "none", color: "inherit" }}
+        style={{
+          display: "block",
+          textDecoration: "none",
+          color: "inherit",
+          marginBottom: 0,
+          lineHeight: 0,
+        }}
       >
         <div
           style={{
@@ -38,6 +44,10 @@ export function ProductCard({ product, badge }) {
             overflow: "hidden",
             borderRadius: "0",
             backgroundColor: "var(--color-muted)",
+            marginBottom: 0,
+            paddingBottom: 0,
+            lineHeight: 0,
+            verticalAlign: "top",
           }}
         >
           <img
@@ -174,7 +184,7 @@ export function ProductCard({ product, badge }) {
       </button>
 
       {/* Info */}
-      <div style={{ padding: "14px 14px 16px" }}>
+      <div style={{ padding: "14px 14px 16px", marginTop: 0, lineHeight: 1.2 }}>
         <div
           style={{
             display: "flex",
