@@ -401,7 +401,6 @@ function Lightbox({ src, alt, onClose }) {
           maxWidth: "90vw",
           maxHeight: "90vh",
           objectFit: "contain",
-          borderRadius: "8px",
           animation: "scaleIn 0.25s cubic-bezier(0.16,1,0.3,1)",
           cursor: "default",
         }}
@@ -497,13 +496,34 @@ export default function ProductDetailPage() {
   const [reviewRating, setReviewRating] = useState(5);
   const { ids, toggle, has } = useWishlist();
   const [copied, setCopied] = useState(false);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const thumbnailRefs = useRef([]);
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const minSwipeDistance = 50;
+
+    if (distance > minSwipeDistance && imgIdx < product.images.length - 1) {
+      setImgIdx((prev) => prev + 1);
+    } else if (distance < -minSwipeDistance && imgIdx > 0) {
+      setImgIdx((prev) => prev - 1);
+    }
+  };
 
   const add = useCart((s) => s.add);
   const push = useToasts((s) => s.push);
 
   useEffect(() => {
     const fetchProduct = async () => {
-      // Try finding in current context first
       const found = products.find((p) => p.slug === slug || p._id === slug);
       if (found) {
         setProduct(found);
@@ -511,7 +531,6 @@ export default function ProductDetailPage() {
         return;
       }
 
-      // If not loading and not found, fetch from API
       if (!shopLoading) {
         try {
           setLoading(true);
@@ -534,6 +553,17 @@ export default function ProductDetailPage() {
       setColor(product.colors?.[0]?.name || product.colors?.[0] || "");
     }
   }, [product]);
+
+  useEffect(() => {
+    if (thumbnailRefs.current[imgIdx]) {
+      thumbnailRefs.current[imgIdx].scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
+    }
+  }, [imgIdx]);
+
 
   if (loading || shopLoading)
     return (
@@ -618,7 +648,7 @@ export default function ProductDetailPage() {
       style={{
         maxWidth: "1400px",
         margin: "0 auto",
-        padding: "16px 20px 100px",
+        padding: "0px 10px",
       }}
     >
       {/* Breadcrumb */}
@@ -673,16 +703,16 @@ export default function ProductDetailPage() {
 
       {/* Main Grid */}
       <div
-        style={{ marginTop: "24px", display: "grid", gap: "56px" }}
+        style={{ marginTop: "10px", display: "grid", gap: "56px" }}
         className="pdp-grid"
       >
         {/* ── Gallery ── */}
-        <div>
+        <div style={{ minWidth: 0 }}>
           {/* Main Image */}
           <div
             style={{
               position: "relative",
-              borderRadius: "5px",
+              borderRadius: "0px",
               overflow: "hidden",
               backgroundColor: "var(--color-muted)",
             }}
@@ -692,8 +722,12 @@ export default function ProductDetailPage() {
                 aspectRatio: "4/5",
                 overflow: "hidden",
                 cursor: "zoom-in",
+                touchAction: "pan-y",
               }}
               onClick={() => setLightbox(true)}
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
             >
               <img
                 src={product.images?.[imgIdx]?.url || product.images?.[imgIdx]}
@@ -780,33 +814,41 @@ export default function ProductDetailPage() {
             </button>
           </div>
 
-          {/* Thumbnails */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(${product.images.length}, 1fr)`,
-              gap: "10px",
-              marginTop: "12px",
-            }}
-          >
-            {/* Thumbnails */}
-            {product.images.length > 1 && (
+          {/* ── Thumbnails (FIXED) ── */}
+          {product.images.length > 1 && (
+            <div
+              style={{
+                width: "100%",
+                boxSizing: "border-box",
+                marginTop: "12px",
+              }}
+            >
               <div
+                className="pdp-thumbnails-container"
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: `repeat(${Math.min(product.images.length, 6)}, 72px)`,
+                  display: "flex",
                   gap: "10px",
-                  marginTop: "12px",
+                  overflowX: "auto",
+                  paddingBottom: "8px",
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
+                  WebkitOverflowScrolling: "touch",
+                  /* Prevent container itself from expanding beyond parent */
+                  width: "100%",
+                  boxSizing: "border-box",
                 }}
               >
                 {product.images.map((src, i) => (
                   <button
                     key={i}
+                    ref={(el) => (thumbnailRefs.current[i] = el)}
                     onClick={() => setImgIdx(i)}
                     style={{
+                      /* Fixed size + flexShrink:0 so they don't collapse or overflow */
                       width: "72px",
                       height: "72px",
-                      borderRadius: "5px",
+                      flexShrink: 0,
+                      flexGrow: 0,
                       overflow: "hidden",
                       border: `1.5px solid ${i === imgIdx ? "var(--color-foreground)" : "var(--color-border)"}`,
                       padding: 0,
@@ -814,7 +856,6 @@ export default function ProductDetailPage() {
                       transition: "all 0.2s",
                       opacity: i === imgIdx ? 1 : 0.6,
                       transform: i === imgIdx ? "scale(1)" : "scale(0.97)",
-                      flexShrink: 0,
                     }}
                     onMouseEnter={(e) => {
                       if (i !== imgIdx) {
@@ -836,17 +877,18 @@ export default function ProductDetailPage() {
                         width: "100%",
                         height: "100%",
                         objectFit: "cover",
+                        display: "block",
                       }}
                     />
                   </button>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* ── Product Info ── */}
-        <div style={{ position: "sticky", top: "80px", alignSelf: "start" }}>
+        <div style={{ position: "sticky", top: "80px", alignSelf: "start", minWidth: 0 }}>
           {/* Category + Share */}
           <div
             style={{
@@ -1060,8 +1102,8 @@ export default function ProductDetailPage() {
                   (e.currentTarget.style.color = "var(--color-foreground)")
                 }
                 onMouseLeave={(e) =>
-                  (e.currentTarget.style.color =
-                    "var(--color-muted-foreground)")
+                (e.currentTarget.style.color =
+                  "var(--color-muted-foreground)")
                 }
               >
                 Size Guide
@@ -1192,7 +1234,6 @@ export default function ProductDetailPage() {
                           e.currentTarget.style.transform = "scale(1)";
                       }}
                     >
-                      {/* Show color name below swatch on hover */}
                       <span
                         style={{
                           position: "absolute",
@@ -1229,7 +1270,7 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Qty row — stepper always visible; Add to Cart + WhatsApp hidden on mobile (sticky bar handles them) */}
+          {/* Qty + Add to Cart */}
           <div
             style={{
               marginTop: "28px",
@@ -1247,7 +1288,7 @@ export default function ProductDetailPage() {
                 flex: 1,
                 minWidth: "160px",
                 height: "44px",
-                borderRadius: "10px",
+                borderRadius: "2px",
                 border: "none",
                 backgroundColor: addedAnim
                   ? "var(--color-gold)"
@@ -1280,7 +1321,7 @@ export default function ProductDetailPage() {
             </button>
           </div>
 
-          {/* WhatsApp — hidden on mobile, sticky bar handles it */}
+          {/* WhatsApp */}
           <a
             className="pdp-desktop-action"
             href={whatsappProductUrl(
@@ -1301,7 +1342,7 @@ export default function ProductDetailPage() {
               gap: "8px",
               backgroundColor: "var(--color-whatsapp)",
               color: "white",
-              borderRadius: "10px",
+              borderRadius: "2px",
               fontSize: "12px",
               fontWeight: 700,
               letterSpacing: "0.06em",
@@ -1449,7 +1490,7 @@ export default function ProductDetailPage() {
             display: "flex",
             alignItems: "baseline",
             justifyContent: "space-between",
-            marginBottom: "32px",
+            marginBottom: "10px",
             flexWrap: "wrap",
             gap: "12px",
           }}
@@ -1488,7 +1529,7 @@ export default function ProductDetailPage() {
           </Link>
         </div>
         <div
-          style={{ display: "grid", gap: "24px" }}
+          style={{ display: "grid", gap: "5px" }}
           className="pdp-related-grid"
         >
           {related.map((p) => (
@@ -1791,7 +1832,7 @@ export default function ProductDetailPage() {
               ? "var(--color-gold)"
               : "var(--color-foreground)",
             color: "var(--color-background)",
-            borderRadius: "10px",
+            borderRadius: "2px",
             border: "none",
             fontSize: "12px",
             fontWeight: 700,
@@ -1832,7 +1873,7 @@ export default function ProductDetailPage() {
             gap: "6px",
             backgroundColor: "var(--color-whatsapp)",
             color: "white",
-            borderRadius: "10px",
+            borderRadius: "2px",
             fontSize: "12px",
             fontWeight: 700,
             letterSpacing: "0.06em",
@@ -2178,7 +2219,11 @@ export default function ProductDetailPage() {
         .pdp-mobile-bar { display: flex !important; }
         .pdp-main-img:hover { transform: scale(1.06); }
 
-        /* Add to Cart btn + WhatsApp link hidden on mobile — sticky bar handles them */
+        /* Thumbnail scroll fix */
+        .pdp-thumbnails-container::-webkit-scrollbar { display: none; }
+        .pdp-thumbnails-container { -webkit-overflow-scrolling: touch; }
+
+        /* Add to Cart btn + WhatsApp link hidden on mobile */
         .pdp-desktop-action { display: none !important; }
 
         @media (min-width: 768px) {
@@ -2190,11 +2235,7 @@ export default function ProductDetailPage() {
           .pdp-related-grid { grid-template-columns: repeat(4, 1fr) !important; }
           .pdp-reviews-grid { grid-template-columns: 300px 1fr !important; }
           .pdp-mobile-bar { display: none !important; }
-
-          /* Show Add to Cart + WhatsApp on desktop */
           .pdp-desktop-action { display: flex !important; }
-
-          /* Related cards: constrain image so 4-col doesn't get giant tall cards */
           .pdp-related-section .pdp-related-grid > * [style*="aspect-ratio"] {
             aspect-ratio: 3/4 !important;
           }
@@ -2202,10 +2243,7 @@ export default function ProductDetailPage() {
             max-height: 280px;
             object-fit: cover;
           }
-          /* Cap the whole section width so 4 small cards don't stretch to 1400px */
-          .pdp-related-section {
-            max-width: 960px;
-          }
+          .pdp-related-section { max-width: 960px; }
         }
 
         @keyframes fadeIn {
@@ -2216,14 +2254,8 @@ export default function ProductDetailPage() {
           to { opacity: 1; transform: scale(1); }
         }
 
-        /* existing styles + add these */
-        .pdp-root h1 {
-          word-break: break-word;
-          overflow-wrap: break-word;
-        }
-        nav {
-          flex-wrap: wrap;
-        }
+        .pdp-root h1 { word-break: break-word; overflow-wrap: break-word; }
+        nav { flex-wrap: wrap; }
       `}</style>
     </div>
   );
