@@ -9,9 +9,9 @@ import {
 } from "lucide-react";
 
 const DASH_STYLES = `
-  .dash-page { font-family: 'DM Sans', sans-serif; }
-  .dash-heading { font-size: 26px; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.5px; }
-  .dash-sub { font-size: 13px; color: #888; margin: 0 0 28px; }
+  .dash-page { font-family: 'DM Sans', sans-serif; max-width: 1400px; margin: 0 auto; padding: 12px 0 48px; }
+  .dash-heading { font-size: 28px; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.02em; color: #1a1a1a; }
+  .dash-sub { font-size: 14px; color: #888; margin: 0 0 32px; }
 
   .dash-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
   .dash-stat-card {
@@ -69,10 +69,6 @@ const DASH_STYLES = `
   .status-dot::before {
     content: ''; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
   }
-  .status-published::before { background: #10b981; }
-  .status-draft::before { background: #94a3b8; }
-  .status-out::before { background: #f59e0b; }
-  .status-inactive::before { background: #ef4444; }
 
   /* Quick actions */
   .dash-quick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px; }

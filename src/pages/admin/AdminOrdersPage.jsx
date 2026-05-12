@@ -36,7 +36,7 @@ const STATUS_CFG = {
 const ALL_STATUSES = Object.keys(STATUS_CFG);
 
 const STYLES = `
-  .ao-wrap { max-width: 1280px; margin: 0 auto; padding: 48px 24px; }
+  .ao-wrap { max-width: 1400px; margin: 0 auto; padding: 12px 0 48px; }
   .ao-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 36px; gap: 16px; flex-wrap: wrap; }
   .ao-title { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; color: var(--color-foreground); }
   .ao-subtitle { font-size: 14px; color: var(--color-muted-foreground); margin-top: 4px; }
@@ -55,7 +55,7 @@ const STYLES = `
   .ao-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.18s; border: none; }
   .ao-btn-ghost { background: transparent; border: 1.5px solid var(--color-border); color: var(--color-foreground); }
   .ao-btn-ghost:hover { background: var(--color-surface); }
-  .ao-table-wrap { border-radius: 20px; overflow: hidden; border: 1px solid var(--color-border); box-shadow: 0 4px 32px rgba(0,0,0,0.05); }
+  .ao-table-wrap { border-radius: 20px; overflow-x: auto; border: 1px solid var(--color-border); box-shadow: 0 4px 32px rgba(0,0,0,0.05); background: var(--color-background); }
   .ao-table { width: 100%; border-collapse: collapse; }
   .ao-table thead tr { background: var(--color-surface); }
   .ao-table th { padding: 14px 20px; text-align: left; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; color: var(--color-muted-foreground); white-space: nowrap; }

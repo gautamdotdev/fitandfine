@@ -69,7 +69,6 @@ export function Header() {
   }, [init]);
 
   const isAdminPage = location.pathname.startsWith("/admin");
-  if (isAdminPage) return null;
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
@@ -136,6 +135,7 @@ export function Header() {
   const handleDropdownLeave = () => {
     collectionsTimer.current = setTimeout(() => setDesktopDropdown(null), 150);
   };
+  if (isAdminPage) return null;
 
   return (
     <>

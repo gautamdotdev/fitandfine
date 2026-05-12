@@ -17,6 +17,7 @@ import {
   Zap,
   LogOut,
 } from "lucide-react";
+import { AdminHeader } from "./AdminHeader.jsx";
 
 const SIDEBAR_STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
@@ -180,10 +181,10 @@ const SIDEBAR_STYLES = `
   /* ── Mobile hamburger ── */
   .adm-menu-btn {
     display: none;
-    width: 36px; height: 36px; border-radius: 10px;
-    border: 1.5px solid #e8e6e0; background: #fff;
+    padding: 8px;
+    background: none; border: none;
     align-items: center; justify-content: center;
-    cursor: pointer; color: #666;
+    cursor: pointer; color: #1a1a1a;
   }
 
   @media (max-width: 900px) {
@@ -199,8 +200,8 @@ const SIDEBAR_STYLES = `
     .adm-main { margin-left: 0; }
     .adm-menu-btn { display: flex; order: 2; }
     .adm-close-btn { display: flex; }
-    .adm-content { padding: 20px 16px 60px; }
-    .adm-topbar { padding: 0 10px; }
+    .adm-content { padding: 0px 10px 0px; }
+    .adm-topbar { padding: 0 16px; height: 64px; }
   }
 
   @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
@@ -299,30 +300,7 @@ export default function AdminLayout() {
         {/* Main */}
         <div className="adm-main">
           {/* Topbar */}
-          <header className="adm-topbar">
-            <div className="adm-topbar-left">
-              <div
-                style={{
-                  fontFamily: "var(--font-serif)",
-                  fontSize: "1.1rem",
-                  fontWeight: 700,
-                  marginRight: "12px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "baseline"
-                }}
-                onClick={() => navigate("/")}
-              >
-                FIT & FINE<span style={{ color: "var(--color-gold)" }}>.</span>
-              </div>
-            </div>
-
-            <div className="adm-topbar-right">
-              <button className="adm-menu-btn" onClick={() => setSidebarOpen(true)}>
-                <Menu size={18} />
-              </button>
-            </div>
-          </header>
+          <AdminHeader setSidebarOpen={setSidebarOpen} />
 
           {/* Page */}
           <main className="adm-content">

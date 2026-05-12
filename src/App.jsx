@@ -21,6 +21,7 @@ import AuthPage from "./pages/AuthPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import AdminProductsPage from "./pages/admin/AdminProductsPage.jsx";
 import AdminProductFormPage from "./pages/admin/AdminProductFormPage.jsx";
+import AdminProductDetailPage from "./pages/admin/AdminProductDetailPage.jsx";
 import AdminOrdersPage from "./pages/admin/AdminOrdersPage.jsx";
 import OrderTrackingPage from "./pages/OrderTrackingPage.jsx";
 import AdminLayout from "./pages/admin/AdminLayout.jsx";
@@ -78,6 +79,7 @@ export default function App() {
               <Route path="products" element={<AdminProductsPage />} />
               <Route path="products/add" element={<AdminProductFormPage />} />
               <Route path="products/edit/:id" element={<AdminProductFormPage />} />
+              <Route path="products/view/:id" element={<AdminProductDetailPage />} />
               <Route path="orders" element={<AdminOrdersPage />} />
             </Route>
 
