@@ -1698,12 +1698,9 @@ export default function ProductDetailPage() {
             View All →
           </Link>
         </div>
-        <div
-          style={{ display: "grid", gap: "5px" }}
-          className="pdp-related-grid"
-        >
+        <div className="pdp-related-grid">
           {relatedLoading
-            ? [0, 1, 2, 3].map((i) => (
+            ? Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
                   style={{
@@ -1738,10 +1735,40 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
               ))
-            : relatedProducts.map((p) => (
-                <ProductCard key={p.id || p._id} product={p} />
-              ))}
+            : [
+                ...relatedProducts
+                  .slice(0, 6)
+                  .map((p) => <ProductCard key={p.id || p._id} product={p} />),
+                ...Array.from({
+                  length: 6 - Math.min(6, relatedProducts.length),
+                }).map((_, i) => (
+                  <div key={"empty-" + i} style={{ visibility: "hidden" }} />
+                )),
+              ]}
         </div>
+        <style>{`
+          .pdp-related-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 18px;
+            margin-top: 18px;
+          }
+          @media (max-width: 1200px) {
+            .pdp-related-grid {
+              grid-template-columns: repeat(4, 1fr);
+            }
+          }
+          @media (max-width: 900px) {
+            .pdp-related-grid {
+              grid-template-columns: repeat(2, 1fr);
+            }
+          }
+          @media (max-width: 600px) {
+            .pdp-related-grid {
+              grid-template-columns: 1fr;
+            }
+          }
+        `}</style>
       </section>
 
       {/* ── Reviews ── */}
