@@ -68,6 +68,9 @@ export function Header() {
     init();
   }, [init]);
 
+  const isAdminPage = location.pathname.startsWith("/admin");
+  if (isAdminPage) return null;
+
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
     return () => {
@@ -112,12 +115,12 @@ export function Header() {
   const results =
     query.trim().length > 0
       ? products
-          .filter(
-            (p) =>
-              p.name.toLowerCase().includes(query.toLowerCase()) ||
-              (p.category?.toLowerCase() || "").includes(query.toLowerCase()),
-          )
-          .slice(0, 6)
+        .filter(
+          (p) =>
+            p.name.toLowerCase().includes(query.toLowerCase()) ||
+            (p.category?.toLowerCase() || "").includes(query.toLowerCase()),
+        )
+        .slice(0, 6)
       : [];
 
   const isSearchPage = location.pathname.startsWith("/search");
@@ -165,11 +168,11 @@ export function Header() {
                 : "var(--color-background)",
             ...(scrolled && !mobileOpen
               ? {
-                  backdropFilter: "blur(20px)",
-                  WebkitBackdropFilter: "blur(20px)",
-                  borderBottom: "1px solid var(--color-border)",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-                }
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
+                borderBottom: "1px solid var(--color-border)",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+              }
               : {}),
           }}
         />
@@ -317,538 +320,538 @@ export function Header() {
                 </span>
               </Link>
 
-          {/* Desktop Nav */}
-          <div
-            className="desktop-nav"
-            style={{
-              position: "absolute",
-              left: "50%",
-              transform: "translateX(-50%)",
-              display: "flex",
-              alignItems: "center",
-              gap: "40px",
-            }}
-          >
-            {navLinks.map((l) =>
-              l.children ? (
-                <div
-                  key={l.to}
-                  style={{ position: "relative" }}
-                  onMouseEnter={() => handleDropdownEnter(l.to)}
-                  onMouseLeave={handleDropdownLeave}
-                >
-                  <button
-                    style={{
-                      fontSize: "11px",
-                      textTransform: "uppercase",
-                      letterSpacing:
-                        desktopDropdown === l.to ? "0.12em" : "0.08em",
-                      color:
-                        location.pathname.startsWith(l.to) ||
-                        desktopDropdown === l.to
-                          ? "var(--color-foreground)"
-                          : "color-mix(in oklch, var(--color-foreground) 60%, transparent)",
-                      fontWeight: location.pathname.startsWith(l.to)
-                        ? 600
-                        : 500,
-                      transition: "all 0.3s",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px",
-                      padding: 0,
-                    }}
-                  >
-                    {l.label}
-                    <ChevronDown
-                      size={10}
-                      style={{
-                        transform:
-                          desktopDropdown === l.to
-                            ? "rotate(180deg)"
-                            : "rotate(0deg)",
-                        transition: "transform 0.3s",
-                        marginTop: "1px",
-                      }}
-                    />
-                  </button>
-
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "calc(100% + 20px)",
-                      left: "50%",
-                      width: "480px",
-                      backgroundColor: "var(--color-background)",
-                      border: "1px solid var(--color-border)",
-                      borderRadius: "12px",
-                      boxShadow: "0 20px 60px rgba(0,0,0,0.12)",
-                      overflow: "hidden",
-                      opacity: desktopDropdown === l.to ? 1 : 0,
-                      visibility:
-                        desktopDropdown === l.to ? "visible" : "hidden",
-                      transform:
-                        desktopDropdown === l.to
-                          ? "translateX(-50%) translateY(0)"
-                          : "translateX(-50%) translateY(-8px)",
-                      transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-                      pointerEvents: desktopDropdown === l.to ? "auto" : "none",
-                    }}
-                  >
-                    <div style={{ padding: "8px" }}>
-                      <div
+              {/* Desktop Nav */}
+              <div
+                className="desktop-nav"
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "40px",
+                }}
+              >
+                {navLinks.map((l) =>
+                  l.children ? (
+                    <div
+                      key={l.to}
+                      style={{ position: "relative" }}
+                      onMouseEnter={() => handleDropdownEnter(l.to)}
+                      onMouseLeave={handleDropdownLeave}
+                    >
+                      <button
                         style={{
-                          display: "grid",
-                          gridTemplateColumns: "1fr 1fr",
+                          fontSize: "11px",
+                          textTransform: "uppercase",
+                          letterSpacing:
+                            desktopDropdown === l.to ? "0.12em" : "0.08em",
+                          color:
+                            location.pathname.startsWith(l.to) ||
+                              desktopDropdown === l.to
+                              ? "var(--color-foreground)"
+                              : "color-mix(in oklch, var(--color-foreground) 60%, transparent)",
+                          fontWeight: location.pathname.startsWith(l.to)
+                            ? 600
+                            : 500,
+                          transition: "all 0.3s",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
                           gap: "4px",
+                          padding: 0,
                         }}
                       >
-                        {l.children.map((child) => (
-                          <Link
-                            key={child.to}
-                            to={child.to}
+                        {l.label}
+                        <ChevronDown
+                          size={10}
+                          style={{
+                            transform:
+                              desktopDropdown === l.to
+                                ? "rotate(180deg)"
+                                : "rotate(0deg)",
+                            transition: "transform 0.3s",
+                            marginTop: "1px",
+                          }}
+                        />
+                      </button>
+
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "calc(100% + 20px)",
+                          left: "50%",
+                          width: "480px",
+                          backgroundColor: "var(--color-background)",
+                          border: "1px solid var(--color-border)",
+                          borderRadius: "12px",
+                          boxShadow: "0 20px 60px rgba(0,0,0,0.12)",
+                          overflow: "hidden",
+                          opacity: desktopDropdown === l.to ? 1 : 0,
+                          visibility:
+                            desktopDropdown === l.to ? "visible" : "hidden",
+                          transform:
+                            desktopDropdown === l.to
+                              ? "translateX(-50%) translateY(0)"
+                              : "translateX(-50%) translateY(-8px)",
+                          transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+                          pointerEvents: desktopDropdown === l.to ? "auto" : "none",
+                        }}
+                      >
+                        <div style={{ padding: "8px" }}>
+                          <div
                             style={{
+                              display: "grid",
+                              gridTemplateColumns: "1fr 1fr",
+                              gap: "4px",
+                            }}
+                          >
+                            {l.children.map((child) => (
+                              <Link
+                                key={child.to}
+                                to={child.to}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  padding: "14px 16px",
+                                  borderRadius: "8px",
+                                  textDecoration: "none",
+                                  transition: "background 0.2s",
+                                  backgroundColor:
+                                    location.pathname === child.to
+                                      ? "color-mix(in oklch, var(--color-gold) 10%, transparent)"
+                                      : "transparent",
+                                }}
+                                onMouseEnter={(e) =>
+                                (e.currentTarget.style.backgroundColor =
+                                  "color-mix(in oklch, var(--color-foreground) 5%, transparent)")
+                                }
+                                onMouseLeave={(e) =>
+                                (e.currentTarget.style.backgroundColor =
+                                  location.pathname === child.to
+                                    ? "color-mix(in oklch, var(--color-gold) 10%, transparent)"
+                                    : "transparent")
+                                }
+                              >
+                                <div>
+                                  <p
+                                    style={{
+                                      fontSize: "12px",
+                                      fontWeight: 600,
+                                      textTransform: "uppercase",
+                                      letterSpacing: "0.06em",
+                                      color: "var(--color-foreground)",
+                                      marginBottom: "2px",
+                                    }}
+                                  >
+                                    {child.label}
+                                  </p>
+                                  <p
+                                    style={{
+                                      fontSize: "10px",
+                                      color: "var(--color-muted-foreground)",
+                                    }}
+                                  >
+                                    {child.desc}
+                                  </p>
+                                </div>
+                                <ArrowUpRight
+                                  size={12}
+                                  style={{
+                                    color: "var(--color-muted-foreground)",
+                                    flexShrink: 0,
+                                  }}
+                                />
+                              </Link>
+                            ))}
+                          </div>
+
+                          <div
+                            style={{
+                              margin: "8px 0 4px",
+                              padding: "12px 16px",
+                              borderTop: "1px solid var(--color-border)",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "space-between",
-                              padding: "14px 16px",
-                              borderRadius: "8px",
-                              textDecoration: "none",
-                              transition: "background 0.2s",
-                              backgroundColor:
-                                location.pathname === child.to
-                                  ? "color-mix(in oklch, var(--color-gold) 10%, transparent)"
-                                  : "transparent",
                             }}
-                            onMouseEnter={(e) =>
-                              (e.currentTarget.style.backgroundColor =
-                                "color-mix(in oklch, var(--color-foreground) 5%, transparent)")
-                            }
-                            onMouseLeave={(e) =>
-                              (e.currentTarget.style.backgroundColor =
-                                location.pathname === child.to
-                                  ? "color-mix(in oklch, var(--color-gold) 10%, transparent)"
-                                  : "transparent")
-                            }
                           >
-                            <div>
-                              <p
-                                style={{
-                                  fontSize: "12px",
-                                  fontWeight: 600,
-                                  textTransform: "uppercase",
-                                  letterSpacing: "0.06em",
-                                  color: "var(--color-foreground)",
-                                  marginBottom: "2px",
-                                }}
-                              >
-                                {child.label}
-                              </p>
-                              <p
-                                style={{
-                                  fontSize: "10px",
-                                  color: "var(--color-muted-foreground)",
-                                }}
-                              >
-                                {child.desc}
-                              </p>
-                            </div>
-                            <ArrowUpRight
-                              size={12}
+                            <span
                               style={{
+                                fontSize: "10px",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.1em",
                                 color: "var(--color-muted-foreground)",
-                                flexShrink: 0,
                               }}
-                            />
-                          </Link>
-                        ))}
-                      </div>
-
-                      <div
-                        style={{
-                          margin: "8px 0 4px",
-                          padding: "12px 16px",
-                          borderTop: "1px solid var(--color-border)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: "10px",
-                            textTransform: "uppercase",
-                            letterSpacing: "0.1em",
-                            color: "var(--color-muted-foreground)",
-                          }}
-                        >
-                          Browse all collections
-                        </span>
-                        <Link
-                          to={l.to}
-                          style={{
-                            fontSize: "10px",
-                            fontWeight: 600,
-                            textTransform: "uppercase",
-                            letterSpacing: "0.08em",
-                            color: "var(--color-gold)",
-                            textDecoration: "none",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4px",
-                          }}
-                        >
-                          View All <ArrowUpRight size={10} />
-                        </Link>
+                            >
+                              Browse all collections
+                            </span>
+                            <Link
+                              to={l.to}
+                              style={{
+                                fontSize: "10px",
+                                fontWeight: 600,
+                                textTransform: "uppercase",
+                                letterSpacing: "0.08em",
+                                color: "var(--color-gold)",
+                                textDecoration: "none",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px",
+                              }}
+                            >
+                              View All <ArrowUpRight size={10} />
+                            </Link>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              ) : (
-                <Link
-                  key={l.to}
-                  to={l.to}
-                  style={{
-                    fontSize: "11px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
-                    color:
-                      location.pathname === l.to
-                        ? "var(--color-foreground)"
-                        : l.label === "Sale"
-                          ? "var(--color-gold)"
-                          : "color-mix(in oklch, var(--color-foreground) 60%, transparent)",
-                    fontWeight: location.pathname === l.to ? 600 : 500,
-                    transition: "all 0.3s",
-                    textDecoration: "none",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.color = "var(--color-foreground)";
-                    e.target.style.letterSpacing = "0.12em";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.color =
-                      location.pathname === l.to
-                        ? "var(--color-foreground)"
-                        : l.label === "Sale"
-                          ? "var(--color-gold)"
-                          : "color-mix(in oklch, var(--color-foreground) 60%, transparent)";
-                    e.target.style.letterSpacing = "0.08em";
-                  }}
-                >
-                  {l.label}
-                </Link>
-              ),
-            )}
+                  ) : (
+                    <Link
+                      key={l.to}
+                      to={l.to}
+                      style={{
+                        fontSize: "11px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                        color:
+                          location.pathname === l.to
+                            ? "var(--color-foreground)"
+                            : l.label === "Sale"
+                              ? "var(--color-gold)"
+                              : "color-mix(in oklch, var(--color-foreground) 60%, transparent)",
+                        fontWeight: location.pathname === l.to ? 600 : 500,
+                        transition: "all 0.3s",
+                        textDecoration: "none",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.color = "var(--color-foreground)";
+                        e.target.style.letterSpacing = "0.12em";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.color =
+                          location.pathname === l.to
+                            ? "var(--color-foreground)"
+                            : l.label === "Sale"
+                              ? "var(--color-gold)"
+                              : "color-mix(in oklch, var(--color-foreground) 60%, transparent)";
+                        e.target.style.letterSpacing = "0.08em";
+                      }}
+                    >
+                      {l.label}
+                    </Link>
+                  ),
+                )}
 
-            {/* Auth */}
-            {!user ? (
-              <Link
-                to="/auth"
-                style={{
-                  fontSize: "11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                  color: "var(--color-gold)",
-                  fontWeight: 600,
-                  marginLeft: "18px",
-                  textDecoration: "none",
-                }}
-              >
-                Sign In
-              </Link>
-            ) : (
-              <div style={{ position: "relative", marginLeft: "18px" }}>
-                <button
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "var(--color-foreground)",
-                    fontWeight: 600,
-                    fontSize: "11px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => setShowUserMenu((v) => !v)}
-                  onBlur={() => setTimeout(() => setShowUserMenu(false), 150)}
-                >
-                  {user?.name?.split(" ")[0] || user?.email?.split("@")[0]} ▼
-                </button>
-                {showUserMenu && (
-                  <div
+                {/* Auth */}
+                {!user ? (
+                  <Link
+                    to="/auth"
                     style={{
-                      position: "absolute",
-                      top: "120%",
-                      right: 0,
-                      background: "var(--color-background)",
-                      border: "1px solid var(--color-border)",
-                      borderRadius: "8px",
-                      boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
-                      minWidth: "140px",
-                      zIndex: 100,
+                      fontSize: "11px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      color: "var(--color-gold)",
+                      fontWeight: 600,
+                      marginLeft: "18px",
+                      textDecoration: "none",
                     }}
                   >
+                    Sign In
+                  </Link>
+                ) : (
+                  <div style={{ position: "relative", marginLeft: "18px" }}>
                     <button
                       style={{
-                        width: "100%",
                         background: "none",
                         border: "none",
-                        padding: "10px 18px",
-                        textAlign: "left",
-                        fontSize: "12px",
                         color: "var(--color-foreground)",
+                        fontWeight: 600,
+                        fontSize: "11px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
                         cursor: "pointer",
-                        borderBottom: "1px solid var(--color-border)",
                       }}
-                      onClick={() => {
-                        navigate("/profile");
-                        setShowUserMenu(false);
-                      }}
+                      onClick={() => setShowUserMenu((v) => !v)}
+                      onBlur={() => setTimeout(() => setShowUserMenu(false), 150)}
                     >
-                      Profile
+                      {user?.name?.split(" ")[0] || user?.email?.split("@")[0]} ▼
                     </button>
-                    {isAdmin && (
-                      <button
+                    {showUserMenu && (
+                      <div
                         style={{
-                          width: "100%",
-                          background: "none",
-                          border: "none",
-                          padding: "10px 18px",
-                          textAlign: "left",
-                          fontSize: "12px",
-                          color: "var(--color-gold)",
-                          cursor: "pointer",
-                          borderBottom: "1px solid var(--color-border)",
-                          fontWeight: 600,
-                        }}
-                        onClick={() => {
-                          navigate("/admin");
-                          setShowUserMenu(false);
+                          position: "absolute",
+                          top: "120%",
+                          right: 0,
+                          background: "var(--color-background)",
+                          border: "1px solid var(--color-border)",
+                          borderRadius: "8px",
+                          boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+                          minWidth: "140px",
+                          zIndex: 100,
                         }}
                       >
-                        Admin Panel
-                      </button>
+                        <button
+                          style={{
+                            width: "100%",
+                            background: "none",
+                            border: "none",
+                            padding: "10px 18px",
+                            textAlign: "left",
+                            fontSize: "12px",
+                            color: "var(--color-foreground)",
+                            cursor: "pointer",
+                            borderBottom: "1px solid var(--color-border)",
+                          }}
+                          onClick={() => {
+                            navigate("/profile");
+                            setShowUserMenu(false);
+                          }}
+                        >
+                          Profile
+                        </button>
+                        {isAdmin && (
+                          <button
+                            style={{
+                              width: "100%",
+                              background: "none",
+                              border: "none",
+                              padding: "10px 18px",
+                              textAlign: "left",
+                              fontSize: "12px",
+                              color: "var(--color-gold)",
+                              cursor: "pointer",
+                              borderBottom: "1px solid var(--color-border)",
+                              fontWeight: 600,
+                            }}
+                            onClick={() => {
+                              navigate("/admin");
+                              setShowUserMenu(false);
+                            }}
+                          >
+                            Admin Panel
+                          </button>
+                        )}
+                        <button
+                          style={{
+                            width: "100%",
+                            background: "none",
+                            border: "none",
+                            padding: "10px 18px",
+                            textAlign: "left",
+                            fontSize: "12px",
+                            color: "var(--color-destructive)",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => {
+                            logout();
+                            setShowUserMenu(false);
+                            navigate("/");
+                          }}
+                        >
+                          Logout
+                        </button>
+                      </div>
                     )}
-                    <button
-                      style={{
-                        width: "100%",
-                        background: "none",
-                        border: "none",
-                        padding: "10px 18px",
-                        textAlign: "left",
-                        fontSize: "12px",
-                        color: "var(--color-destructive)",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => {
-                        logout();
-                        setShowUserMenu(false);
-                        navigate("/");
-                      }}
-                    >
-                      Logout
-                    </button>
                   </div>
                 )}
               </div>
-            )}
-          </div>
 
-          {/* Actions */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "2px",
-              marginLeft: "auto",
-            }}
-          >
-            {!isCartOrWishlist && (
-              <button
-                data-search-btn
-                onClick={() => {
-                  if (window.innerWidth <= 768) {
-                    navigate("/search");
-                  } else {
-                    setSearchOpen((s) => !s);
-                  }
-                }}
-                aria-label="Search"
+              {/* Actions */}
+              <div
                 style={{
-                  padding: "8px",
-                  transition: "all 0.3s",
                   display: "flex",
                   alignItems: "center",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "var(--color-foreground)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = "var(--color-gold)";
-                  e.currentTarget.style.transform = "scale(1.1)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = "";
-                  e.currentTarget.style.transform = "scale(1)";
+                  gap: "2px",
+                  marginLeft: "auto",
                 }}
               >
-                <Search size={18} strokeWidth={1.5} />
-              </button>
-            )}
-            <button
-              onClick={toggle}
-              aria-label="Theme"
-              style={{
-                padding: "8px",
-                transition: "all 0.3s",
-                display: "flex",
-                alignItems: "center",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: "var(--color-foreground)",
-              }}
-              className="theme-toggle"
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = "var(--color-gold)";
-                e.currentTarget.style.transform = "scale(1.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = "";
-                e.currentTarget.style.transform = "scale(1)";
-              }}
-            >
-              {theme === "light" ? (
-                <Moon size={18} strokeWidth={1.5} />
-              ) : (
-                <Sun size={18} strokeWidth={1.5} />
-              )}
-            </button>
-            <Link
-              to="/wishlist"
-              aria-label="Wishlist"
-              style={{
-                padding: "8px",
-                transition: "all 0.3s",
-                display: "flex",
-                alignItems: "center",
-                position: "relative",
-                color: "var(--color-foreground)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = "var(--color-gold)";
-                e.currentTarget.style.transform = "scale(1.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = "";
-                e.currentTarget.style.transform = "scale(1)";
-              }}
-            >
-              <Heart size={18} strokeWidth={1.5} />
-              {wishCount > 0 && (
-                <span
+                {!isCartOrWishlist && (
+                  <button
+                    data-search-btn
+                    onClick={() => {
+                      if (window.innerWidth <= 768) {
+                        navigate("/search");
+                      } else {
+                        setSearchOpen((s) => !s);
+                      }
+                    }}
+                    aria-label="Search"
+                    style={{
+                      padding: "8px",
+                      transition: "all 0.3s",
+                      display: "flex",
+                      alignItems: "center",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "var(--color-foreground)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = "var(--color-gold)";
+                      e.currentTarget.style.transform = "scale(1.1)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = "";
+                      e.currentTarget.style.transform = "scale(1)";
+                    }}
+                  >
+                    <Search size={18} strokeWidth={1.5} />
+                  </button>
+                )}
+                <button
+                  onClick={toggle}
+                  aria-label="Theme"
                   style={{
-                    position: "absolute",
-                    top: "4px",
-                    right: "4px",
-                    backgroundColor: "var(--color-gold)",
-                    color: "white",
-                    fontSize: "8px",
-                    width: "14px",
-                    height: "14px",
-                    borderRadius: "50%",
+                    padding: "8px",
+                    transition: "all 0.3s",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 700,
-                    animation: "zoomIn 0.5s",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "var(--color-foreground)",
+                  }}
+                  className="theme-toggle"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "var(--color-gold)";
+                    e.currentTarget.style.transform = "scale(1.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "";
+                    e.currentTarget.style.transform = "scale(1)";
                   }}
                 >
-                  {wishCount}
-                </span>
-              )}
-            </Link>
-            <Link
-              to="/cart"
-              aria-label="Cart"
-              style={{
-                padding: "8px",
-                transition: "all 0.3s",
-                display: "flex",
-                alignItems: "center",
-                position: "relative",
-                color: "var(--color-foreground)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = "var(--color-gold)";
-                e.currentTarget.style.transform = "scale(1.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = "";
-                e.currentTarget.style.transform = "scale(1)";
-              }}
-            >
-              <ShoppingBag size={18} strokeWidth={1.5} />
-              {cartCount > 0 && (
-                <span
+                  {theme === "light" ? (
+                    <Moon size={18} strokeWidth={1.5} />
+                  ) : (
+                    <Sun size={18} strokeWidth={1.5} />
+                  )}
+                </button>
+                <Link
+                  to="/wishlist"
+                  aria-label="Wishlist"
                   style={{
-                    position: "absolute",
-                    top: "4px",
-                    right: "4px",
-                    backgroundColor: "var(--color-gold)",
-                    color: "white",
-                    fontSize: "8px",
-                    width: "14px",
-                    height: "14px",
-                    borderRadius: "50%",
+                    padding: "8px",
+                    transition: "all 0.3s",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 700,
-                    animation: "zoomIn 0.5s",
+                    position: "relative",
+                    color: "var(--color-foreground)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "var(--color-gold)";
+                    e.currentTarget.style.transform = "scale(1.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "";
+                    e.currentTarget.style.transform = "scale(1)";
                   }}
                 >
-                  {cartCount}
-                </span>
-              )}
-            </Link>
-            <button
-              className="mobile-menu-btn"
-              style={{
-                padding: "8px",
-                marginLeft: "4px",
-                display: "flex",
-                alignItems: "center",
-                transition: "all 0.3s",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: "var(--color-foreground)",
-              }}
-              onClick={() => {
-                setHidden(false);
-                setMobileOpen(true);
-              }}
-              aria-label="Menu"
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = "var(--color-gold)";
-                e.currentTarget.style.transform = "scale(1.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = "";
-                e.currentTarget.style.transform = "scale(1)";
-              }}
-            >
-              <Menu size={20} strokeWidth={1.5} />
-            </button>
-          </div>
-        </>
-      )}
-    </div>
+                  <Heart size={18} strokeWidth={1.5} />
+                  {wishCount > 0 && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: "4px",
+                        right: "4px",
+                        backgroundColor: "var(--color-gold)",
+                        color: "white",
+                        fontSize: "8px",
+                        width: "14px",
+                        height: "14px",
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: 700,
+                        animation: "zoomIn 0.5s",
+                      }}
+                    >
+                      {wishCount}
+                    </span>
+                  )}
+                </Link>
+                <Link
+                  to="/cart"
+                  aria-label="Cart"
+                  style={{
+                    padding: "8px",
+                    transition: "all 0.3s",
+                    display: "flex",
+                    alignItems: "center",
+                    position: "relative",
+                    color: "var(--color-foreground)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "var(--color-gold)";
+                    e.currentTarget.style.transform = "scale(1.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "";
+                    e.currentTarget.style.transform = "scale(1)";
+                  }}
+                >
+                  <ShoppingBag size={18} strokeWidth={1.5} />
+                  {cartCount > 0 && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: "4px",
+                        right: "4px",
+                        backgroundColor: "var(--color-gold)",
+                        color: "white",
+                        fontSize: "8px",
+                        width: "14px",
+                        height: "14px",
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: 700,
+                        animation: "zoomIn 0.5s",
+                      }}
+                    >
+                      {cartCount}
+                    </span>
+                  )}
+                </Link>
+                <button
+                  className="mobile-menu-btn"
+                  style={{
+                    padding: "8px",
+                    marginLeft: "4px",
+                    display: "flex",
+                    alignItems: "center",
+                    transition: "all 0.3s",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "var(--color-foreground)",
+                  }}
+                  onClick={() => {
+                    setHidden(false);
+                    setMobileOpen(true);
+                  }}
+                  aria-label="Menu"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "var(--color-gold)";
+                    e.currentTarget.style.transform = "scale(1.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "";
+                    e.currentTarget.style.transform = "scale(1)";
+                  }}
+                >
+                  <Menu size={20} strokeWidth={1.5} />
+                </button>
+              </div>
+            </>
+          )}
+        </div>
 
         {/* Search Overlay — fixed to viewport center */}
         {searchOpen && (
@@ -935,8 +938,8 @@ export function Header() {
                     color: "var(--color-foreground)",
                   }}
                   onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor =
-                      "var(--color-border)")
+                  (e.currentTarget.style.backgroundColor =
+                    "var(--color-border)")
                   }
                   onMouseLeave={(e) =>
                     (e.currentTarget.style.backgroundColor = "")
@@ -991,12 +994,12 @@ export function Header() {
                               transition: "background 0.15s",
                             }}
                             onMouseEnter={(e) =>
-                              (e.currentTarget.style.backgroundColor =
-                                "var(--color-surface)")
+                            (e.currentTarget.style.backgroundColor =
+                              "var(--color-surface)")
                             }
                             onMouseLeave={(e) =>
-                              (e.currentTarget.style.backgroundColor =
-                                "transparent")
+                            (e.currentTarget.style.backgroundColor =
+                              "transparent")
                             }
                           >
                             <div
@@ -1295,8 +1298,8 @@ export function Header() {
                         transition: `transform 0.6s cubic-bezier(0.16,1,0.3,1) ${i * 60}ms, opacity 0.6s ${i * 60}ms, background 0.2s`,
                       }}
                       onMouseEnter={(e) =>
-                        (e.currentTarget.style.backgroundColor =
-                          "color-mix(in oklch, var(--color-foreground) 4%, transparent)")
+                      (e.currentTarget.style.backgroundColor =
+                        "color-mix(in oklch, var(--color-foreground) 4%, transparent)")
                       }
                       onMouseLeave={(e) =>
                         (e.currentTarget.style.backgroundColor = "")
@@ -1377,8 +1380,8 @@ export function Header() {
                               marginLeft: "4px",
                             }}
                             onMouseEnter={(e) =>
-                              (e.currentTarget.style.backgroundColor =
-                                "color-mix(in oklch, var(--color-foreground) 4%, transparent)")
+                            (e.currentTarget.style.backgroundColor =
+                              "color-mix(in oklch, var(--color-foreground) 4%, transparent)")
                             }
                             onMouseLeave={(e) =>
                               (e.currentTarget.style.backgroundColor = "")
@@ -1459,8 +1462,8 @@ export function Header() {
                       transition: `transform 0.6s cubic-bezier(0.16,1,0.3,1) ${i * 60}ms, opacity 0.6s ${i * 60}ms, background 0.2s`,
                     }}
                     onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor =
-                        "color-mix(in oklch, var(--color-foreground) 4%, transparent)")
+                    (e.currentTarget.style.backgroundColor =
+                      "color-mix(in oklch, var(--color-foreground) 4%, transparent)")
                     }
                     onMouseLeave={(e) =>
                       (e.currentTarget.style.backgroundColor = "")

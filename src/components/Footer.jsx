@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { FaFacebookF, FaInstagram, FaWhatsapp } from "react-icons/fa6";
 import { useToasts } from "../lib/store.js";
 import { WHATSAPP_NUMBER } from "../lib/products.js";
@@ -47,6 +47,10 @@ function FooterCol({ title, links }) {
 export function Footer() {
   const push = useToasts((s) => s.push);
   const [email, setEmail] = useState("");
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith("/admin");
+
+  if (isAdminPage) return null;
 
   return (
     <footer

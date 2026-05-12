@@ -19,10 +19,12 @@ import NotFoundPage from "./pages/NotFoundPage.jsx";
 import ComingSoonPage from "./pages/ComingSoonPage.jsx";
 import AuthPage from "./pages/AuthPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
-import AdminProductsPage from "./pages/AdminProductsPage.jsx";
-import AdminProductFormPage from "./pages/AdminProductFormPage.jsx";
-import AdminOrdersPage from "./pages/AdminOrdersPage.jsx";
+import AdminProductsPage from "./pages/admin/AdminProductsPage.jsx";
+import AdminProductFormPage from "./pages/admin/AdminProductFormPage.jsx";
+import AdminOrdersPage from "./pages/admin/AdminOrdersPage.jsx";
 import OrderTrackingPage from "./pages/OrderTrackingPage.jsx";
+import AdminLayout from "./pages/admin/AdminLayout.jsx";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage.jsx";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -69,10 +71,16 @@ export default function App() {
             <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/admin" element={<AdminProductsPage />} />
-            <Route path="/admin/products/add" element={<AdminProductFormPage />} />
-            <Route path="/admin/products/edit/:id" element={<AdminProductFormPage />} />
-            <Route path="/admin/orders" element={<AdminOrdersPage />} />
+
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboardPage />} />
+              <Route path="products" element={<AdminProductsPage />} />
+              <Route path="products/add" element={<AdminProductFormPage />} />
+              <Route path="products/edit/:id" element={<AdminProductFormPage />} />
+              <Route path="orders" element={<AdminOrdersPage />} />
+            </Route>
+
             <Route path="/order/:uuid" element={<OrderTrackingPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

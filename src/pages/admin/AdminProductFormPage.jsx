@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useShop, useAuth } from "../context/ShopContext";
+import { useShop, useAuth } from "../../context/ShopContext";
 
-import { productApi } from "../lib/api";
-import { useToasts } from "../lib/store";
+import { productApi } from "../../lib/api";
+import { useToasts } from "../../lib/store";
 import {
   ArrowLeft,
   Save,
