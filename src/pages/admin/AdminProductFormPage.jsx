@@ -27,6 +27,23 @@ import namer from "color-namer";
 /* ─── Responsive Styles ─── */
 const FORM_STYLES = `
   .apf-wrap { max-width: 1080px; margin: 0 auto; padding: 40px 24px 80px; }
+  .apf-progress-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: var(--color-background);
+    border-bottom: 1px solid var(--color-border);
+    height: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0 0 32px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  @media (max-width: 900px) {
+    .apf-progress-header { height: 64px; margin-bottom: 24px; }
+  }
   .apf-form { display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start; }
   .apf-section { background: var(--color-background); border: 1px solid var(--color-border); border-radius: 2px; padding: 24px; margin-bottom: 0; }
   .apf-label { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-muted-foreground); margin-bottom: 8px; }
@@ -469,7 +486,7 @@ export default function AdminProductFormPage() {
       <style>{FORM_STYLES}</style>
       <div className="apf-wrap">
         {/* ── Page header ── */}
-        <div style={{ marginBottom: 36 }}>
+        <div className="apf-progress-header">
           <div
             style={{
               fontSize: 11,
@@ -828,8 +845,8 @@ export default function AdminProductFormPage() {
                       transition: "background 0.15s",
                     }}
                     onMouseEnter={(e) =>
-                      (e.currentTarget.style.background =
-                        "var(--color-surface)")
+                    (e.currentTarget.style.background =
+                      "var(--color-surface)")
                     }
                     onMouseLeave={(e) =>
                       (e.currentTarget.style.background = "none")
