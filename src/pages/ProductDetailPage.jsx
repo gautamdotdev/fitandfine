@@ -474,6 +474,151 @@ function TrustBadge({ icon: Icon, title, sub }) {
   );
 }
 
+/* ── PDP Skeleton ── */
+function SkeletonBox({ w = "100%", h = "16px", radius = "6px", style = {} }) {
+  return (
+    <div
+      className="pdp-skel-pulse"
+      style={{
+        width: w,
+        height: h,
+        borderRadius: radius,
+        backgroundColor: "var(--color-muted)",
+        flexShrink: 0,
+        ...style,
+      }}
+    />
+  );
+}
+
+function ProductDetailSkeleton() {
+  return (
+    <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0px 10px" }}>
+      {/* Breadcrumb */}
+      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        <SkeletonBox w="32px" h="10px" />
+        <SkeletonBox w="6px" h="10px" />
+        <SkeletonBox w="60px" h="10px" />
+        <SkeletonBox w="6px" h="10px" />
+        <SkeletonBox w="120px" h="10px" />
+      </div>
+
+      {/* Main Grid */}
+      <div
+        style={{ marginTop: "10px", display: "grid", gap: "56px" }}
+        className="pdp-grid"
+      >
+        {/* Gallery col */}
+        <div style={{ minWidth: 0 }}>
+          <SkeletonBox
+            h="0"
+            radius="0px"
+            style={{ aspectRatio: "4/5", height: "auto" }}
+          />
+          <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+            {[0, 1, 2, 3].map((i) => (
+              <SkeletonBox key={i} w="64px" h="80px" radius="6px" />
+            ))}
+          </div>
+        </div>
+
+        {/* Info col */}
+        <div style={{ minWidth: 0, paddingTop: "4px" }}>
+          <SkeletonBox w="72px" h="10px" style={{ marginBottom: "10px" }} />
+          <SkeletonBox w="85%" h="28px" style={{ marginBottom: "6px" }} />
+          <SkeletonBox w="55%" h="28px" style={{ marginBottom: "16px" }} />
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+              alignItems: "center",
+              marginBottom: "20px",
+            }}
+          >
+            <SkeletonBox w="80px" h="13px" />
+            <SkeletonBox w="60px" h="13px" />
+          </div>
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+              alignItems: "center",
+              marginBottom: "28px",
+            }}
+          >
+            <SkeletonBox w="90px" h="28px" radius="6px" />
+            <SkeletonBox w="64px" h="20px" radius="6px" />
+          </div>
+          <SkeletonBox w="60px" h="10px" style={{ marginBottom: "10px" }} />
+          <div style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
+            {[0, 1, 2].map((i) => (
+              <SkeletonBox key={i} w="32px" h="32px" radius="50%" />
+            ))}
+          </div>
+          <SkeletonBox w="48px" h="10px" style={{ marginBottom: "10px" }} />
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+              flexWrap: "wrap",
+              marginBottom: "28px",
+            }}
+          >
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <SkeletonBox key={i} w="52px" h="44px" radius="8px" />
+            ))}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+              alignItems: "center",
+              marginBottom: "16px",
+            }}
+          >
+            <SkeletonBox w="132px" h="44px" radius="10px" />
+            <SkeletonBox h="44px" radius="10px" />
+          </div>
+          <SkeletonBox
+            h="44px"
+            radius="10px"
+            style={{ marginBottom: "28px" }}
+          />
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
+          >
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                style={{ display: "flex", gap: "12px", alignItems: "center" }}
+              >
+                <SkeletonBox w="36px" h="36px" radius="50%" />
+                <div
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "5px",
+                  }}
+                >
+                  <SkeletonBox w="100px" h="10px" />
+                  <SkeletonBox w="140px" h="9px" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        .pdp-skel-pulse { animation: pdpSkelPulse 1.6s ease-in-out infinite; }
+        @keyframes pdpSkelPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @media (min-width: 1024px) { .pdp-grid { grid-template-columns: 1.15fr 1fr !important; } }
+      `}</style>
+    </div>
+  );
+}
+
 /* ── Main Page ── */
 export default function ProductDetailPage() {
   const { slug } = useParams();
@@ -523,30 +668,44 @@ export default function ProductDetailPage() {
   const push = useToasts((s) => s.push);
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchProduct = async () => {
+      // Cache hit: product already in ShopContext list
       const found = products.find((p) => p.slug === slug || p._id === slug);
       if (found) {
-        setProduct(found);
-        setLoading(false);
+        if (!cancelled) {
+          setProduct(found);
+          setLoading(false);
+        }
         return;
       }
 
-      if (!shopLoading) {
-        try {
-          setLoading(true);
-          const data = await productApi.getOne(slug);
-          const p = data.data || data;
+      // Always fetch directly by slug -- do NOT gate on shopLoading.
+      // On direct URL load / hard reload, ShopContext may not have
+      // fetched the full list yet, so we resolve independently.
+      try {
+        setLoading(true);
+        const data = await productApi.getOne(slug);
+        const p = data.data || data;
+        if (!cancelled) {
           setProduct({ ...p, id: p._id });
           setLoading(false);
-        } catch (err) {
-          console.error("Error fetching product:", err);
+        }
+      } catch (err) {
+        console.error("Error fetching product:", err);
+        if (!cancelled) {
           setErrorMsg("Product not found");
           setLoading(false);
         }
       }
     };
+
     fetchProduct();
-  }, [slug, products, shopLoading]);
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, products]);
 
   useEffect(() => {
     if (product) {
@@ -564,13 +723,7 @@ export default function ProductDetailPage() {
     }
   }, [imgIdx]);
 
-
-  if (loading || shopLoading)
-    return (
-      <div style={{ padding: "100px", textAlign: "center" }}>
-        Loading product details...
-      </div>
-    );
+  if (loading) return <ProductDetailSkeleton />;
   if (!product) return <Navigate to="/not-found" replace />;
 
   const isWishlisted = has(product.id || product._id);
@@ -888,7 +1041,14 @@ export default function ProductDetailPage() {
         </div>
 
         {/* ── Product Info ── */}
-        <div style={{ position: "sticky", top: "80px", alignSelf: "start", minWidth: 0 }}>
+        <div
+          style={{
+            position: "sticky",
+            top: "80px",
+            alignSelf: "start",
+            minWidth: 0,
+          }}
+        >
           {/* Category + Share */}
           <div
             style={{
@@ -1102,8 +1262,8 @@ export default function ProductDetailPage() {
                   (e.currentTarget.style.color = "var(--color-foreground)")
                 }
                 onMouseLeave={(e) =>
-                (e.currentTarget.style.color =
-                  "var(--color-muted-foreground)")
+                  (e.currentTarget.style.color =
+                    "var(--color-muted-foreground)")
                 }
               >
                 Size Guide

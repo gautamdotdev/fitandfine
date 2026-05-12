@@ -386,7 +386,7 @@ export function Header() {
                           width: "480px",
                           backgroundColor: "var(--color-background)",
                           border: "1px solid var(--color-border)",
-                          borderRadius: "12px",
+                          borderRadius: "2px",
                           boxShadow: "0 20px 60px rgba(0,0,0,0.12)",
                           overflow: "hidden",
                           opacity: desktopDropdown === l.to ? 1 : 0,
@@ -417,7 +417,7 @@ export function Header() {
                                   alignItems: "center",
                                   justifyContent: "space-between",
                                   padding: "14px 16px",
-                                  borderRadius: "8px",
+                                  borderRadius: "2px",
                                   textDecoration: "none",
                                   transition: "background 0.2s",
                                   backgroundColor:
