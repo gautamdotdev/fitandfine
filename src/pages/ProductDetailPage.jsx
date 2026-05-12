@@ -626,7 +626,6 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error_msg, setErrorMsg] = useState("");
-
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [relatedLoading, setRelatedLoading] = useState(true);
 
@@ -674,36 +673,36 @@ export default function ProductDetailPage() {
     let cancelled = false;
 
     const fetchProduct = async () => {
-      setLoading(true);
-      setRelatedLoading(true);
-      // Cache hit: product already in ShopContext list — compute related from context
+      // Cache hit: product already in ShopContext list
       const found = products.find((p) => p.slug === slug || p._id === slug);
       if (found) {
         if (!cancelled) {
           setProduct(found);
-          const fromContext = products
+          setLoading(false);
+          // Still fetch related from API for cache-hit case
+          const rel = products
             .filter(
               (p) =>
-                (p._id || p.id) !== (found._id || found.id) &&
+                p._id !== found._id &&
                 (p.categorySlug === found.categorySlug ||
                   p.category === found.category),
             )
-            .slice(0, 4);
-          setRelatedProducts(fromContext);
-          setLoading(false);
+            .slice(0, 6);
+          setRelatedProducts(rel);
           setRelatedLoading(false);
         }
         return;
       }
 
-      // Hard reload / direct URL — fetch product + related in one API call
+      // Always fetch directly by slug -- do NOT gate on shopLoading.
+      // On direct URL load / hard reload, ShopContext may not have
+      // fetched the full list yet, so we resolve independently.
       try {
+        setLoading(true);
         const data = await productApi.getOne(slug);
-
         // Backend now returns { product, relatedProducts }
         const p = data.product || data.data || data;
         const related = data.relatedProducts || [];
-
         if (!cancelled) {
           setProduct({ ...p, id: p._id });
           setRelatedProducts(related.map((r) => ({ ...r, id: r._id })));
@@ -1753,21 +1752,9 @@ export default function ProductDetailPage() {
             gap: 18px;
             margin-top: 18px;
           }
-          @media (max-width: 1200px) {
-            .pdp-related-grid {
-              grid-template-columns: repeat(4, 1fr);
-            }
-          }
-          @media (max-width: 900px) {
-            .pdp-related-grid {
-              grid-template-columns: repeat(2, 1fr);
-            }
-          }
-          @media (max-width: 600px) {
-            .pdp-related-grid {
-              grid-template-columns: 1fr;
-            }
-          }
+          @media (max-width: 1200px) { .pdp-related-grid { grid-template-columns: repeat(4, 1fr); } }
+          @media (max-width: 900px) { .pdp-related-grid { grid-template-columns: repeat(3, 1fr); } }
+          @media (max-width: 600px) { .pdp-related-grid { grid-template-columns: repeat(2, 1fr); } }
         `}</style>
       </section>
 
