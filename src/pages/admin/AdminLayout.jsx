@@ -200,7 +200,7 @@ const SIDEBAR_STYLES = `
     .adm-main { margin-left: 0; }
     .adm-menu-btn { display: flex; order: 2; }
     .adm-close-btn { display: flex; }
-    .adm-content { padding: 0px 5px 0px; }
+    .adm-content { padding: 5px 5px 0px; }
     .adm-topbar { padding: 0 16px; height: 64px; }
   }
 
@@ -213,7 +213,8 @@ const NAV = [
     items: [
       { to: "/admin", icon: LayoutDashboard, text: "Home", end: true },
       { to: "/admin/orders", icon: ShoppingCart, text: "Orders", badge: "5" },
-      { to: "/admin/products", icon: Package, text: "Products" },
+      { to: "/admin/products", icon: Package, text: "Products", end: true },
+      { to: "/admin/products/add", icon: Users, text: "Add Product" },
       { to: "/admin/customers", icon: Users, text: "Customers" },
     ],
   },

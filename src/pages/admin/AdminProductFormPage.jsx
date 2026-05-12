@@ -28,7 +28,7 @@ import namer from "color-namer";
 const FORM_STYLES = `
   .apf-wrap { max-width: 1080px; margin: 0 auto; padding: 40px 24px 80px; }
   .apf-form { display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start; }
-  .apf-section { background: var(--color-background); border: 1px solid var(--color-border); border-radius: 18px; padding: 24px; margin-bottom: 0; }
+  .apf-section { background: var(--color-background); border: 1px solid var(--color-border); border-radius: 2px; padding: 24px; margin-bottom: 0; }
   .apf-label { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-muted-foreground); margin-bottom: 8px; }
   .apf-input { width: 100%; padding: 13px 15px; border-radius: 11px; border: 1.5px solid var(--color-border); background: var(--color-surface); font-size: 14px; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; outline: none; }
   .apf-input:focus { border-color: var(--color-foreground); box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
@@ -76,7 +76,7 @@ const FORM_STYLES = `
     .apf-img-grid { grid-template-columns: repeat(3, 1fr); }
   }
   @media (max-width: 520px) {
-    .apf-wrap { padding: 24px 14px 100px; }
+    .apf-wrap { padding: 5px 0px 0px; }
     .apf-grid-2 { grid-template-columns: 1fr; }
     .apf-grid-3 { grid-template-columns: 1fr 1fr; }
     .apf-section { padding: 18px; }
@@ -468,33 +468,6 @@ export default function AdminProductFormPage() {
     <>
       <style>{FORM_STYLES}</style>
       <div className="apf-wrap">
-        {/* ── Back ── */}
-        <button
-          onClick={() => navigate("/admin")}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            color: "var(--color-muted-foreground)",
-            marginBottom: 24,
-            fontSize: 14,
-            fontWeight: 600,
-            padding: 0,
-            transition: "color 0.18s",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.color = "var(--color-foreground)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.color = "var(--color-muted-foreground)")
-          }
-        >
-          <ArrowLeft size={16} /> Back to Dashboard
-        </button>
-
         {/* ── Page header ── */}
         <div style={{ marginBottom: 36 }}>
           <div
@@ -509,16 +482,6 @@ export default function AdminProductFormPage() {
           >
             {id ? "Editing product" : "New product"}
           </div>
-          <h1
-            style={{
-              fontFamily: "var(--font-serif, Georgia)",
-              fontSize: "clamp(1.8rem, 4vw, 2.8rem)",
-              fontWeight: 900,
-              margin: "0 0 12px",
-            }}
-          >
-            {id ? "Edit Product" : "Add New Product"}
-          </h1>
           {/* progress bar */}
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div
