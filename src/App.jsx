@@ -83,6 +83,7 @@ export default function App() {
               <Route path="orders" element={<AdminOrdersPage />} />
             </Route>
 
+            <Route path="/order" element={<OrderTrackingPage />} />
             <Route path="/order/:uuid" element={<OrderTrackingPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

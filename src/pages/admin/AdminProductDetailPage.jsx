@@ -291,7 +291,7 @@ export default function AdminProductDetailPage() {
         const fetch = async () => {
             try {
                 const data = await productApi.getOne(id);
-                setProduct(data.data || data);
+                setProduct(data.product || data.data || data);
             } catch (err) {
                 pushToast({ title: "Error", message: "Product not found.", type: "error" });
                 navigate("/admin/products");
@@ -538,7 +538,7 @@ export default function AdminProductDetailPage() {
                                                 ["Fit", "Contemporary Relaxed"],
                                                 ["Care", "Cold Machine Wash"],
                                                 ["Origin", "Made in India"],
-                                                ["SKU", `#${product._id?.slice(-7)?.toUpperCase()}`],
+                                                ["SKU", `#${product.productId || product._id?.slice(-7)?.toUpperCase()}`],
                                                 ["Category", product.category],
                                             ].filter(([, v]) => v).map(([k, v]) => (
                                                 <div key={k} style={{ padding: "10px 12px", borderRadius: 8, background: "#faf9f7" }}>
@@ -585,7 +585,7 @@ export default function AdminProductDetailPage() {
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12 }}>
                                 <div>
                                     <span style={{ color: "#aaa" }}>Product ID</span>
-                                    <p style={{ fontWeight: 600, fontFamily: "monospace", fontSize: 11, color: "#444", marginTop: 2 }}>#{product._id?.slice(-7)?.toUpperCase()}</p>
+                                    <p style={{ fontWeight: 600, fontFamily: "monospace", fontSize: 11, color: "#444", marginTop: 2 }}>#{product.productId || product._id?.slice(-7)?.toUpperCase()}</p>
                                 </div>
                                 <div>
                                     <span style={{ color: "#aaa" }}>Created</span>

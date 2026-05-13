@@ -57,6 +57,28 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
+  const updateUser = async (updates) => {
+    try {
+      const data = await authApi.updateMe(updates);
+      const userData = data.user || data;
+      setUser(userData);
+      localStorage.setItem("user", JSON.stringify(userData));
+      pushToast({
+        title: "Saved",
+        message: "Your profile was updated.",
+        type: "success",
+      });
+      return userData;
+    } catch (error) {
+      pushToast({
+        title: "Save Failed",
+        message: error.message,
+        type: "error",
+      });
+      throw error;
+    }
+  };
+
   const checkAuth = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -88,6 +110,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     logout,
+    updateUser,
     isAdmin: user?.role === "admin" || user?.isAdmin,
   };
 
@@ -263,4 +286,3 @@ export const useShop = () => {
   if (!context) throw new Error("useShop must be used within ShopProvider");
   return context;
 };
-

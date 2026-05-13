@@ -134,7 +134,7 @@ function OrderCard({ order }) {
         <div className="uo-card">
             <div className="uo-card-header" onClick={() => setOpen((v) => !v)}>
                 <div className="uo-card-meta">
-                    <span className="uo-order-id">#{order._id.slice(-8).toUpperCase()}</span>
+                    <span className="uo-order-id">#{order.orderId || order._id.slice(-8).toUpperCase()}</span>
                     <span className="uo-date">{date}</span>
                     <span
                         className="uo-badge"
@@ -164,6 +164,7 @@ function OrderCard({ order }) {
                         {order.items.map((item, i) => {
                             const product = item.product;
                             const img =
+                                product?.images?.[0]?.url ||
                                 product?.images?.[0] ||
                                 (typeof product === "string" ? null : null);
                             return (

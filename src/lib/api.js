@@ -71,6 +71,8 @@ export const authApi = {
   register: (data) =>
     api("/auth/register", { method: "POST", body: JSON.stringify(data) }),
   getMe: () => api("/auth/me"),
+  updateMe: (data) =>
+    api("/auth/me", { method: "PUT", body: JSON.stringify(data) }),
 };
 
 export const orderApi = {
@@ -97,4 +99,18 @@ export const orderApi = {
 
   // Public tracking via UUID
   track: (uuid) => api(`/orders/track/${uuid}`),
+};
+
+export const wishlistApi = {
+  get: () => api("/wishlist"),
+  remove: (product) =>
+    api("/wishlist/remove", {
+      method: "DELETE",
+      body: JSON.stringify({ product }),
+    }),
+  add: (product) =>
+    api("/wishlist/add", {
+      method: "POST",
+      body: JSON.stringify({ product }),
+    }),
 };

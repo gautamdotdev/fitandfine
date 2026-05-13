@@ -709,7 +709,7 @@ function OrderRow({ order, onUpdate }) {
       <td style={{ padding: 0 }}>
         <div className="ao-tr-inner" style={{ "--s-color": cfg.hex }}>
           <div className="ao-td">
-            <span className="ao-oid">#{order._id.slice(-8).toUpperCase()}</span>
+            <span className="ao-oid">#{order.orderId || order._id.slice(-8).toUpperCase()}</span>
           </div>
           <div className="ao-td" style={{ minWidth: 0 }}>
             <div
@@ -789,7 +789,7 @@ function MobileCard({ order, onUpdate }) {
   return (
     <div className="ao-mc anim" style={{ "--s-color": cfg.hex }}>
       <div className="ao-mc-head">
-        <span className="ao-oid">#{order._id.slice(-8).toUpperCase()}</span>
+        <span className="ao-oid">#{order.orderId || order._id.slice(-8).toUpperCase()}</span>
         <Badge status={order.status} />
       </div>
       <div className="ao-mc-body">
@@ -890,6 +890,7 @@ export default function AdminOrdersPage() {
     const q = search.toLowerCase();
     return (
       o._id.toLowerCase().includes(q) ||
+      o.orderId?.toLowerCase().includes(q) ||
       o.user?.name?.toLowerCase().includes(q) ||
       o.user?.email?.toLowerCase().includes(q)
     );

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { orderApi } from "../lib/api";
 import {
     Package,
@@ -12,6 +12,7 @@ import {
     AlertCircle,
     Settings2,
     ArrowLeft,
+    Search,
 } from "lucide-react";
 
 const STATUS = {
@@ -44,6 +45,9 @@ const STYLES = `
   .ot-item-img { width: 64px; height: 80px; border-radius: 10px; object-fit: cover; }
   .ot-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 32px; padding-top: 32px; border-top: 1px solid var(--color-border); }
   .ot-info-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-muted-foreground); margin-bottom: 8px; }
+  .ot-search { display: flex; gap: 10px; margin-top: 24px; }
+  .ot-search input { flex: 1; min-width: 0; height: 48px; padding: 0 16px; border-radius: 12px; border: 1.5px solid var(--color-border); background: var(--color-background); color: var(--color-foreground); font-family: inherit; font-size: 14px; outline: none; }
+  .ot-search button { height: 48px; padding: 0 20px; border: none; border-radius: 12px; background: var(--color-foreground); color: var(--color-background); font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
   @media (max-width: 640px) {
     .ot-wrap { padding: 32px 16px; }
     .ot-body { padding: 24px; }
@@ -54,16 +58,65 @@ const STYLES = `
 
 export default function OrderTrackingPage() {
     const { uuid } = useParams();
+    const navigate = useNavigate();
+    const [lookupId, setLookupId] = useState("");
     const [order, setOrder] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(Boolean(uuid));
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        if (!uuid) {
+            setLoading(false);
+            setOrder(null);
+            setError(null);
+            return;
+        }
+        setLoading(true);
+        setError(null);
         orderApi.track(uuid)
             .then(res => setOrder(res.order))
             .catch(err => setError(err.message))
             .finally(() => setLoading(false));
     }, [uuid]);
+
+    const submitLookup = (e) => {
+        e.preventDefault();
+        const next = lookupId.trim();
+        if (next) navigate(`/order/${encodeURIComponent(next)}`);
+    };
+
+    if (!uuid) {
+        return (
+            <div className="ot-wrap">
+                <style>{STYLES}</style>
+                <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "var(--color-muted-foreground)", textDecoration: "none", fontSize: 14, marginBottom: 24, fontWeight: 600 }}>
+                    <ArrowLeft size={16} /> Back to Store
+                </Link>
+                <div className="ot-card">
+                    <div className="ot-header">
+                        <Package size={38} style={{ margin: "0 auto 16px", opacity: 0.35 }} />
+                        <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "2.2rem", fontWeight: 800, marginBottom: 8 }}>
+                            Track Your Order
+                        </h1>
+                        <p style={{ color: "var(--color-muted-foreground)", fontSize: 14 }}>
+                            Enter your order ID to view the latest order details.
+                        </p>
+                        <form className="ot-search" onSubmit={submitLookup}>
+                            <input
+                                value={lookupId}
+                                onChange={(e) => setLookupId(e.target.value)}
+                                placeholder="Example: ORD-MABC123-XY789"
+                                autoFocus
+                            />
+                            <button type="submit">
+                                <Search size={16} /> Track
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     if (loading) {
         return (
@@ -117,7 +170,7 @@ export default function OrderTrackingPage() {
                             Order Tracker
                         </h1>
                         <p style={{ color: "var(--color-muted-foreground)", fontSize: 14 }}>
-                            Order #{order._id.slice(-8).toUpperCase()} · Placed on {date}
+                            Order #{order.orderId || order._id.slice(-8).toUpperCase()} · Placed on {date}
                         </p>
                     </div>
 
@@ -150,7 +203,7 @@ export default function OrderTrackingPage() {
                                 {order.items.map((item, i) => (
                                     <div key={i} className="ot-item">
                                         <img 
-                                            src={item.product?.images?.[0] || "https://via.placeholder.com/80"} 
+                                            src={item.product?.images?.[0]?.url || item.product?.images?.[0] || "https://via.placeholder.com/80"} 
                                             className="ot-item-img" 
                                             alt={item.product?.name}
                                         />

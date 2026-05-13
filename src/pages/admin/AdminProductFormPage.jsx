@@ -240,7 +240,8 @@ export default function AdminProductFormPage() {
 
         // 2. If not in context (e.g. on refresh), fetch from API
         if (!product) {
-          product = await productApi.getOne(id);
+          const data = await productApi.getOne(id);
+          product = data.product || data.data || data;
         }
 
         if (product) {

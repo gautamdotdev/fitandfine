@@ -811,7 +811,7 @@ export default function AdminProductsPage() {
                             color: "#888",
                           }}
                         >
-                          #{p._id?.slice(-7)?.toUpperCase()}
+                          #{p.productId || p._id?.slice(-7)?.toUpperCase()}
                         </div>
                         <div
                           style={{ fontSize: 11, color: "#bbb", marginTop: 2 }}

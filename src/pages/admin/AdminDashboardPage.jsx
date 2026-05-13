@@ -1,6 +1,7 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useShop } from "../../context/ShopContext";
+import { orderApi } from "../../lib/api";
 import {
   Package,
   ShoppingCart,
@@ -123,8 +124,8 @@ const STATS = [
   },
   {
     label: "Total Revenue",
-    value: (p) =>
-      "₹" + p.reduce((s, x) => s + (x.price || 0), 0).toLocaleString("en-IN"),
+    value: (_p, orders) =>
+      "₹" + orders.reduce((s, x) => s + (x.total || 0), 0).toLocaleString("en-IN"),
     icon: TrendingUp,
     accent: "#10b981",
     trend: "+12.5%",
@@ -133,7 +134,7 @@ const STATS = [
   },
   {
     label: "Total Orders",
-    value: () => "142",
+    value: (_p, _orders, totals) => (totals.orders || 0).toLocaleString(),
     icon: ShoppingCart,
     accent: "#f59e0b",
     trend: "-1.4%",
@@ -142,7 +143,8 @@ const STATS = [
   },
   {
     label: "Customers",
-    value: () => "3,240",
+    value: (_p, orders) =>
+      new Set(orders.map((order) => order.user?._id || order.user?.email).filter(Boolean)).size.toLocaleString(),
     icon: Users,
     accent: "#8b5cf6",
     trend: "+2.1%",
@@ -192,6 +194,21 @@ function StatusBadge({ stock, salePrice }) {
 export default function AdminDashboardPage() {
   const { products } = useShop();
   const navigate = useNavigate();
+  const [orders, setOrders] = useState([]);
+  const [orderTotal, setOrderTotal] = useState(0);
+
+  useEffect(() => {
+    orderApi
+      .getAllOrders({ page: 1, limit: 100 })
+      .then((data) => {
+        setOrders(data.orders || []);
+        setOrderTotal(data.total || 0);
+      })
+      .catch(() => {
+        setOrders([]);
+        setOrderTotal(0);
+      });
+  }, []);
 
   const lowStock = useMemo(
     () => products.filter((p) => p.stock <= 5).slice(0, 5),
@@ -220,7 +237,9 @@ export default function AdminDashboardPage() {
                   <s.icon size={14} color={s.accent} />
                 </div>
               </div>
-              <div className="dash-stat-value">{s.value(products)}</div>
+              <div className="dash-stat-value">
+                {s.value(products, orders, { orders: orderTotal })}
+              </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span
                   className="dash-stat-trend"

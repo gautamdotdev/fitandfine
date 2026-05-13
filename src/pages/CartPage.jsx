@@ -27,6 +27,7 @@ export default function CartPage() {
   const shipping = total > 2999 ? 0 : 120;
   const grandTotal = total + shipping;
   const [loading, setLoading] = useState(false);
+  const defaultAddress = user?.addresses?.find((addr) => addr.default) || user?.addresses?.[0];
 
   async function handleCheckout() {
     if (!user) {
@@ -50,6 +51,9 @@ export default function CartPage() {
         subtotal: total,
         shippingCost: shipping,
         total: grandTotal,
+        address: defaultAddress
+          ? `${defaultAddress.name}, ${defaultAddress.line1}${defaultAddress.line2 ? `, ${defaultAddress.line2}` : ""}, ${defaultAddress.city}, ${defaultAddress.state} - ${defaultAddress.pin}, ${defaultAddress.phone}`
+          : "",
       });
 
       // Build WhatsApp message with order link

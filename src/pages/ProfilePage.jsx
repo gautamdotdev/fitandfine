@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/ShopContext";
 import UserOrders from "../components/UserOrders";
+import { wishlistApi } from "../lib/api";
 
 import {
   User,
@@ -355,7 +356,6 @@ function NavItem({ icon: Icon, label, active, onClick, danger }) {
 
 /* ── Orders Tab ── */
 function OrdersTab() {
-  const [expanded, setExpanded] = useState(null);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
       <div
@@ -369,11 +369,6 @@ function OrdersTab() {
         <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "1.4rem" }}>
           My Orders
         </h2>
-        <span
-          style={{ fontSize: "11px", color: "var(--color-muted-foreground)" }}
-        >
-          {UserOrders.length} orders
-        </span>
       </div>
       <UserOrders />
     </div>
@@ -382,8 +377,23 @@ function OrdersTab() {
 
 /* ── Wishlist Tab ── */
 function WishlistTab() {
-  const [items, setItems] = useState(WISHLIST);
-  const remove = (id) => setItems((i) => i.filter((x) => x.id !== id));
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    wishlistApi
+      .get()
+      .then((data) => setItems(data.products || []))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const remove = async (id) => {
+    await wishlistApi.remove(id);
+    setItems((i) => i.filter((x) => x._id !== id));
+  };
+
   return (
     <div>
       <div
@@ -409,7 +419,7 @@ function WishlistTab() {
       >
         {items.map((item) => (
           <Card
-            key={item.id}
+            key={item._id}
             style={{ transition: "border-color 0.2s, box-shadow 0.2s" }}
           >
             <div style={{ display: "flex", gap: "0" }}>
@@ -417,7 +427,7 @@ function WishlistTab() {
                 style={{ width: "100px", flexShrink: 0, position: "relative" }}
               >
                 <img
-                  src={item.image}
+                  src={item.images?.[0]?.url || item.images?.[0] || ""}
                   alt={item.name}
                   style={{ width: "100%", height: "130px", objectFit: "cover" }}
                 />
@@ -502,7 +512,8 @@ function WishlistTab() {
                     marginTop: "10px",
                   }}
                 >
-                  <button
+                  <Link
+                    to={`/product/${item.slug || item._id}`}
                     style={{
                       flex: 1,
                       height: "34px",
@@ -517,16 +528,20 @@ function WishlistTab() {
                       cursor: "pointer",
                       fontFamily: "inherit",
                       transition: "opacity 0.2s",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      textDecoration: "none",
                     }}
                     onMouseEnter={(e) =>
                       (e.currentTarget.style.opacity = "0.85")
                     }
                     onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
                   >
-                    Add to Cart
-                  </button>
+                    View Product
+                  </Link>
                   <button
-                    onClick={() => remove(item.id)}
+                    onClick={() => remove(item._id)}
                     style={{
                       width: "34px",
                       height: "34px",
@@ -557,6 +572,16 @@ function WishlistTab() {
           </Card>
         ))}
       </div>
+      {loading && (
+        <div style={{ textAlign: "center", padding: "40px 0", color: "var(--color-muted-foreground)" }}>
+          Loading wishlist...
+        </div>
+      )}
+      {error && (
+        <div style={{ textAlign: "center", padding: "40px 0", color: "#ef4444" }}>
+          {error}
+        </div>
+      )}
       {items.length === 0 && (
         <div style={{ textAlign: "center", padding: "60px 0" }}>
           <Heart
@@ -584,11 +609,56 @@ function WishlistTab() {
 }
 
 /* ── Addresses Tab ── */
-function AddressesTab() {
-  const [addresses, setAddresses] = useState(ADDRESSES);
+function AddressesTab({ user, updateUser }) {
+  const emptyAddress = {
+    label: "Home",
+    name: user?.name || "",
+    line1: "",
+    line2: "",
+    city: "",
+    state: "",
+    pin: "",
+    phone: user?.phone || "",
+    default: false,
+  };
+  const [addresses, setAddresses] = useState(user?.addresses || []);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState(emptyAddress);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setAddresses(user?.addresses || []);
+  }, [user?.addresses]);
+
+  const persist = async (next) => {
+    setSaving(true);
+    try {
+      const saved = await updateUser({ addresses: next });
+      setAddresses(saved.addresses || []);
+      setEditing(null);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const startEdit = (addr = null) => {
+    setEditing(addr?._id || "new");
+    setForm(addr || { ...emptyAddress, default: addresses.length === 0 });
+  };
+
+  const saveAddress = (e) => {
+    e.preventDefault();
+    const clean = { ...form, default: Boolean(form.default) };
+    const next =
+      editing === "new"
+        ? [...addresses, clean]
+        : addresses.map((addr) => (addr._id === editing ? clean : addr));
+    persist(clean.default ? next.map((addr) => ({ ...addr, default: addr === clean })) : next);
+  };
+
   const setDefault = (id) =>
-    setAddresses((a) => a.map((x) => ({ ...x, default: x.id === id })));
-  const remove = (id) => setAddresses((a) => a.filter((x) => x.id !== id));
+    persist(addresses.map((addr) => ({ ...addr, default: addr._id === id })));
+  const remove = (id) => persist(addresses.filter((addr) => addr._id !== id));
   return (
     <div>
       <div
@@ -603,6 +673,8 @@ function AddressesTab() {
           Saved Addresses
         </h2>
         <button
+          onClick={() => startEdit()}
+          disabled={saving}
           style={{
             display: "flex",
             alignItems: "center",
@@ -631,10 +703,93 @@ function AddressesTab() {
           <Plus size={13} strokeWidth={2.5} /> Add Address
         </button>
       </div>
+      {editing && (
+        <Card style={{ marginBottom: "16px" }}>
+          <form
+            onSubmit={saveAddress}
+            style={{
+              padding: "20px",
+              display: "grid",
+              gap: "12px",
+            }}
+          >
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
+              {[
+                ["label", "Label"],
+                ["name", "Full name"],
+                ["line1", "Address line 1"],
+                ["line2", "Address line 2"],
+                ["city", "City"],
+                ["state", "State"],
+                ["pin", "PIN code"],
+                ["phone", "Phone"],
+              ].map(([key, label]) => (
+                <input
+                  key={key}
+                  value={form[key] || ""}
+                  onChange={(e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))}
+                  placeholder={label}
+                  required={["name", "line1", "city", "state", "pin", "phone"].includes(key)}
+                  style={{
+                    minWidth: 0,
+                    height: "42px",
+                    padding: "0 12px",
+                    borderRadius: "10px",
+                    border: "1.5px solid var(--color-border)",
+                    backgroundColor: "var(--color-surface)",
+                    fontFamily: "inherit",
+                  }}
+                />
+              ))}
+            </div>
+            <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 600 }}>
+              <input
+                type="checkbox"
+                checked={Boolean(form.default)}
+                onChange={(e) => setForm((prev) => ({ ...prev, default: e.target.checked }))}
+              />
+              Set as default delivery address
+            </label>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button
+                type="submit"
+                disabled={saving}
+                style={{
+                  height: "40px",
+                  padding: "0 18px",
+                  borderRadius: "10px",
+                  border: "none",
+                  backgroundColor: "var(--color-foreground)",
+                  color: "var(--color-background)",
+                  fontWeight: 800,
+                  cursor: saving ? "not-allowed" : "pointer",
+                }}
+              >
+                {saving ? "Saving..." : "Save Address"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditing(null)}
+                disabled={saving}
+                style={{
+                  height: "40px",
+                  padding: "0 18px",
+                  borderRadius: "10px",
+                  border: "1.5px solid var(--color-border)",
+                  backgroundColor: "transparent",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </Card>
+      )}
       <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
         {addresses.map((addr) => (
           <Card
-            key={addr.id}
+            key={addr._id}
             style={{
               transition: "border-color 0.2s",
               borderColor: addr.default
@@ -690,6 +845,7 @@ function AddressesTab() {
                 </div>
                 <div style={{ display: "flex", gap: "6px" }}>
                   <button
+                    onClick={() => startEdit(addr)}
                     style={{
                       width: "30px",
                       height: "30px",
@@ -714,7 +870,7 @@ function AddressesTab() {
                     <Edit2 size={12} strokeWidth={2} />
                   </button>
                   <button
-                    onClick={() => remove(addr.id)}
+                    onClick={() => remove(addr._id)}
                     style={{
                       width: "30px",
                       height: "30px",
@@ -772,7 +928,7 @@ function AddressesTab() {
               </p>
               {!addr.default && (
                 <button
-                  onClick={() => setDefault(addr.id)}
+                  onClick={() => setDefault(addr._id)}
                   style={{
                     marginTop: "12px",
                     fontSize: "11px",
@@ -800,24 +956,64 @@ function AddressesTab() {
             </div>
           </Card>
         ))}
+        {addresses.length === 0 && (
+          <Card>
+            <div style={{ padding: "32px", textAlign: "center", color: "var(--color-muted-foreground)", fontSize: "13px" }}>
+              No saved addresses yet.
+            </div>
+          </Card>
+        )}
       </div>
     </div>
   );
 }
 
 /* ── Settings Tab ── */
-function SettingsTab() {
-  const [notifs, setNotifs] = useState({
-    orders: true,
-    promos: true,
-    newArrivals: false,
-    restockAlerts: true,
-  });
+function SettingsTab({ user, updateUser }) {
+  const [notifs, setNotifs] = useState(
+    user?.preferences?.notifications || {
+      orders: true,
+      promos: true,
+      newArrivals: false,
+      restockAlerts: true,
+    },
+  );
   const [showPass, setShowPass] = useState(false);
   const [editEmail, setEditEmail] = useState(false);
-  const [email, setEmail] = useState(USER.email);
+  const [name, setName] = useState(user?.name || "");
+  const [email, setEmail] = useState(user?.email || "");
+  const [phone, setPhone] = useState(user?.phone || "");
+  const [saving, setSaving] = useState(false);
 
-  const toggle = (key) => setNotifs((n) => ({ ...n, [key]: !n[key] }));
+  useEffect(() => {
+    setName(user?.name || "");
+    setEmail(user?.email || "");
+    setPhone(user?.phone || "");
+    setNotifs(
+      user?.preferences?.notifications || {
+        orders: true,
+        promos: true,
+        newArrivals: false,
+        restockAlerts: true,
+      },
+    );
+  }, [user]);
+
+  const saveProfile = async () => {
+    setSaving(true);
+    try {
+      await updateUser({ name, phone });
+      setEditEmail(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggle = async (key) => {
+    const next = { ...notifs, [key]: !notifs[key] };
+    setNotifs(next);
+    await updateUser({ preferences: { notifications: next } });
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -870,7 +1066,8 @@ function SettingsTab() {
             </label>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <input
-                defaultValue={USER.name}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 style={{
                   flex: 1,
                   height: "44px",
@@ -893,6 +1090,8 @@ function SettingsTab() {
                 }
               />
               <button
+                onClick={saveProfile}
+                disabled={saving}
                 style={{
                   height: "44px",
                   padding: "0 16px",
@@ -902,7 +1101,7 @@ function SettingsTab() {
                   color: "var(--color-foreground)",
                   fontSize: "12px",
                   fontWeight: 700,
-                  cursor: "pointer",
+                  cursor: saving ? "not-allowed" : "pointer",
                   fontFamily: "inherit",
                   transition: "all 0.2s",
                 }}
@@ -916,7 +1115,7 @@ function SettingsTab() {
                   e.currentTarget.style.color = "var(--color-foreground)";
                 }}
               >
-                Save
+                {saving ? "Saving" : "Save"}
               </button>
             </div>
           </div>
@@ -984,7 +1183,7 @@ function SettingsTab() {
                   transition: "all 0.2s",
                 }}
               >
-                {editEmail ? "Save" : "Edit"}
+                {editEmail ? "Locked" : "Edit"}
               </button>
             </div>
           </div>
@@ -1004,7 +1203,8 @@ function SettingsTab() {
               Phone
             </label>
             <input
-              defaultValue={USER.phone}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               style={{
                 width: "100%",
                 height: "44px",
@@ -1312,14 +1512,28 @@ function SettingsTab() {
 
 /* ── Main Profile Page ── */
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState("orders");
 
   const displayUser = {
-    ...USER,
-    name: user?.name || USER.name,
-    email: user?.email || USER.email,
+    name: user?.name || "Customer",
+    email: user?.email || "",
+    phone: user?.phone || "",
+    joined: user?.createdAt
+      ? new Date(user.createdAt).toLocaleDateString("en-IN", {
+          month: "long",
+          year: "numeric",
+        })
+      : "Recently",
+    avatar: (user?.name || user?.email || "U")
+      .split(/[ @.]/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join(""),
+    tier: "Member",
+    points: 0,
   };
 
   const handleLogout = () => {
@@ -1416,7 +1630,7 @@ export default function ProfilePage() {
                   boxShadow: "0 0 0 3px rgba(255,255,255,0.15)",
                 }}
               >
-                {USER.avatar}
+                {displayUser.avatar}
               </div>
               <div style={{ minWidth: 0 }}>
                 <h1
@@ -1613,8 +1827,8 @@ export default function ProfilePage() {
         >
           {tab === "orders" && <OrdersTab />}
           {tab === "wishlist" && <WishlistTab />}
-          {tab === "addresses" && <AddressesTab />}
-          {tab === "settings" && <SettingsTab />}
+          {tab === "addresses" && <AddressesTab user={user} updateUser={updateUser} />}
+          {tab === "settings" && <SettingsTab user={user} updateUser={updateUser} />}
         </div>
       </div>
 
