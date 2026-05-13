@@ -9,9 +9,6 @@ import {
   TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
-  MoreHorizontal,
-  Eye,
-  Edit2,
   AlertTriangle,
   Plus,
   ChevronRight,
@@ -20,7 +17,6 @@ import {
 
 const DASH_STYLES = `
   .dash-page { font-family: 'DM Sans', sans-serif; max-width: 1400px; margin: 0 auto; padding: 12px 0 48px; }
-  .dash-heading { font-size: 28px; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.02em; color: #1a1a1a; }
   .dash-sub { font-size: 14px; color: #888; margin: 0 0 32px; }
 
   .dash-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
@@ -110,6 +106,12 @@ const DASH_STYLES = `
     .dash-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .dash-stat-value { font-size: 24px; }
   }
+
+  @keyframes dash-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .dash-skeleton { pointer-events: none; }
 `;
 
 const STATS = [
@@ -190,26 +192,52 @@ function StatusBadge({ stock, salePrice }) {
   );
 }
 
+function Skeleton({ w = "100%", h = "20px", r = "4px" }) {
+  return (
+    <div
+      className="dash-skeleton"
+      style={{
+        width: w,
+        height: h,
+        borderRadius: r,
+        background: "#f0ede6",
+        animation: "dash-pulse 1.5s ease-in-out infinite",
+      }}
+    />
+  );
+}
+
 export default function AdminDashboardPage() {
-  const { products } = useShop();
+  const { products, loading: productsLoading } = useShop();
   const navigate = useNavigate();
   const [dashboard, setDashboard] = useState({ stats: {}, lowStock: [] });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     adminApi
       .dashboard()
-      .then(setDashboard)
-      .catch(() => setDashboard({ stats: {}, lowStock: [] }));
+      .then((data) => {
+        setDashboard(data || { stats: {}, lowStock: [] });
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Dashboard API error:", err);
+        setDashboard({ stats: {}, lowStock: [] });
+        setLoading(false);
+      });
   }, []);
 
   const lowStock = useMemo(
     () =>
       dashboard.lowStock?.length
         ? dashboard.lowStock
-        : products.filter((p) => p.stock <= 5).slice(0, 5),
+        : products.filter((p) => (p.stock ?? 0) <= 5).slice(0, 5),
     [dashboard.lowStock, products],
   );
   const recent = useMemo(() => [...products].slice(0, 7), [products]);
+
+  const isDataLoading = loading || productsLoading;
 
   return (
     <>
@@ -233,21 +261,31 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
               <div className="dash-stat-value">
-                {s.value(products, dashboard, dashboard.stats || {})}
+                {isDataLoading ? (
+                  <Skeleton w="120px" h="32px" />
+                ) : (
+                  s.value(products, dashboard, dashboard.stats || {})
+                )}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span
-                  className="dash-stat-trend"
-                  style={{ color: s.up ? "#10b981" : "#ef4444" }}
-                >
-                  {s.up ? (
-                    <ArrowUpRight size={13} />
-                  ) : (
-                    <ArrowDownRight size={13} />
-                  )}
-                  {s.trend}
-                </span>
-                <span className="dash-stat-sub">{s.sub}</span>
+                {isDataLoading ? (
+                  <Skeleton w="80px" h="14px" />
+                ) : (
+                  <>
+                    <span
+                      className="dash-stat-trend"
+                      style={{ color: s.up ? "#10b981" : "#ef4444" }}
+                    >
+                      {s.up ? (
+                        <ArrowUpRight size={13} />
+                      ) : (
+                        <ArrowDownRight size={13} />
+                      )}
+                      {s.trend}
+                    </span>
+                    <span className="dash-stat-sub">{s.sub}</span>
+                  </>
+                )}
               </div>
             </div>
           ))}
@@ -274,67 +312,78 @@ export default function AdminDashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {recent.map((p) => (
-                    <tr
-                      key={p._id}
-                      style={{ cursor: "pointer" }}
-                      onClick={() => navigate(`/admin/products/edit/${p._id}`)}
-                    >
-                      <td>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 10,
-                          }}
-                        >
-                          <img
-                            src={p.images?.[0]?.url || p.images?.[0] || ""}
-                            alt={p.name}
+                  {isDataLoading ? (
+                    [...Array(5)].map((_, i) => (
+                      <tr key={i}>
+                        <td><Skeleton w="150px" h="40px" /></td>
+                        <td><Skeleton w="80px" h="20px" /></td>
+                        <td><Skeleton w="40px" h="20px" /></td>
+                        <td><Skeleton w="100px" h="24px" /></td>
+                      </tr>
+                    ))
+                  ) : (
+                    recent.map((p) => (
+                      <tr
+                        key={p._id}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => navigate(`/admin/products/edit/${p._id}`)}
+                      >
+                        <td>
+                          <div
                             style={{
-                              width: 34,
-                              height: 42,
-                              objectFit: "cover",
-                              borderRadius: 7,
-                              background: "#f0ede6",
-                              flexShrink: 0,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 10,
                             }}
-                          />
-                          <div>
-                            <div
+                          >
+                            <img
+                              src={p.images?.[0]?.url || p.images?.[0] || ""}
+                              alt={p.name}
                               style={{
-                                fontSize: 13,
-                                fontWeight: 600,
-                                lineHeight: 1.3,
+                                width: 34,
+                                height: 42,
+                                objectFit: "cover",
+                                borderRadius: 7,
+                                background: "#f0ede6",
+                                flexShrink: 0,
                               }}
-                            >
-                              {p.name}
-                            </div>
-                            <div style={{ fontSize: 11, color: "#bbb" }}>
-                              {p.category}
+                            />
+                            <div>
+                              <div
+                                style={{
+                                  fontSize: 13,
+                                  fontWeight: 600,
+                                  lineHeight: 1.3,
+                                }}
+                              >
+                                {p.name}
+                              </div>
+                              <div style={{ fontSize: 11, color: "#bbb" }}>
+                                {p.category}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div style={{ fontSize: 13, fontWeight: 700 }}>
-                          ₹{p.price?.toLocaleString("en-IN")}
-                        </div>
-                        {p.salePrice && (
-                          <div style={{ fontSize: 11, color: "#b45309" }}>
-                            ₹{p.salePrice?.toLocaleString("en-IN")}
+                        </td>
+                        <td>
+                          <div style={{ fontSize: 13, fontWeight: 700 }}>
+                            ₹{p.price?.toLocaleString("en-IN")}
                           </div>
-                        )}
-                      </td>
-                      <td style={{ fontSize: 13, fontWeight: 600 }}>
-                        {p.stock ?? "—"}
-                      </td>
-                      <td>
-                        <StatusBadge stock={p.stock} salePrice={p.salePrice} />
-                      </td>
-                    </tr>
-                  ))}
-                  {recent.length === 0 && (
+                          {p.salePrice && (
+                            <div style={{ fontSize: 11, color: "#b45309" }}>
+                              ₹{p.salePrice?.toLocaleString("en-IN")}
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ fontSize: 13, fontWeight: 600 }}>
+                          {p.stock ?? "—"}
+                        </td>
+                        <td>
+                          <StatusBadge stock={p.stock} salePrice={p.salePrice} />
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                  {!isDataLoading && recent.length === 0 && (
                     <tr>
                       <td
                         colSpan={4}
@@ -420,7 +469,17 @@ export default function AdminDashboardPage() {
                   See all
                 </Link>
               </div>
-              {lowStock.length === 0 ? (
+              {isDataLoading ? (
+                [...Array(3)].map((_, i) => (
+                  <div className="dash-low-item" key={i}>
+                    <Skeleton w="38px" h="46px" r="8px" />
+                    <div style={{ flex: 1 }}>
+                      <Skeleton w="80%" h="14px" />
+                      <Skeleton w="40%" h="10px" style={{ marginTop: 4 }} />
+                    </div>
+                  </div>
+                ))
+              ) : lowStock.length === 0 ? (
                 <div
                   style={{
                     padding: "24px",
@@ -462,12 +521,12 @@ export default function AdminDashboardPage() {
                         padding: "3px 9px",
                         borderRadius: 20,
                         flexShrink: 0,
-                        background: p.stock === 0 ? "#fef2f2" : "#fff7ed",
-                        color: p.stock === 0 ? "#ef4444" : "#d97706",
-                        border: `1px solid ${p.stock === 0 ? "#fecaca" : "#fed7aa"}`,
+                        background: (p.stock ?? 0) === 0 ? "#fef2f2" : "#fff7ed",
+                        color: (p.stock ?? 0) === 0 ? "#ef4444" : "#d97706",
+                        border: `1px solid ${(p.stock ?? 0) === 0 ? "#fecaca" : "#fed7aa"}`,
                       }}
                     >
-                      {p.stock} left
+                      {p.stock ?? 0} left
                     </div>
                   </div>
                 ))
@@ -479,4 +538,3 @@ export default function AdminDashboardPage() {
     </>
   );
 }
-

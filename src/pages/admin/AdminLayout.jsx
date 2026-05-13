@@ -15,7 +15,7 @@ import {
   X,
   Store,
   Zap,
-  LogOut,
+  LogOut, Plus
 } from "lucide-react";
 import { AdminHeader } from "./AdminHeader.jsx";
 
@@ -212,9 +212,9 @@ const NAV = [
     label: "MAIN",
     items: [
       { to: "/admin", icon: LayoutDashboard, text: "Home", end: true },
-      { to: "/admin/orders", icon: ShoppingCart, text: "Orders", badge: "5" },
+      { to: "/admin/orders", icon: ShoppingCart, text: "Orders", }, //badge: "5"
       { to: "/admin/products", icon: Package, text: "Products", end: true },
-      { to: "/admin/products/add", icon: Users, text: "Add Product" },
+      { to: "/admin/products/add", icon: Plus, text: "Add Product" },
       { to: "/admin/customers", icon: Users, text: "Customers" },
     ],
   },

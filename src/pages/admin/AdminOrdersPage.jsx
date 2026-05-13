@@ -19,6 +19,7 @@ import {
   Search,
   ShoppingBag,
   Truck,
+  X,
   XCircle,
 } from "lucide-react";
 
@@ -113,14 +114,35 @@ function StatusBadge({ status }) {
 }
 
 function PaymentModal({ order, mode, onClose, onSaved }) {
-  const [amount, setAmount] = useState(Math.max((order?.total || 0) - (order?.paidAmount || 0), 0));
+  const [amount, setAmount] = useState(
+    Math.max((order?.total || 0) - (order?.paidAmount || 0), 0),
+  );
   const [method, setMethod] = useState("cash");
   const [paidAt, setPaidAt] = useState(new Date().toISOString().slice(0, 10));
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
+  const [visible, setVisible] = useState(false);
   const push = useToasts((s) => s.push);
 
-  if (!order) return null;
+  useEffect(() => {
+    if (order) {
+      document.body.style.overflow = "hidden";
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => setVisible(true)),
+      );
+    } else {
+      setVisible(false);
+      const t = setTimeout(() => {
+        document.body.style.overflow = "";
+      }, 300);
+      return () => clearTimeout(t);
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [order]);
+
+  if (!order && !visible) return null;
 
   const submit = async (e) => {
     e.preventDefault();
@@ -131,7 +153,14 @@ function PaymentModal({ order, mode, onClose, onSaved }) {
         mode === "deliver"
           ? await orderApi.updateStatus(order._id, "delivered", payment)
           : await orderApi.addPayment(order._id, payment);
-      push({ type: "success", title: "Saved", message: mode === "deliver" ? "Order delivered and paid." : "Payment recorded." });
+      push({
+        type: "success",
+        title: "Saved",
+        message:
+          mode === "deliver"
+            ? "Order delivered and paid."
+            : "Payment recorded.",
+      });
       onSaved(data.order);
       onClose();
     } catch (err) {
@@ -142,20 +171,345 @@ function PaymentModal({ order, mode, onClose, onSaved }) {
   };
 
   return (
-    <div className="ao-modal-bg" onClick={onClose}>
-      <div className="ao-modal" onClick={(e) => e.stopPropagation()}>
-        <h2 style={{ margin: 0, fontSize: 18 }}>{mode === "deliver" ? "Confirm Delivery Payment" : "Record Payment"}</h2>
-        <p className="ao-muted">Order #{order.orderId} · Due ₹{Math.max((order.total || 0) - (order.paidAmount || 0), 0).toLocaleString("en-IN")}</p>
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1000,
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        onClick={onClose}
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundColor: "rgba(0,0,0,0.55)",
+          backdropFilter: "blur(6px)",
+          opacity: visible ? 1 : 0,
+          transition: "opacity 0.3s ease",
+        }}
+      />
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          maxWidth: "440px",
+          backgroundColor: "var(--color-background)",
+          borderRadius: "24px 24px 0 0",
+          padding: "20px 24px 40px",
+          maxHeight: "92vh",
+          overflowY: "auto",
+          transform: visible ? "translateY(0)" : "translateY(100%)",
+          transition: "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+          boxShadow: "0 -8px 40px rgba(0,0,0,0.15)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            paddingBottom: "12px",
+          }}
+        >
+          <div
+            style={{
+              width: "36px",
+              height: "4px",
+              borderRadius: "2px",
+              backgroundColor: "var(--color-border)",
+            }}
+          />
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            marginBottom: "20px",
+          }}
+        >
+          <div>
+            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>
+              {mode === "deliver"
+                ? "Confirm Delivery Payment"
+                : "Record Payment"}
+            </h2>
+            <p className="ao-muted" style={{ margin: "4px 0 0" }}>
+              Order #{order.orderId} · Due ₹
+              {Math.max(
+                (order.total || 0) - (order.paidAmount || 0),
+                0,
+              ).toLocaleString("en-IN")}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              position: "absolute",
+              top: "16px",
+              right: "20px",
+              width: "32px",
+              height: "32px",
+              borderRadius: "50%",
+              border: "1px solid var(--color-border)",
+              backgroundColor: "var(--color-surface)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "var(--color-foreground)",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "var(--color-foreground)";
+              e.currentTarget.style.color = "var(--color-background)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "var(--color-surface)";
+              e.currentTarget.style.color = "var(--color-foreground)";
+            }}
+          >
+            <X size={14} strokeWidth={2.5} />
+          </button>
+        </div>
+
         <form className="ao-form" onSubmit={submit}>
-          <input type="number" min="1" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Amount received" required />
-          <select value={method} onChange={(e) => setMethod(e.target.value)}>
-            {METHODS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-          </select>
-          <input type="date" value={paidAt} onChange={(e) => setPaidAt(e.target.value)} required />
-          <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note" />
-          <button className="ao-submit" disabled={saving}>{saving ? "Saving..." : mode === "deliver" ? "Mark Delivered" : "Save Payment"}</button>
-          <button type="button" className="ao-icon-btn" onClick={onClose}>Cancel</button>
+          <div style={{ display: "grid", gap: "16px" }}>
+            <div>
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  color: "#999",
+                  marginBottom: "6px",
+                  display: "block",
+                }}
+              >
+                Amount Received
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="Amount received"
+                required
+                style={{ width: "100%", boxSizing: "border-box" }}
+              />
+            </div>
+            <div>
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  color: "#999",
+                  marginBottom: "6px",
+                  display: "block",
+                }}
+              >
+                Payment Method
+              </label>
+              <select
+                value={method}
+                onChange={(e) => setMethod(e.target.value)}
+                style={{ width: "100%" }}
+              >
+                {METHODS.map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  color: "#999",
+                  marginBottom: "6px",
+                  display: "block",
+                }}
+              >
+                Payment Date
+              </label>
+              <input
+                type="date"
+                value={paidAt}
+                onChange={(e) => setPaidAt(e.target.value)}
+                required
+                style={{ width: "100%", boxSizing: "border-box" }}
+              />
+            </div>
+            <div>
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  color: "#999",
+                  marginBottom: "6px",
+                  display: "block",
+                }}
+              >
+                Note (Optional)
+              </label>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Add a note..."
+                style={{ width: "100%", boxSizing: "border-box" }}
+              />
+            </div>
+          </div>
+          <button
+            className="ao-submit"
+            disabled={saving}
+            style={{ marginTop: "24px", width: "100%" }}
+          >
+            {saving
+              ? "Saving..."
+              : mode === "deliver"
+                ? "Mark Delivered & Paid"
+                : "Save Payment"}
+          </button>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function DetailModal({ order, open, onClose }) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => setVisible(true)),
+      );
+    } else {
+      setVisible(false);
+      const t = setTimeout(() => {
+        document.body.style.overflow = "";
+      }, 300);
+      return () => clearTimeout(t);
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  if (!open && !visible) return null;
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 999,
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        onClick={onClose}
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundColor: "rgba(0,0,0,0.55)",
+          backdropFilter: "blur(6px)",
+          opacity: visible ? 1 : 0,
+          transition: "opacity 0.3s ease",
+        }}
+      />
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          maxWidth: "600px",
+          backgroundColor: "var(--color-background)",
+          borderRadius: "24px 24px 0 0",
+          maxHeight: "92vh",
+          overflowY: "auto",
+          scrollbarWidth: "none",
+          transform: visible ? "translateY(0)" : "translateY(100%)",
+          transition: "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+          boxShadow: "0 -8px 40px rgba(0,0,0,0.15)",
+          padding: "20px 24px 40px",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            paddingBottom: "20px",
+          }}
+        >
+          <div
+            style={{
+              width: "36px",
+              height: "4px",
+              borderRadius: "2px",
+              backgroundColor: "var(--color-border)",
+            }}
+          />
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            marginBottom: "24px",
+          }}
+        >
+          <div>
+            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900 }}>
+              Order Details
+            </h2>
+            <p className="ao-muted" style={{ margin: "4px 0 0" }}>
+              #{order.orderId || order._id}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              position: "absolute",
+              top: "16px",
+              right: "20px",
+              width: "32px",
+              height: "32px",
+              borderRadius: "50%",
+              border: "1px solid var(--color-border)",
+              backgroundColor: "var(--color-surface)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "var(--color-foreground)",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "var(--color-foreground)";
+              e.currentTarget.style.color = "var(--color-background)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "var(--color-surface)";
+              e.currentTarget.style.color = "var(--color-foreground)";
+            }}
+          >
+            <X size={14} strokeWidth={2.5} />
+          </button>
+        </div>
+        <OrderDetails order={order} />
       </div>
     </div>
   );
@@ -203,44 +557,77 @@ function OrderDetails({ order }) {
   );
 }
 
-function OrderRow({ order, onStatus, onPayment }) {
-  const [open, setOpen] = useState(false);
-  const date = new Date(order.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+function OrderRow({ order, onStatus, onPayment, onOpen }) {
+  const date = new Date(order.createdAt).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 
   return (
-    <>
-      <tr className="ao-row">
-        <td><div className="ao-id">#{order.orderId || order._id}</div></td>
-        <td>
-          <div className="ao-main">{order.user?.name || "Customer"}</div>
-          <div className="ao-muted">{order.user?.email || "-"}</div>
-          <div className="ao-muted">{order.user?.phone || "-"}</div>
-        </td>
-        <td><div className="ao-main">{date}</div><div className="ao-muted">{order.items?.length || 0} item(s)</div></td>
-        <td><div className="ao-main">₹{order.total?.toLocaleString("en-IN")}</div><div className="ao-muted">Paid ₹{(order.paidAmount || 0).toLocaleString("en-IN")}</div></td>
-        <td><StatusBadge status={order.status} /><div style={{ marginTop: 8 }}><span className="ao-pay"><CreditCard size={12} />{order.paymentStatus || "unpaid"}</span></div></td>
-        <td>
-          <div className="ao-actions">
-            <select className="ao-status" value={order.status} onChange={(e) => onStatus(order, e.target.value)}>
-              {Object.entries(STATUSES).map(([value, cfg]) => <option key={value} value={value}>{cfg.label}</option>)}
-            </select>
-            <button className="ao-pay-btn" onClick={() => onPayment(order, "payment")}><CreditCard size={14} />Payment</button>
-            <button className="ao-icon-btn" onClick={() => setOpen((v) => !v)}>{open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</button>
-          </div>
-        </td>
-      </tr>
-      {open && (
-        <tr>
-          <td colSpan={6} style={{ padding: 0 }}><OrderDetails order={order} /></td>
-        </tr>
-      )}
-    </>
+    <tr className="ao-row">
+      <td>
+        <div className="ao-id">#{order.orderId || order._id}</div>
+      </td>
+      <td>
+        <div className="ao-main">{order.user?.name || "Customer"}</div>
+        <div className="ao-muted">{order.user?.email || "-"}</div>
+        <div className="ao-muted">{order.user?.phone || "-"}</div>
+      </td>
+      <td>
+        <div className="ao-main">{date}</div>
+        <div className="ao-muted">{order.items?.length || 0} item(s)</div>
+      </td>
+      <td>
+        <div className="ao-main">₹{order.total?.toLocaleString("en-IN")}</div>
+        <div className="ao-muted">
+          Paid ₹{(order.paidAmount || 0).toLocaleString("en-IN")}
+        </div>
+      </td>
+      <td>
+        <StatusBadge status={order.status} />
+        <div style={{ marginTop: 8 }}>
+          <span className="ao-pay">
+            <CreditCard size={12} />
+            {order.paymentStatus || "unpaid"}
+          </span>
+        </div>
+      </td>
+      <td>
+        <div className="ao-actions">
+          <select
+            className="ao-status"
+            value={order.status}
+            onChange={(e) => onStatus(order, e.target.value)}
+          >
+            {Object.entries(STATUSES).map(([value, cfg]) => (
+              <option key={value} value={value}>
+                {cfg.label}
+              </option>
+            ))}
+          </select>
+          <button
+            className="ao-pay-btn"
+            onClick={() => onPayment(order, "payment")}
+          >
+            <CreditCard size={14} />
+            Payment
+          </button>
+          <button className="ao-icon-btn" onClick={() => onOpen(order)}>
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </td>
+    </tr>
   );
 }
 
-function MobileOrder({ order, onStatus, onPayment }) {
-  const [open, setOpen] = useState(false);
-  const date = new Date(order.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+function MobileOrder({ order, onStatus, onPayment, onOpen }) {
+  const date = new Date(order.createdAt).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
   return (
     <div className="ao-card">
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
@@ -260,13 +647,28 @@ function MobileOrder({ order, onStatus, onPayment }) {
         <span className="ao-pay">{order.paymentStatus || "unpaid"}</span>
       </div>
       <div className="ao-actions">
-        <select className="ao-status" value={order.status} onChange={(e) => onStatus(order, e.target.value)}>
-          {Object.entries(STATUSES).map(([value, cfg]) => <option key={value} value={value}>{cfg.label}</option>)}
+        <select
+          className="ao-status"
+          value={order.status}
+          onChange={(e) => onStatus(order, e.target.value)}
+        >
+          {Object.entries(STATUSES).map(([value, cfg]) => (
+            <option key={value} value={value}>
+              {cfg.label}
+            </option>
+          ))}
         </select>
-        <button className="ao-pay-btn" onClick={() => onPayment(order, "payment")}><CreditCard size={14} />Payment</button>
-        <button className="ao-icon-btn" onClick={() => setOpen((v) => !v)}>{open ? "Hide" : "Details"}</button>
+        <button
+          className="ao-pay-btn"
+          onClick={() => onPayment(order, "payment")}
+        >
+          <CreditCard size={14} />
+          Payment
+        </button>
+        <button className="ao-icon-btn" onClick={() => onOpen(order)}>
+          Details
+        </button>
       </div>
-      {open && <OrderDetails order={order} />}
     </div>
   );
 }
@@ -285,6 +687,7 @@ export default function AdminOrdersPage() {
   const [total, setTotal] = useState(0);
   const [paymentTarget, setPaymentTarget] = useState(null);
   const [paymentMode, setPaymentMode] = useState("payment");
+  const [detailTarget, setDetailTarget] = useState(null);
 
   useEffect(() => {
     if (!authLoading && !isAdmin) navigate("/");
@@ -294,7 +697,11 @@ export default function AdminOrdersPage() {
     setLoading(true);
     setError("");
     try {
-      const data = await orderApi.getAllOrders({ status: filterStatus, page, limit: 15 });
+      const data = await orderApi.getAllOrders({
+        status: filterStatus,
+        page,
+        limit: 15,
+      });
       setOrders(data.orders || []);
       setTotal(data.total || 0);
       setTotalPages(data.pages || 1);
@@ -309,7 +716,10 @@ export default function AdminOrdersPage() {
     if (isAdmin) fetchOrders();
   }, [fetchOrders, isAdmin]);
 
-  const upsertOrder = (updated) => setOrders((prev) => prev.map((order) => (order._id === updated._id ? updated : order)));
+  const upsertOrder = (updated) =>
+    setOrders((prev) =>
+      prev.map((order) => (order._id === updated._id ? updated : order)),
+    );
 
   const changeStatus = async (order, status) => {
     if (status === order.status) return;
@@ -321,7 +731,11 @@ export default function AdminOrdersPage() {
     try {
       const data = await orderApi.updateStatus(order._id, status);
       upsertOrder(data.order);
-      push({ type: "success", title: "Status updated", message: `Order marked ${status}.` });
+      push({
+        type: "success",
+        title: "Status updated",
+        message: `Order marked ${status}.`,
+      });
     } catch (err) {
       push({ type: "error", title: "Error", message: err.message });
     }
@@ -336,7 +750,13 @@ export default function AdminOrdersPage() {
     const q = search.trim().toLowerCase();
     if (!q) return orders;
     return orders.filter((order) =>
-      [order._id, order.orderId, order.user?.name, order.user?.email, order.user?.phone]
+      [
+        order._id,
+        order.orderId,
+        order.user?.name,
+        order.user?.email,
+        order.user?.phone,
+      ]
         .filter(Boolean)
         .some((value) => value.toLowerCase().includes(q)),
     );
@@ -356,28 +776,64 @@ export default function AdminOrdersPage() {
             onSaved={upsertOrder}
           />
         )}
+        {detailTarget && (
+          <DetailModal
+            order={detailTarget}
+            open={!!detailTarget}
+            onClose={() => setDetailTarget(null)}
+          />
+        )}
         <div className="ao-top">
-          <p className="ao-sub">{total} total order{total !== 1 ? "s" : ""}</p>
-          <button className="ao-refresh" onClick={fetchOrders} disabled={loading}>
+          <p className="ao-sub">
+            {total} total order{total !== 1 ? "s" : ""}
+          </p>
+          <button
+            className="ao-refresh"
+            onClick={fetchOrders}
+            disabled={loading}
+          >
             <RefreshCw size={14} className={loading ? "spin" : ""} /> Refresh
           </button>
         </div>
         <div className="ao-bar">
           <div className="ao-search">
             <Search size={15} />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search order ID, customer, email or mobile" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search order ID, customer, email or mobile"
+            />
           </div>
-          <select className="ao-select" value={filterStatus} onChange={(e) => { setPage(1); setFilterStatus(e.target.value); }}>
+          <select
+            className="ao-select"
+            value={filterStatus}
+            onChange={(e) => {
+              setPage(1);
+              setFilterStatus(e.target.value);
+            }}
+          >
             <option value="">All statuses</option>
-            {Object.entries(STATUSES).map(([value, cfg]) => <option key={value} value={value}>{cfg.label}</option>)}
+            {Object.entries(STATUSES).map(([value, cfg]) => (
+              <option key={value} value={value}>
+                {cfg.label}
+              </option>
+            ))}
           </select>
         </div>
         {loading ? (
-          <div className="ao-loading"><Loader2 className="spin" size={30} /></div>
+          <div className="ao-loading">
+            <Loader2 className="spin" size={30} />
+          </div>
         ) : error ? (
-          <div className="ao-empty"><AlertCircle size={34} /><div>{error}</div></div>
+          <div className="ao-empty">
+            <AlertCircle size={34} />
+            <div>{error}</div>
+          </div>
         ) : filtered.length === 0 ? (
-          <div className="ao-empty"><Package size={34} /><div>No orders found</div></div>
+          <div className="ao-empty">
+            <Package size={34} />
+            <div>No orders found</div>
+          </div>
         ) : (
           <>
             <div className="ao-table-wrap">
@@ -393,12 +849,28 @@ export default function AdminOrdersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((order) => <OrderRow key={order._id} order={order} onStatus={changeStatus} onPayment={openPayment} />)}
+                  {filtered.map((order) => (
+                    <OrderRow
+                      key={order._id}
+                      order={order}
+                      onStatus={changeStatus}
+                      onPayment={openPayment}
+                      onOpen={setDetailTarget}
+                    />
+                  ))}
                 </tbody>
               </table>
             </div>
             <div className="ao-mobile">
-              {filtered.map((order) => <MobileOrder key={order._id} order={order} onStatus={changeStatus} onPayment={openPayment} />)}
+              {filtered.map((order) => (
+                <MobileOrder
+                  key={order._id}
+                  order={order}
+                  onStatus={changeStatus}
+                  onPayment={openPayment}
+                  onOpen={setDetailTarget}
+                />
+              ))}
             </div>
           </>
         )}
