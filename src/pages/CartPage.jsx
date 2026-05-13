@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Trash2,
@@ -8,9 +8,11 @@ import {
   Plus,
   ShieldCheck,
   Truck,
+  MapPin,
+  CheckCircle2,
 } from "lucide-react";
 import { useCart, useToasts } from "../lib/store.js";
-import { useShop, useAuth } from "../context/ShopContext.jsx";
+import { useAuth } from "../context/ShopContext.jsx";
 
 import { useNavigate } from "react-router-dom";
 import { orderApi } from "../lib/api.js";
@@ -18,7 +20,7 @@ import { CONTACT_NAME, WHATSAPP_NUMBER } from "../lib/products.js";
 
 export default function CartPage() {
   const { items, remove, setQty, subtotal, count } = useCart();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const push = useToasts((s) => s.push);
   const navigate = useNavigate();
 
@@ -27,12 +29,54 @@ export default function CartPage() {
   const shipping = total > 2999 ? 0 : 120;
   const grandTotal = total + shipping;
   const [loading, setLoading] = useState(false);
-  const defaultAddress = user?.addresses?.find((addr) => addr.default) || user?.addresses?.[0];
+  const addresses = user?.addresses || [];
+  const defaultAddress = addresses.find((addr) => addr.default) || addresses[0];
+  const [selectedAddressId, setSelectedAddressId] = useState(defaultAddress?._id || "");
+  const selectedAddress =
+    addresses.find((addr) => addr._id === selectedAddressId) || defaultAddress;
+
+  useEffect(() => {
+    if (!selectedAddressId && defaultAddress?._id) {
+      setSelectedAddressId(defaultAddress._id);
+    }
+  }, [defaultAddress?._id, selectedAddressId]);
+
+  const formatAddress = (addr) =>
+    addr
+      ? [
+          addr.name,
+          addr.line1,
+          addr.line2,
+          `${addr.city || ""}, ${addr.state || ""} - ${addr.pin || ""}`.trim(),
+          addr.phone,
+        ]
+          .filter(Boolean)
+          .join(", ")
+      : "";
+
+  const markDefaultAddress = async () => {
+    if (!selectedAddress?._id) return;
+    await updateUser({
+      addresses: addresses.map((addr) => ({
+        ...addr,
+        default: addr._id === selectedAddress._id,
+      })),
+    });
+  };
 
   async function handleCheckout() {
     if (!user) {
       push({ type: "info", message: "Please sign in to complete your order." });
       navigate("/auth#login");
+      return;
+    }
+
+    if (!selectedAddress) {
+      push({
+        type: "info",
+        message: "Please add a delivery address from your profile before checkout.",
+      });
+      navigate("/profile");
       return;
     }
 
@@ -51,9 +95,7 @@ export default function CartPage() {
         subtotal: total,
         shippingCost: shipping,
         total: grandTotal,
-        address: defaultAddress
-          ? `${defaultAddress.name}, ${defaultAddress.line1}${defaultAddress.line2 ? `, ${defaultAddress.line2}` : ""}, ${defaultAddress.city}, ${defaultAddress.state} - ${defaultAddress.pin}, ${defaultAddress.phone}`
-          : "",
+        address: selectedAddress,
       });
 
       // Build WhatsApp message with order link
@@ -65,7 +107,7 @@ export default function CartPage() {
         .join("\n");
 
       const breakdown = `Subtotal: ₹${total.toLocaleString("en-IN")}\nShipping: ${shipping === 0 ? "FREE" : `₹${shipping.toLocaleString("en-IN")}`}\nTotal: ₹${grandTotal.toLocaleString("en-IN")}`;
-      const text = `Hi ${CONTACT_NAME}, I'd like to order the following:\n${lines}\n\n${breakdown}\n\nOrder details: ${data.orderLink}\nPlease confirm availability.`;
+      const text = `Hi ${CONTACT_NAME}, I'd like to order the following:\n${lines}\n\nDelivery address:\n${formatAddress(selectedAddress)}\n\n${breakdown}\n\nOrder details: ${data.orderLink}\nPlease confirm availability.`;
       const waUrl = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(text)}`;
 
       // Clear cart
@@ -436,6 +478,114 @@ export default function CartPage() {
                 <span>Total</span>
                 <span>₹{grandTotal.toLocaleString("en-IN")}</span>
               </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: "24px",
+                paddingTop: "24px",
+                borderTop: "1px solid var(--color-border)",
+              }}
+            >
+              <h3
+                className="label-caps"
+                style={{
+                  marginBottom: "12px",
+                  display: "flex",
+                  gap: 8,
+                  alignItems: "center",
+                }}
+              >
+                <MapPin size={14} /> Delivery Address
+              </h3>
+              {addresses.length === 0 ? (
+                <div
+                  style={{
+                    border: "1px dashed var(--color-border)",
+                    borderRadius: "10px",
+                    padding: "14px",
+                    fontSize: "13px",
+                    color: "var(--color-muted-foreground)",
+                  }}
+                >
+                  Add an address in your profile before checkout.
+                </div>
+              ) : (
+                <div style={{ display: "grid", gap: "10px" }}>
+                  {addresses.map((addr) => {
+                    const selected = selectedAddress?._id === addr._id;
+                    return (
+                      <button
+                        key={addr._id}
+                        type="button"
+                        onClick={() => setSelectedAddressId(addr._id)}
+                        style={{
+                          textAlign: "left",
+                          border: `1.5px solid ${selected ? "var(--color-foreground)" : "var(--color-border)"}`,
+                          background: selected
+                            ? "var(--color-background)"
+                            : "transparent",
+                          borderRadius: "10px",
+                          padding: "12px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            gap: 10,
+                          }}
+                        >
+                          <strong style={{ fontSize: "13px" }}>
+                            {addr.label || "Address"}
+                          </strong>
+                          {selected && <CheckCircle2 size={16} />}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "12px",
+                            color: "var(--color-muted-foreground)",
+                            marginTop: 6,
+                            lineHeight: 1.55,
+                          }}
+                        >
+                          <div>
+                            <strong>Address line 1:</strong> {addr.line1}
+                          </div>
+                          {addr.line2 && (
+                            <div>
+                              <strong>Address line 2:</strong> {addr.line2}
+                            </div>
+                          )}
+                          <div>
+                            {addr.city}, {addr.state} - {addr.pin}
+                          </div>
+                          <div>{addr.phone}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {selectedAddress && !selectedAddress.default && (
+                <button
+                  type="button"
+                  onClick={markDefaultAddress}
+                  style={{
+                    marginTop: "10px",
+                    border: "none",
+                    background: "none",
+                    color: "var(--color-gold)",
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    padding: 0,
+                  }}
+                >
+                  Mark selected address as default
+                </button>
+              )}
             </div>
 
             <button

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useShop } from "../../context/ShopContext";
-import { orderApi } from "../../lib/api";
+import { adminApi } from "../../lib/api";
 import {
   Package,
   ShoppingCart,
@@ -115,7 +115,7 @@ const DASH_STYLES = `
 const STATS = [
   {
     label: "Total Products",
-    value: (p) => p.length.toLocaleString(),
+    value: (_p, data) => (data.stats?.products || 0).toLocaleString(),
     icon: Package,
     accent: "#6366f1",
     trend: "+4.2%",
@@ -124,8 +124,8 @@ const STATS = [
   },
   {
     label: "Total Revenue",
-    value: (_p, orders) =>
-      "₹" + orders.reduce((s, x) => s + (x.total || 0), 0).toLocaleString("en-IN"),
+    value: (_p, data) =>
+      "₹" + (data.stats?.revenue || 0).toLocaleString("en-IN"),
     icon: TrendingUp,
     accent: "#10b981",
     trend: "+12.5%",
@@ -134,7 +134,7 @@ const STATS = [
   },
   {
     label: "Total Orders",
-    value: (_p, _orders, totals) => (totals.orders || 0).toLocaleString(),
+    value: (_p, data) => (data.stats?.orders || 0).toLocaleString(),
     icon: ShoppingCart,
     accent: "#f59e0b",
     trend: "-1.4%",
@@ -143,8 +143,7 @@ const STATS = [
   },
   {
     label: "Customers",
-    value: (_p, orders) =>
-      new Set(orders.map((order) => order.user?._id || order.user?.email).filter(Boolean)).size.toLocaleString(),
+    value: (_p, data) => (data.stats?.customers || 0).toLocaleString(),
     icon: Users,
     accent: "#8b5cf6",
     trend: "+2.1%",
@@ -194,25 +193,21 @@ function StatusBadge({ stock, salePrice }) {
 export default function AdminDashboardPage() {
   const { products } = useShop();
   const navigate = useNavigate();
-  const [orders, setOrders] = useState([]);
-  const [orderTotal, setOrderTotal] = useState(0);
+  const [dashboard, setDashboard] = useState({ stats: {}, lowStock: [] });
 
   useEffect(() => {
-    orderApi
-      .getAllOrders({ page: 1, limit: 100 })
-      .then((data) => {
-        setOrders(data.orders || []);
-        setOrderTotal(data.total || 0);
-      })
-      .catch(() => {
-        setOrders([]);
-        setOrderTotal(0);
-      });
+    adminApi
+      .dashboard()
+      .then(setDashboard)
+      .catch(() => setDashboard({ stats: {}, lowStock: [] }));
   }, []);
 
   const lowStock = useMemo(
-    () => products.filter((p) => p.stock <= 5).slice(0, 5),
-    [products],
+    () =>
+      dashboard.lowStock?.length
+        ? dashboard.lowStock
+        : products.filter((p) => p.stock <= 5).slice(0, 5),
+    [dashboard.lowStock, products],
   );
   const recent = useMemo(() => [...products].slice(0, 7), [products]);
 
@@ -238,7 +233,7 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
               <div className="dash-stat-value">
-                {s.value(products, orders, { orders: orderTotal })}
+                {s.value(products, dashboard, dashboard.stats || {})}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span
@@ -484,3 +479,4 @@ export default function AdminDashboardPage() {
     </>
   );
 }
+

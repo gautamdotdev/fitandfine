@@ -91,14 +91,24 @@ export const orderApi = {
   },
 
   // Admin: update order status
-  updateStatus: (orderId, status) =>
+  updateStatus: (orderId, status, payment) =>
     api(`/orders/${orderId}/status`, {
       method: "PUT",
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, payment }),
+    }),
+
+  addPayment: (orderId, payment) =>
+    api(`/orders/${orderId}/payments`, {
+      method: "POST",
+      body: JSON.stringify(payment),
     }),
 
   // Public tracking via UUID
   track: (uuid) => api(`/orders/track/${uuid}`),
+};
+
+export const adminApi = {
+  dashboard: () => api("/admin/dashboard"),
 };
 
 export const wishlistApi = {

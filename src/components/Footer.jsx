@@ -119,6 +119,7 @@ export function Footer() {
             links={[
               { label: "Sizing Guide", to: "/contact" },
               { label: "Shipping Info", to: "/contact" },
+              { label: "Track Order", to: "/order" },
               { label: "Returns", to: "/contact" },
               { label: "Contact Us", to: "/contact" },
             ]}

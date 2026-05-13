@@ -26,6 +26,28 @@ const STATUS = {
 
 const STEPS = ["pending", "confirmed", "processing", "shipped", "delivered"];
 
+const formatPaymentMethod = (method) =>
+    ({ cash: "Cash", upi: "UPI", card: "Card", bank_transfer: "Bank transfer", other: "Other" }[method] || method || "Payment");
+
+function AddressBlock({ address }) {
+    if (!address) {
+        return <p style={{ fontSize: 14, color: "var(--color-muted-foreground)", marginTop: 4, lineHeight: 1.5 }}>Contacted via WhatsApp for address details.</p>;
+    }
+    if (typeof address === "string") {
+        return <p style={{ fontSize: 14, color: "var(--color-muted-foreground)", marginTop: 4, lineHeight: 1.5 }}>{address}</p>;
+    }
+    return (
+        <div style={{ fontSize: 14, color: "var(--color-muted-foreground)", marginTop: 4, lineHeight: 1.6 }}>
+            {address.label && <p style={{ fontWeight: 700, color: "var(--color-foreground)" }}>{address.label}</p>}
+            {address.name && <p>{address.name}</p>}
+            {address.line1 && <p><strong>Address line 1:</strong> {address.line1}</p>}
+            {address.line2 && <p><strong>Address line 2:</strong> {address.line2}</p>}
+            <p>{address.city}, {address.state} - {address.pin}</p>
+            {address.phone && <p>{address.phone}</p>}
+        </div>
+    );
+}
+
 const STYLES = `
   .ot-wrap { max-width: 800px; margin: 0 auto; padding: 64px 24px; min-height: 80vh; }
   .ot-card { border: 1px solid var(--color-border); border-radius: 24px; overflow: hidden; background: var(--color-background); box-shadow: 0 12px 48px rgba(0,0,0,0.06); }
@@ -226,9 +248,7 @@ export default function OrderTrackingPage() {
                             <div>
                                 <h3 className="ot-info-title">Delivery Details</h3>
                                 <p style={{ fontSize: 15, fontWeight: 600 }}>{order.user?.name}</p>
-                                <p style={{ fontSize: 14, color: "var(--color-muted-foreground)", marginTop: 4, lineHeight: 1.5 }}>
-                                    {order.address || "Contacted via WhatsApp for address details."}
-                                </p>
+                                <AddressBlock address={order.address} />
                             </div>
                             <div style={{ textAlign: "right" }}>
                                 <h3 className="ot-info-title">Order Summary</h3>
@@ -245,11 +265,26 @@ export default function OrderTrackingPage() {
                                     </div>
                                     <div style={{ display: "flex", justifyContent: "flex-end", gap: 16, borderTop: "1px solid var(--color-border)", paddingTop: 12, marginTop: 4 }}>
                                         <span style={{ color: "var(--color-foreground)", fontWeight: 700, fontSize: 16 }}>Total Paid:</span>
-                                        <span style={{ fontWeight: 900, fontSize: 18 }}>₹{order.total?.toLocaleString("en-IN")}</span>
+                                        <span style={{ fontWeight: 900, fontSize: 18 }}>₹{(order.paidAmount || 0).toLocaleString("en-IN")}</span>
+                                    </div>
+                                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 16 }}>
+                                        <span style={{ color: "var(--color-muted-foreground)", fontSize: 13 }}>Payment:</span>
+                                        <span style={{ fontWeight: 700, fontSize: 13, textTransform: "capitalize" }}>{order.paymentStatus || "unpaid"}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        {order.payments?.length > 0 && (
+                            <div style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid var(--color-border)" }}>
+                                <h3 className="ot-info-title">Payment History</h3>
+                                {order.payments.map((payment, index) => (
+                                    <div key={payment._id || index} style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 13, padding: "8px 0" }}>
+                                        <span>{formatPaymentMethod(payment.method)} · {new Date(payment.paidAt).toLocaleDateString("en-IN")}</span>
+                                        <strong>₹{payment.amount?.toLocaleString("en-IN")}</strong>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 

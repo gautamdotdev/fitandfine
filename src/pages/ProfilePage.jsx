@@ -913,7 +913,13 @@ function AddressesTab({ user, updateUser }) {
                   lineHeight: 1.6,
                 }}
               >
-                {addr.line1}, {addr.line2}
+                <strong>Address line 1:</strong> {addr.line1}
+                {addr.line2 && (
+                  <>
+                    <br />
+                    <strong>Address line 2:</strong> {addr.line2}
+                  </>
+                )}
                 <br />
                 {addr.city}, {addr.state} — {addr.pin}
               </p>
