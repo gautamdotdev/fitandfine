@@ -19,12 +19,19 @@ const DASH_STYLES = `
   .dash-page { font-family: 'DM Sans', sans-serif; max-width: 1400px; margin: 0 auto; padding: 12px 0 48px; }
   .dash-sub { font-size: 14px; color: #888; margin: 0 0 32px; }
 
-  .dash-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .dash-stats { 
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 16px; 
+    margin-bottom: 28px;
+    width: 100%;
+  }
   .dash-stat-card {
     background: #fff; border: 1px solid #e8e6e0;
     border-radius: 2px; padding: 20px 22px;
-    transition: box-shadow 0.2s, transform 0.2s;
+    transition: all 0.2s;
     cursor: default;
+    min-width: 0; /* Prevent grid blowouts */
   }
   .dash-stat-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.07); }
   .dash-stat-label {
@@ -66,9 +73,14 @@ const DASH_STYLES = `
     text-transform: uppercase; color: #bbb;
     background: #faf9f7; border-bottom: 1px solid #f0ede6;
   }
-  .dash-table td { padding: 14px 16px; border-bottom: 1px solid #f5f3ef; }
+  .dash-table td { padding: 14px 16px; border-bottom: 1px solid #f5f3ef; min-width: 0; }
   .dash-table tr:last-child td { border-bottom: none; }
   .dash-table tr:hover td { background: #faf9f7; }
+  .dash-table-container { 
+    overflow-x: auto; 
+    width: 100%; 
+    -webkit-overflow-scrolling: touch; 
+  }
 
   /* Status dots */
   .status-dot { display: inline-flex; align-items: center; gap: 5px; }
@@ -101,6 +113,12 @@ const DASH_STYLES = `
   @media (max-width: 1100px) {
     .dash-stats { grid-template-columns: repeat(2, 1fr); }
     .dash-grid-2 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    .dash-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .dash-stats { grid-template-columns: 1fr; }
   }
   @media (max-width: 640px) {
     .dash-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -208,13 +226,14 @@ function Skeleton({ w = "100%", h = "20px", r = "4px" }) {
 }
 
 export default function AdminDashboardPage() {
-  const { products, loading: productsLoading } = useShop();
+  const { products, loading: productsLoading, fetchProducts } = useShop();
   const navigate = useNavigate();
   const [dashboard, setDashboard] = useState({ stats: {}, lowStock: [] });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
+    // Fetch dashboard-specific stats
     adminApi
       .dashboard()
       .then((data) => {
@@ -226,7 +245,12 @@ export default function AdminDashboardPage() {
         setDashboard({ stats: {}, lowStock: [] });
         setLoading(false);
       });
-  }, []);
+
+    // Ensure products are loaded for "Recent Products" section
+    if (products.length === 0) {
+      fetchProducts({ limit: 20, append: false });
+    }
+  }, [fetchProducts, products.length]);
 
   const lowStock = useMemo(
     () =>
@@ -301,8 +325,8 @@ export default function AdminDashboardPage() {
                 View all <ChevronRight size={12} />
               </Link>
             </div>
-            <div style={{ overflowX: "auto" }}>
-              <table className="dash-table">
+            <div className="dash-table-container">
+              <table className="dash-table" style={{ minWidth: "600px" }}>
                 <thead>
                   <tr>
                     <th>Product Name</th>
@@ -349,15 +373,19 @@ export default function AdminDashboardPage() {
                               }}
                             />
                             <div>
-                              <div
-                                style={{
-                                  fontSize: 13,
-                                  fontWeight: 600,
-                                  lineHeight: 1.3,
-                                }}
-                              >
-                                {p.name}
-                              </div>
+                                <div
+                                  style={{
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                    lineHeight: 1.3,
+                                    maxWidth: "240px",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  {p.name}
+                                </div>
                               <div style={{ fontSize: 11, color: "#bbb" }}>
                                 {p.category}
                               </div>

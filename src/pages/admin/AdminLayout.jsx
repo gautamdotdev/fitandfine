@@ -200,7 +200,7 @@ const SIDEBAR_STYLES = `
     .adm-main { margin-left: 0; }
     .adm-menu-btn { display: flex; order: 2; }
     .adm-close-btn { display: flex; }
-    .adm-content { padding: 5px 5px 0px; }
+    .adm-content { padding: 16px 16px 40px; }
     .adm-topbar { padding: 0 16px; height: 64px; }
   }
 
