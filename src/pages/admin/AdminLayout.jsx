@@ -89,7 +89,20 @@ const SIDEBAR_STYLES = `
     transition: all 0.15s; margin-bottom: 2px;
     position: relative;
   }
-  .adm-nav-link:hover { background: #f5f4f0; color: #1a1a1a; }
+  .adm-nav-link:hover {
+    background: #f5f4f0;
+    color: #1a1a1a;
+  }
+  .adm-nav-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+  }
+  .adm-nav-link:hover .adm-nav-icon {
+    transform: translateX(5px) scale(1.08);
+  }
   .adm-nav-link.active {
     background: #1a1a1a; color: #fff;
     font-weight: 600;
@@ -203,6 +216,7 @@ const SIDEBAR_STYLES = `
   }
 
   @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+
 `;
 
 const NAV = [
@@ -293,7 +307,9 @@ export default function AdminLayout() {
                     }
                     onClick={() => setSidebarOpen(false)}
                   >
-                    <item.icon size={16} />
+                    <span className="adm-nav-icon">
+                      <item.icon size={16} />
+                    </span>
                     {item.text}
                     {item.badge && (
                       <span className="adm-nav-badge">{item.badge}</span>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/ShopContext";
 import { orderApi } from "../../lib/api";
@@ -25,11 +25,31 @@ import {
 
 const STATUSES = {
   pending: { label: "Pending", color: "#d97706", bg: "#fffbeb", icon: Clock },
-  confirmed: { label: "Confirmed", color: "#2563eb", bg: "#eff6ff", icon: CheckCircle2 },
-  processing: { label: "Processing", color: "#7c3aed", bg: "#f5f3ff", icon: Clock },
+  confirmed: {
+    label: "Confirmed",
+    color: "#2563eb",
+    bg: "#eff6ff",
+    icon: CheckCircle2,
+  },
+  processing: {
+    label: "Processing",
+    color: "#7c3aed",
+    bg: "#f5f3ff",
+    icon: Clock,
+  },
   shipped: { label: "Shipped", color: "#0891b2", bg: "#ecfeff", icon: Truck },
-  delivered: { label: "Delivered", color: "#059669", bg: "#ecfdf5", icon: CheckCircle2 },
-  cancelled: { label: "Cancelled", color: "#dc2626", bg: "#fef2f2", icon: XCircle },
+  delivered: {
+    label: "Delivered",
+    color: "#059669",
+    bg: "#ecfdf5",
+    icon: CheckCircle2,
+  },
+  cancelled: {
+    label: "Cancelled",
+    color: "#dc2626",
+    bg: "#fef2f2",
+    icon: XCircle,
+  },
 };
 
 const METHODS = [
@@ -49,9 +69,70 @@ const CSS = `
   .ao-bar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
   .ao-search { flex: 1; min-width: 240px; position: relative; }
   .ao-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #999; }
-  .ao-search input, .ao-select { width: 100%; height: 42px; border: 1.5px solid #e8e6e0; border-radius: 10px; background: #fff; color: #1a1a1a; padding: 0 12px 0 38px; font: inherit; box-sizing: border-box; outline: none; transition: border-color 0.2s; }
-  .ao-search input:focus, .ao-select:focus { border-color: #1a1a1a; }
-  .ao-select { width: 180px; padding-left: 12px; font-weight: 600; cursor: pointer; }
+  .ao-search input { width: 100%; height: 42px; border: 1.5px solid #e8e6e0; border-radius: 10px; background: #fff; color: #1a1a1a; padding: 0 12px 0 38px; font: inherit; box-sizing: border-box; outline: none; transition: border-color 0.2s; }
+  .ao-search input:focus { border-color: #1a1a1a; }
+  .ao-select-root { position: relative; }
+  .ao-form-select { width: 100%; }
+  .ao-filter-select { width: 180px; }
+  .ao-status-select { width: 150px; }
+  .ao-select-trigger {
+    width: 100%;
+    height: 42px;
+    border: 1.5px solid #e8e6e0;
+    border-radius: 10px;
+    background: #fff;
+    color: #1a1a1a;
+    padding: 0 12px;
+    font: inherit;
+    box-sizing: border-box;
+    outline: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-weight: 600;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  }
+  .ao-select-trigger:hover, .ao-select-trigger:focus-visible { border-color: #1a1a1a; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+  .ao-select-trigger:focus-visible { outline: none; }
+  .ao-select-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ao-select-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 100%;
+    background: #fff;
+    border: 1.5px solid #e8e6e0;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    overflow: hidden;
+    z-index: 30;
+    animation: aoMenuIn 0.15s ease-out;
+  }
+  .ao-select-menu.top {
+    top: auto;
+    bottom: calc(100% + 6px);
+    animation-name: aoMenuInUp;
+  }
+  .ao-select-menu.right { left: auto; right: 0; }
+  .ao-select-option {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    border: none;
+    background: transparent;
+    color: #1a1a1a;
+    text-align: left;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .ao-select-option:hover { background: #faf9f7; }
+  .ao-select-option.active { background: #faf9f7; font-weight: 700; }
+  @keyframes aoMenuIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes aoMenuInUp { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
   .ao-table-wrap { border: 1px solid #e8e6e0; background: #fff; border-radius: 2px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
   .ao-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
   .ao-table th { background: #faf9f7; padding: 13px 14px; text-align: left; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #bbb; border-bottom: 1px solid #e8e6e0; font-weight: 700; }
@@ -99,11 +180,13 @@ const CSS = `
     .ao-table-wrap { display: none; }
     .ao-mobile { display: grid; gap: 12px; }
     .ao-detail { grid-template-columns: 1fr; padding: 12px 0 0; border: none; margin-bottom:10px }
-    .ao-select { width: 100%; }
+    .ao-filter-select { width: 100%; }
+    .ao-status-select { width: 100%; }
   }
 `;
 
-const formatMethod = (method) => METHODS.find(([value]) => value === method)?.[1] || method || "Payment";
+const formatMethod = (method) =>
+  METHODS.find(([value]) => value === method)?.[1] || method || "Payment";
 
 function formatAddress(address) {
   if (!address) return "No address saved";
@@ -112,9 +195,19 @@ function formatAddress(address) {
     <div>
       {address.label && <div className="ao-main">{address.label}</div>}
       {address.name && <div>{address.name}</div>}
-      {address.line1 && <div><strong>Address line 1:</strong> {address.line1}</div>}
-      {address.line2 && <div><strong>Address line 2:</strong> {address.line2}</div>}
-      <div>{address.city}, {address.state} - {address.pin}</div>
+      {address.line1 && (
+        <div>
+          <strong>Address line 1:</strong> {address.line1}
+        </div>
+      )}
+      {address.line2 && (
+        <div>
+          <strong>Address line 2:</strong> {address.line2}
+        </div>
+      )}
+      <div>
+        {address.city}, {address.state} - {address.pin}
+      </div>
       {address.phone && <div>{address.phone}</div>}
     </div>
   );
@@ -123,7 +216,107 @@ function formatAddress(address) {
 function StatusBadge({ status }) {
   const cfg = STATUSES[status] || STATUSES.pending;
   const Icon = cfg.icon;
-  return <span className="ao-badge" style={{ color: cfg.color, background: cfg.bg }}><Icon size={13} />{cfg.label}</span>;
+  return (
+    <span className="ao-badge" style={{ color: cfg.color, background: cfg.bg }}>
+      <Icon size={13} />
+      {cfg.label}
+    </span>
+  );
+}
+
+function CustomSelect({
+  value,
+  onChange,
+  options,
+  placeholder = "Select",
+  className = "",
+  menuAlign = "left",
+}) {
+  const [open, setOpen] = useState(false);
+  const [openUp, setOpenUp] = useState(false);
+  const rootRef = useRef(null);
+  const menuRef = useRef(null);
+  const current = options.find((option) => option.value === value);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (rootRef.current && !rootRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (!open || !rootRef.current) return;
+
+    const updatePlacement = () => {
+      const rootRect = rootRef.current.getBoundingClientRect();
+      const menuHeight = menuRef.current?.offsetHeight || 0;
+      const spaceBelow = window.innerHeight - rootRect.bottom;
+      const spaceAbove = rootRect.top;
+      const shouldOpenUp =
+        menuHeight > 0
+          ? spaceBelow < menuHeight + 12 && spaceAbove > spaceBelow
+          : spaceBelow < 220 && spaceAbove > spaceBelow;
+      setOpenUp(shouldOpenUp);
+    };
+
+    updatePlacement();
+    window.addEventListener("resize", updatePlacement);
+    window.addEventListener("scroll", updatePlacement, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePlacement);
+      window.removeEventListener("scroll", updatePlacement, true);
+    };
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className={`ao-select-root ${className}`.trim()}>
+      <button
+        type="button"
+        className="ao-select-trigger"
+        onClick={() => setOpen((next) => !next)}
+      >
+        <span className="ao-select-label">{current?.label || placeholder}</span>
+        <ChevronDown
+          size={13}
+          style={{
+            flexShrink: 0,
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.2s",
+          }}
+        />
+      </button>
+
+      {open && (
+        <div
+          ref={menuRef}
+          className={`ao-select-menu ${openUp ? "top" : ""} ${menuAlign === "right" ? "right" : ""}`.trim()}
+        >
+          {options.map((option) => {
+            const active = option.value === value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                className={`ao-select-option${active ? " active" : ""}`}
+                onClick={() => {
+                  onChange(option.value);
+                  setOpen(false);
+                }}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function PaymentModal({ order, mode, onClose, onSaved }) {
@@ -328,17 +521,13 @@ function PaymentModal({ order, mode, onClose, onSaved }) {
               >
                 Payment Method
               </label>
-              <select
+              <CustomSelect
                 value={method}
-                onChange={(e) => setMethod(e.target.value)}
-                style={{ width: "100%" }}
-              >
-                {METHODS.map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+                onChange={setMethod}
+                options={METHODS.map(([value, label]) => ({ value, label }))}
+                placeholder="Payment method"
+                className="ao-form-select"
+              />
             </div>
             <div>
               <label
@@ -534,16 +723,36 @@ function OrderDetails({ order }) {
       <div className="ao-panel">
         <h3>Items Ordered</h3>
         {order.items?.map((item, index) => {
-          const image = item.product?.images?.[0]?.url || item.product?.images?.[0];
+          const image =
+            item.product?.images?.[0]?.url || item.product?.images?.[0];
           return (
             <div className="ao-item" key={item._id || index}>
-              {image ? <img className="ao-img" src={image} alt={item.product?.name || "Product"} /> : <div className="ao-img" />}
+              {image ? (
+                <img
+                  className="ao-img"
+                  src={image}
+                  alt={item.product?.name || "Product"}
+                />
+              ) : (
+                <div className="ao-img" />
+              )}
               <div>
                 <div className="ao-main">{item.product?.name || "Product"}</div>
-                <div className="ao-muted">Product ID: {item.product?.productId || item.product?._id || "-"} · Size {item.size || "-"} · Color {item.color || "-"}</div>
-                <div className="ao-muted">Qty {item.quantity} × ₹{item.price?.toLocaleString("en-IN")}</div>
+                <div className="ao-muted">
+                  Product ID:{" "}
+                  {item.product?.productId || item.product?._id || "-"} · Size{" "}
+                  {item.size || "-"} · Color {item.color || "-"}
+                </div>
+                <div className="ao-muted">
+                  Qty {item.quantity} × ₹{item.price?.toLocaleString("en-IN")}
+                </div>
               </div>
-              <strong>₹{((item.price || 0) * (item.quantity || 1)).toLocaleString("en-IN")}</strong>
+              <strong>
+                ₹
+                {((item.price || 0) * (item.quantity || 1)).toLocaleString(
+                  "en-IN",
+                )}
+              </strong>
             </div>
           );
         })}
@@ -553,17 +762,28 @@ function OrderDetails({ order }) {
         <div className="ao-main">{order.user?.name || "Customer"}</div>
         <div className="ao-muted">{order.user?.email || "-"}</div>
         <div className="ao-muted">{order.user?.phone || "-"}</div>
-        <div className="ao-muted" style={{ marginTop: 12, display: "flex", gap: 8 }}>
+        <div
+          className="ao-muted"
+          style={{ marginTop: 12, display: "flex", gap: 8 }}
+        >
           <MapPin size={14} /> <span>{formatAddress(order.address)}</span>
         </div>
         <div style={{ marginTop: 14 }}>
-          <div className="ao-main">Paid ₹{(order.paidAmount || 0).toLocaleString("en-IN")} of ₹{order.total?.toLocaleString("en-IN")}</div>
-          <div className="ao-muted">Payment status: {order.paymentStatus || "unpaid"}</div>
-          {order.payments?.length > 0 && order.payments.map((payment, index) => (
-            <div className="ao-muted" key={payment._id || index}>
-              {formatMethod(payment.method)} · ₹{payment.amount?.toLocaleString("en-IN")} · {new Date(payment.paidAt).toLocaleDateString("en-IN")}
-            </div>
-          ))}
+          <div className="ao-main">
+            Paid ₹{(order.paidAmount || 0).toLocaleString("en-IN")} of ₹
+            {order.total?.toLocaleString("en-IN")}
+          </div>
+          <div className="ao-muted">
+            Payment status: {order.paymentStatus || "unpaid"}
+          </div>
+          {order.payments?.length > 0 &&
+            order.payments.map((payment, index) => (
+              <div className="ao-muted" key={payment._id || index}>
+                {formatMethod(payment.method)} · ₹
+                {payment.amount?.toLocaleString("en-IN")} ·{" "}
+                {new Date(payment.paidAt).toLocaleDateString("en-IN")}
+              </div>
+            ))}
         </div>
       </div>
     </div>
@@ -608,17 +828,15 @@ function OrderRow({ order, onStatus, onPayment, onOpen }) {
       </td>
       <td>
         <div className="ao-actions">
-          <select
-            className="ao-status"
+          <CustomSelect
             value={order.status}
-            onChange={(e) => onStatus(order, e.target.value)}
-          >
-            {Object.entries(STATUSES).map(([value, cfg]) => (
-              <option key={value} value={value}>
-                {cfg.label}
-              </option>
-            ))}
-          </select>
+            onChange={(nextStatus) => onStatus(order, nextStatus)}
+            options={Object.entries(STATUSES).map(([value, cfg]) => ({
+              value,
+              label: cfg.label,
+            }))}
+            className="ao-status-select"
+          />
           <button
             className="ao-pay-btn"
             onClick={() => onPayment(order, "payment")}
@@ -643,7 +861,9 @@ function MobileOrder({ order, onStatus, onPayment, onOpen }) {
   });
   return (
     <div className="ao-card">
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+      <div
+        style={{ display: "flex", justifyContent: "space-between", gap: 10 }}
+      >
         <div>
           <div className="ao-id">#{order.orderId || order._id}</div>
           <div className="ao-muted">{date}</div>
@@ -660,17 +880,15 @@ function MobileOrder({ order, onStatus, onPayment, onOpen }) {
         <span className="ao-pay">{order.paymentStatus || "unpaid"}</span>
       </div>
       <div className="ao-actions">
-        <select
-          className="ao-status"
+        <CustomSelect
           value={order.status}
-          onChange={(e) => onStatus(order, e.target.value)}
-        >
-          {Object.entries(STATUSES).map(([value, cfg]) => (
-            <option key={value} value={value}>
-              {cfg.label}
-            </option>
-          ))}
-        </select>
+          onChange={(nextStatus) => onStatus(order, nextStatus)}
+          options={Object.entries(STATUSES).map(([value, cfg]) => ({
+            value,
+            label: cfg.label,
+          }))}
+          className="ao-status-select ao-status-select-mobile"
+        />
         <button
           className="ao-pay-btn"
           onClick={() => onPayment(order, "payment")}
@@ -817,21 +1035,23 @@ export default function AdminOrdersPage() {
               placeholder="Search order ID, customer, email or mobile"
             />
           </div>
-          <select
-            className="ao-select"
+          <CustomSelect
             value={filterStatus}
-            onChange={(e) => {
+            onChange={(nextValue) => {
               setPage(1);
-              setFilterStatus(e.target.value);
+              setFilterStatus(nextValue);
             }}
-          >
-            <option value="">All statuses</option>
-            {Object.entries(STATUSES).map(([value, cfg]) => (
-              <option key={value} value={value}>
-                {cfg.label}
-              </option>
-            ))}
-          </select>
+            options={[
+              { value: "", label: "All statuses" },
+              ...Object.entries(STATUSES).map(([value, cfg]) => ({
+                value,
+                label: cfg.label,
+              })),
+            ]}
+            placeholder="All statuses"
+            className="ao-filter-select"
+            menuAlign="right"
+          />
         </div>
         {loading ? (
           <div className="ao-loading">
@@ -889,10 +1109,22 @@ export default function AdminOrdersPage() {
         )}
         {totalPages > 1 && !loading && (
           <div className="ao-pag">
-            <span>Page {page} of {totalPages}</span>
+            <span>
+              Page {page} of {totalPages}
+            </span>
             <div style={{ display: "flex", gap: 8 }}>
-              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}><ChevronLeft size={14} /> Prev</button>
-              <button disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next <ChevronRight size={14} /></button>
+              <button
+                disabled={page <= 1}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                <ChevronLeft size={14} /> Prev
+              </button>
+              <button
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Next <ChevronRight size={14} />
+              </button>
             </div>
           </div>
         )}
