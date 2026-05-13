@@ -321,10 +321,18 @@ export default function AdminLayout() {
 }
 
 // Sidebar user row component (must be outside main component)
+
 function SidebarUserRow({ onClick }) {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
+  const navigate = useNavigate();
   if (loading) return null;
   if (!user) return null;
+
+  const handleLogout = (e) => {
+    e.stopPropagation();
+    logout();
+    navigate("/");
+  };
 
   return (
     <div className="adm-user-row" onClick={onClick}>
@@ -333,7 +341,19 @@ function SidebarUserRow({ onClick }) {
           {user.name || user.username || user.email}
         </div>
       </div>
-      <LogOut size={14} style={{ color: "#aaa", flexShrink: 0 }} />
+      <button
+        style={{
+          background: "none",
+          border: "none",
+          padding: 0,
+          margin: 0,
+          cursor: "pointer",
+        }}
+        title="Logout"
+        onClick={handleLogout}
+      >
+        <LogOut size={14} style={{ color: "#aaa", flexShrink: 0 }} />
+      </button>
     </div>
   );
 }

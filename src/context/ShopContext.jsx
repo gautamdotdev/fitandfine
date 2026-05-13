@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 import { productApi, authApi } from "../lib/api";
 import { useToasts } from "../lib/store";
 
@@ -45,7 +51,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await authApi.logout();
+    } catch (e) {
+      // Ignore errors, always clear local state
+    }
     setUser(null);
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -95,7 +106,6 @@ export const AuthProvider = ({ children }) => {
         logout();
       }
     } finally {
-
       setLoading(false);
     }
   };
@@ -133,9 +143,9 @@ export const ShopProvider = ({ children }) => {
   const [hasMore, setHasMore] = useState(true);
   const [total, setTotal] = useState(0);
   const [backgroundTasks, setBackgroundTasks] = useState([]);
-  
+
   const pushToast = useToasts((s) => s.push);
-  
+
   // Refs for request management
   const abortControllerRef = useRef(null);
   const currentRequestKeyRef = useRef(null);
@@ -149,7 +159,7 @@ export const ShopProvider = ({ children }) => {
   } = {}) => {
     // 1. Create request key for deduplication & caching
     const requestKey = JSON.stringify({ page, cursor, filters, limit });
-    
+
     // 2. Check Cache
     const cached = cache.get(requestKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL && !append) {
@@ -186,7 +196,9 @@ export const ShopProvider = ({ children }) => {
         if (!append) return mappedProducts;
         // 5. Dedup append
         const existingIds = new Set(prev.map((p) => p.id));
-        const filteredNew = mappedProducts.filter((p) => !existingIds.has(p.id));
+        const filteredNew = mappedProducts.filter(
+          (p) => !existingIds.has(p.id),
+        );
         return [...prev, ...filteredNew];
       });
 
@@ -203,11 +215,11 @@ export const ShopProvider = ({ children }) => {
 
       // 6. Store in Cache
       cache.set(requestKey, { data: result, timestamp: Date.now() });
-      
+
       return result;
     } catch (error) {
       if (error.name === "AbortError") return; // Silent for aborts
-      
+
       console.error("Error fetching products:", error);
       pushToast({
         title: "Error",
@@ -230,37 +242,46 @@ export const ShopProvider = ({ children }) => {
       name: metadata.name,
       status: "processing",
       type: id ? "update" : "create",
-      timestamp: new Date()
+      timestamp: new Date(),
     };
-    
-    setBackgroundTasks(prev => [newTask, ...prev]);
-    
+
+    setBackgroundTasks((prev) => [newTask, ...prev]);
+
     try {
       if (id) {
         await productApi.update(id, data);
       } else {
         await productApi.create(data);
       }
-      
+
       // Success: Update task and refresh
-      setBackgroundTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: "success" } : t));
+      setBackgroundTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? { ...t, status: "success" } : t)),
+      );
       invalidateCache();
       fetchProducts({ limit: 20, append: false });
-      
-      pushToast({ 
-        title: "Success", 
-        message: `${metadata.name} saved successfully.`, 
-        type: "success" 
+
+      pushToast({
+        title: "Success",
+        message: `${metadata.name} saved successfully.`,
+        type: "success",
       });
 
       // Clear successful task after delay
       setTimeout(() => {
-        setBackgroundTasks(prev => prev.filter(t => t.id !== taskId));
+        setBackgroundTasks((prev) => prev.filter((t) => t.id !== taskId));
       }, 5000);
-
     } catch (error) {
-      setBackgroundTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: "error", error: error.message } : t));
-      pushToast({ title: "Save Failed", message: error.message, type: "error" });
+      setBackgroundTasks((prev) =>
+        prev.map((t) =>
+          t.id === taskId ? { ...t, status: "error", error: error.message } : t,
+        ),
+      );
+      pushToast({
+        title: "Save Failed",
+        message: error.message,
+        type: "error",
+      });
     }
   };
 

@@ -1,3 +1,13 @@
+export const authApi = {
+  login: (credentials) =>
+    api("/auth/login", { method: "POST", body: JSON.stringify(credentials) }),
+  register: (data) =>
+    api("/auth/register", { method: "POST", body: JSON.stringify(data) }),
+  getMe: () => api("/auth/me"),
+  updateMe: (data) =>
+    api("/auth/me", { method: "PUT", body: JSON.stringify(data) }),
+  logout: () => api("/auth/logout", { method: "POST" }),
+};
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const api = async (endpoint, options = {}) => {
@@ -63,16 +73,6 @@ export const productApi = {
       body: data instanceof FormData ? data : JSON.stringify(data),
     }),
   delete: (id) => api(`/products/${id}`, { method: "DELETE" }),
-};
-
-export const authApi = {
-  login: (credentials) =>
-    api("/auth/login", { method: "POST", body: JSON.stringify(credentials) }),
-  register: (data) =>
-    api("/auth/register", { method: "POST", body: JSON.stringify(data) }),
-  getMe: () => api("/auth/me"),
-  updateMe: (data) =>
-    api("/auth/me", { method: "PUT", body: JSON.stringify(data) }),
 };
 
 export const orderApi = {
