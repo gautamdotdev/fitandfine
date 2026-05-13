@@ -229,20 +229,70 @@ export default function AdminProductFormPage() {
   const categoryRef = useRef(null);
 
   /* ── Prefill on edit ── */
+  // useEffect(() => {
+  //   const loadProduct = async () => {
+  //     if (!id) return;
+
+  //     setLoading(true);
+  //     try {
+  //       // 1. Try to find in context first
+  //       let product = products.find((p) => p._id === id || p.id === id);
+
+  //       // 2. If not in context (e.g. on refresh), fetch from API
+  //       if (!product) {
+  //         const data = await productApi.getOne(id);
+  //         product = data.product || data.data || data;
+  //       }
+
+  //       if (product) {
+  //         setFormData({
+  //           name: product.name || "",
+  //           description: product.description || "",
+  //           price: product.price || "",
+  //           salePrice: product.salePrice || "",
+  //           category: product.category || "",
+  //           fabric: product.fabric || "",
+  //           sizes: product.sizes || [],
+  //           colors: product.colors || [],
+  //           stock: product.stock || 0,
+  //           newArrival: product.newArrival ?? true,
+  //           isBestseller: product.isBestseller ?? false,
+  //           images: [],
+  //         });
+  //         setPreviews(product.images || []);
+  //       }
+  //     } catch (error) {
+  //       pushToast({
+  //         title: "Error",
+  //         message: "Could not load product details.",
+  //         type: "error",
+  //       });
+  //       console.error("Load product error:", error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   loadProduct();
+
+  //   // Close category dropdown on outside click
+  //   const handleClickOutside = (e) => {
+  //     if (categoryRef.current && !categoryRef.current.contains(e.target)) {
+  //       setIsCategoryOpen(false);
+  //     }
+  //   };
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => document.removeEventListener("mousedown", handleClickOutside);
+  // }, [id, products, pushToast]);
   useEffect(() => {
     const loadProduct = async () => {
       if (!id) return;
 
       setLoading(true);
-      try {
-        // 1. Try to find in context first
-        let product = products.find((p) => p._id === id || p.id === id);
 
-        // 2. If not in context (e.g. on refresh), fetch from API
-        if (!product) {
-          const data = await productApi.getOne(id);
-          product = data.product || data.data || data;
-        }
+      try {
+        const data = await productApi.getOne(id);
+        const product = data.product || data.data || data;
 
         if (product) {
           setFormData({
@@ -259,6 +309,7 @@ export default function AdminProductFormPage() {
             isBestseller: product.isBestseller ?? false,
             images: [],
           });
+
           setPreviews(product.images || []);
         }
       } catch (error) {
@@ -267,23 +318,13 @@ export default function AdminProductFormPage() {
           message: "Could not load product details.",
           type: "error",
         });
-        console.error("Load product error:", error);
       } finally {
         setLoading(false);
       }
     };
 
     loadProduct();
-
-    // Close category dropdown on outside click
-    const handleClickOutside = (e) => {
-      if (categoryRef.current && !categoryRef.current.contains(e.target)) {
-        setIsCategoryOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [id, products, pushToast]);
+  }, [id]);
 
   if (!isAdmin) {
     return (
