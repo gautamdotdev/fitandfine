@@ -246,10 +246,12 @@ export default function AdminDashboardPage() {
         setLoading(false);
       });
 
+    /* 
     // Ensure products are loaded for "Recent Products" section
     if (products.length === 0) {
       fetchProducts({ limit: 20, append: false });
     }
+    */
   }, [fetchProducts, products.length]);
 
   const lowStock = useMemo(
@@ -317,7 +319,7 @@ export default function AdminDashboardPage() {
 
         {/* Main grid */}
         <div className="dash-grid-2">
-          {/* Recent products */}
+          {/* Recent products - TEMPORARILY COMMENTED 
           <div className="dash-card">
             <div className="dash-card-head">
               <span className="dash-card-title">Recent Products</span>
@@ -373,19 +375,19 @@ export default function AdminDashboardPage() {
                               }}
                             />
                             <div>
-                                <div
-                                  style={{
-                                    fontSize: 13,
-                                    fontWeight: 600,
-                                    lineHeight: 1.3,
-                                    maxWidth: "240px",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                  }}
-                                >
-                                  {p.name}
-                                </div>
+                              <div
+                                style={{
+                                  fontSize: 13,
+                                  fontWeight: 600,
+                                  lineHeight: 1.3,
+                                  maxWidth: "240px",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {p.name}
+                              </div>
                               <div style={{ fontSize: 11, color: "#bbb" }}>
                                 {p.category}
                               </div>
@@ -430,6 +432,7 @@ export default function AdminDashboardPage() {
               </table>
             </div>
           </div>
+          */}
 
           {/* Right column */}
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
