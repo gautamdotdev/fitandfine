@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useAuth } from "../../context/ShopContext";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -8,14 +9,11 @@ import {
   BarChart3,
   Settings,
   Tag,
-  ChevronDown,
-  Bell,
-  Search,
-  Menu,
   X,
   Store,
   Zap,
-  LogOut, Plus
+  LogOut,
+  Plus,
 } from "lucide-react";
 import { AdminHeader } from "./AdminHeader.jsx";
 
@@ -66,7 +64,12 @@ const SIDEBAR_STYLES = `
     width: 32px; height: 32px; border-radius: 8px;
     background: #f5f4f0; border: none;
     align-items: center; justify-content: center;
-    cursor: pointer; color: #666; margin-left: auto;
+    cursor: pointer; color: #666;
+    margin-left: auto;
+    margin-top: 12px;
+    margin-bottom: 8px;
+    margin-right: 8px;
+    padding: 0;
   }
 
   .adm-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
@@ -106,16 +109,10 @@ const SIDEBAR_STYLES = `
   }
   .adm-user-row {
     display: flex; align-items: center; gap: 10px;
-    padding: 10px; border-radius: 10px;
+    padding: 10px; border-radius: 2px;
     cursor: pointer; transition: background 0.15s;
   }
   .adm-user-row:hover { background: #f5f4f0; }
-  .adm-avatar {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
-  }
   .adm-user-name { font-size: 13px; font-weight: 600; line-height: 1.2; }
   .adm-user-role { font-size: 11px; color: #999; }
 
@@ -212,7 +209,7 @@ const NAV = [
     label: "MAIN",
     items: [
       { to: "/admin", icon: LayoutDashboard, text: "Home", end: true },
-      { to: "/admin/orders", icon: ShoppingCart, text: "Orders", }, //badge: "5"
+      { to: "/admin/orders", icon: ShoppingCart, text: "Orders" }, //badge: "5"
       { to: "/admin/products", icon: Package, text: "Products", end: true },
       { to: "/admin/products/add", icon: Plus, text: "Add Product" },
       { to: "/admin/customers", icon: Users, text: "Customers" },
@@ -246,8 +243,18 @@ export default function AdminLayout() {
         )}
 
         {/* Sidebar */}
+
         <aside className={`adm-sidebar${sidebarOpen ? " open" : ""}`}>
-          <div className="adm-logo">
+          <div
+            className="adm-logo"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "10px 10px 10px",
+              borderBottom: "1px solid #f0ede6",
+            }}
+          >
             <div className="adm-logo-icon">
               <Store size={16} color="#fff" />
             </div>
@@ -258,11 +265,11 @@ export default function AdminLayout() {
               >
                 FIT & FINE<span style={{ color: "var(--color-gold)" }}>.</span>
               </div>
-              <div className="adm-logo-sub">Store owner</div>
             </div>
             <button
               className="adm-close-btn"
               onClick={() => setSidebarOpen(false)}
+              style={{ marginLeft: "auto" }}
             >
               <X size={18} />
             </button>
@@ -294,17 +301,7 @@ export default function AdminLayout() {
           </nav>
 
           <div className="adm-sidebar-footer">
-            <div
-              className="adm-user-row"
-              onClick={() => navigate("/admin/settings")}
-            >
-              <div className="adm-avatar">RA</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="adm-user-name">Rayan Anderson</div>
-                <div className="adm-user-role">Store owner</div>
-              </div>
-              <LogOut size={14} style={{ color: "#aaa", flexShrink: 0 }} />
-            </div>
+            <SidebarUserRow onClick={() => navigate("/admin/settings")} />
           </div>
         </aside>
 
@@ -320,5 +317,23 @@ export default function AdminLayout() {
         </div>
       </div>
     </>
+  );
+}
+
+// Sidebar user row component (must be outside main component)
+function SidebarUserRow({ onClick }) {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return null;
+
+  return (
+    <div className="adm-user-row" onClick={onClick}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="adm-user-name">
+          {user.name || user.username || user.email}
+        </div>
+      </div>
+      <LogOut size={14} style={{ color: "#aaa", flexShrink: 0 }} />
+    </div>
   );
 }
