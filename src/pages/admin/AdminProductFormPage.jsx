@@ -26,13 +26,13 @@ import namer from "color-namer";
 
 /* ─── Responsive Styles ─── */
 const FORM_STYLES = `
-  .apf-wrap { max-width: 1080px; margin: 0 auto; padding: 40px 24px 80px; }
+  .apf-wrap { max-width: 1080px; font-family: 'DM Sans', sans-serif; }
   .apf-progress-header {
     position: sticky;
     top: 0;
     z-index: 40;
-    background: var(--color-background);
-    border-bottom: 1px solid var(--color-border);
+    background: #f5f4f0;
+    border-bottom: 1px solid #e8e6e0;
     height: 60px;
     display: flex;
     flex-direction: column;
@@ -45,46 +45,46 @@ const FORM_STYLES = `
     .apf-progress-header { height: 64px; margin-bottom: 24px; }
   }
   .apf-form { display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start; }
-  .apf-section { background: var(--color-background); border: 1px solid var(--color-border); border-radius: 2px; padding: 24px; margin-bottom: 0; }
-  .apf-label { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-muted-foreground); margin-bottom: 8px; }
-  .apf-input { width: 100%; padding: 13px 15px; border-radius: 11px; border: 1.5px solid var(--color-border); background: var(--color-surface); font-size: 14px; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; outline: none; }
-  .apf-input:focus { border-color: var(--color-foreground); box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
-  .apf-input::placeholder { color: var(--color-muted-foreground); }
+  .apf-section { background: #fff; border: 1px solid #e8e6e0; border-radius: 2px; padding: 24px; margin-bottom: 0; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+  .apf-label { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #999; margin-bottom: 8px; }
+  .apf-input { width: 100%; padding: 13px 15px; border-radius: 11px; border: 1.5px solid #e8e6e0; background: #faf9f7; font-size: 14px; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; outline: none; color: #1a1a1a; font-family: 'DM Sans', sans-serif; }
+  .apf-input:focus { border-color: #1a1a1a; box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
+  .apf-input::placeholder { color: #bbb; }
   .apf-textarea { resize: vertical; min-height: 120px; }
   .apf-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
   .apf-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
   .apf-left { display: grid; gap: 24px; }
   .apf-right { display: grid; gap: 24px; position: sticky; top: 24px; }
   .apf-img-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
-  .apf-img-thumb { position: relative; aspect-ratio: 3/4; border-radius: 12px; overflow: hidden; border: 1px solid var(--color-border); }
+  .apf-img-thumb { position: relative; aspect-ratio: 3/4; border-radius: 12px; overflow: hidden; border: 1px solid #e8e6e0; background: #faf9f7; }
   
   /* Custom Dropdown */
   .apf-custom-select { position: relative; width: 100%; }
-  .apf-select-trigger { width: 100%; padding: 13px 15px; border-radius: 11px; border: 1.5px solid var(--color-border); background: var(--color-surface); font-size: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s; }
-  .apf-select-trigger:hover { border-color: var(--color-foreground); }
-  .apf-select-trigger.active { border-color: var(--color-foreground); box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
-  .apf-select-dropdown { position: absolute; top: calc(100% + 8px); left: 0; right: 0; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 50; overflow: hidden; animation: selectIn 0.2s ease; }
+  .apf-select-trigger { width: 100%; padding: 13px 15px; border-radius: 11px; border: 1.5px solid #e8e6e0; background: #faf9f7; font-size: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s; color: #1a1a1a; }
+  .apf-select-trigger:hover { border-color: #1a1a1a; }
+  .apf-select-trigger.active { border-color: #1a1a1a; box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
+  .apf-select-dropdown { position: absolute; top: calc(100% + 8px); left: 0; right: 0; background: #fff; border: 1px solid #e8e6e0; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 50; overflow: hidden; animation: selectIn 0.2s ease; }
   @keyframes selectIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-  .apf-select-option { padding: 12px 16px; font-size: 14px; cursor: pointer; transition: background 0.2s; }
-  .apf-select-option:hover { background: var(--color-surface); }
-  .apf-select-option.selected { background: var(--color-surface); color: var(--color-gold, #b45309); font-weight: 700; }
+  .apf-select-option { padding: 12px 16px; font-size: 14px; cursor: pointer; transition: background 0.2s; color: #444; }
+  .apf-select-option:hover { background: #faf9f7; }
+  .apf-select-option.selected { background: #faf9f7; color: #c9a84c; font-weight: 700; }
   
   .apf-error-msg { font-size: 11px; color: #ef4444; font-weight: 600; margin-top: 6px; display: flex; align-items: center; gap: 4px; }
   .apf-input.error { border-color: #ef4444 !important; background: #fffafb; }
   .apf-img-del { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.55); color: #fff; border: none; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity 0.2s; }
   .apf-img-thumb:hover .apf-img-del { opacity: 1; }
-  .apf-drop-zone { aspect-ratio: 3/4; border-radius: 12px; border: 2px dashed var(--color-border); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.2s; color: var(--color-muted-foreground); }
-  .apf-drop-zone:hover, .apf-drop-zone.drag-over { border-color: var(--color-foreground); background: var(--color-surface); color: var(--color-foreground); }
-  .size-btn { padding: 8px 14px; border-radius: 9px; border: 1.5px solid; cursor: pointer; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; transition: all 0.18s; }
-  .apf-check-row { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; padding: 14px; border-radius: 12px; border: 1.5px solid var(--color-border); transition: border-color 0.2s, background 0.2s; }
-  .apf-check-row:hover { border-color: var(--color-foreground); background: var(--color-surface); }
-  .apf-check-row.active { border-color: var(--color-foreground); background: var(--color-surface); }
-  .apf-submit-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--color-foreground); color: var(--color-background); padding: 16px; border-radius: 14px; font-weight: 800; cursor: pointer; border: none; font-size: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); transition: transform 0.2s, box-shadow 0.2s; }
-  .apf-submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(0,0,0,0.18); }
+  .apf-drop-zone { aspect-ratio: 3/4; border-radius: 12px; border: 2px dashed #e8e6e0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.2s; color: #bbb; background: #faf9f7; }
+  .apf-drop-zone:hover, .apf-drop-zone.drag-over { border-color: #1a1a1a; background: #fff; color: #1a1a1a; }
+  .size-btn { padding: 8px 14px; border-radius: 9px; border: 1.5px solid; cursor: pointer; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; transition: all 0.18s; font-family: 'DM Sans', sans-serif; }
+  .apf-check-row { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; padding: 14px; border-radius: 12px; border: 1.5px solid #e8e6e0; background: #fff; transition: all 0.2s; }
+  .apf-check-row:hover { border-color: #1a1a1a; background: #faf9f7; }
+  .apf-check-row.active { border-color: #1a1a1a; background: #faf9f7; }
+  .apf-submit-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; background: #1a1a1a; color: #fff; padding: 16px; border-radius: 2px; font-weight: 800; cursor: pointer; border: none; font-size: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); transition: transform 0.2s, box-shadow 0.2s; font-family: 'DM Sans', sans-serif; }
+  .apf-submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(0,0,0,0.18); background: #000; }
   .apf-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-  .apf-cancel-btn { width: 100%; padding: 14px; border-radius: 14px; border: 1.5px solid var(--color-border); background: transparent; font-weight: 600; cursor: pointer; font-size: 14px; color: var(--color-foreground); transition: border-color 0.2s, background 0.2s; }
-  .apf-cancel-btn:hover { border-color: var(--color-foreground); background: var(--color-surface); }
-  .apf-color-row { display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 10px; border: 1.5px solid var(--color-border); background: var(--color-surface); }
+  .apf-cancel-btn { width: 100%; padding: 14px; border-radius: 2px; border: 1.5px solid #e8e6e0; background: #fff; font-weight: 600; cursor: pointer; font-size: 14px; color: #444; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+  .apf-cancel-btn:hover { border-color: #1a1a1a; color: #1a1a1a; background: #faf9f7; }
+  .apf-color-row { display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 10px; border: 1.5px solid #e8e6e0; background: #faf9f7; }
 
   @media (max-width: 820px) {
     .apf-form { grid-template-columns: 1fr; }
@@ -96,7 +96,7 @@ const FORM_STYLES = `
     .apf-wrap { padding: 5px 0px 0px; }
     .apf-grid-2 { grid-template-columns: 1fr; }
     .apf-grid-3 { grid-template-columns: 1fr 1fr; }
-    .apf-section { padding: 18px; }
+    .apf-section { padding: 10px; }
     .apf-img-grid { grid-template-columns: repeat(2, 1fr); }
   }
 `;
@@ -120,15 +120,15 @@ function SectionHead({ title, sub }) {
       style={{
         marginBottom: 22,
         paddingBottom: 16,
-        borderBottom: "1px solid var(--color-border)",
+        borderBottom: "1px solid #f5f3ef",
       }}
     >
-      <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>{title}</h3>
+      <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "#1a1a1a" }}>{title}</h3>
       {sub && (
         <p
           style={{
             fontSize: 12,
-            color: "var(--color-muted-foreground)",
+            color: "#888",
             margin: "4px 0 0",
           }}
         >
@@ -288,10 +288,10 @@ export default function AdminProductFormPage() {
   if (!isAdmin) {
     return (
       <div style={{ padding: "100px 20px", textAlign: "center" }}>
-        <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "2rem" }}>
+        <h2 style={{ fontFamily: "DM Sans, sans-serif", fontSize: "2rem" }}>
           Access Denied
         </h2>
-        <p style={{ color: "var(--color-muted-foreground)", marginTop: 10 }}>
+        <p style={{ color: "#888", marginTop: 10 }}>
           You do not have permission to access this page.
         </p>
       </div>
@@ -494,7 +494,7 @@ export default function AdminProductFormPage() {
               fontWeight: 700,
               letterSpacing: "0.12em",
               textTransform: "uppercase",
-              color: "var(--color-muted-foreground)",
+              color: "#999",
               marginBottom: 6,
             }}
           >
@@ -507,7 +507,7 @@ export default function AdminProductFormPage() {
                 flex: 1,
                 height: 4,
                 borderRadius: 99,
-                background: "var(--color-border)",
+                background: "#e8e6e0",
                 overflow: "hidden",
               }}
             >
@@ -516,7 +516,7 @@ export default function AdminProductFormPage() {
                   height: "100%",
                   width: `${progress}%`,
                   background:
-                    progress === 100 ? "#10b981" : "var(--color-foreground)",
+                    progress === 100 ? "#10b981" : "#1a1a1a",
                   borderRadius: 99,
                   transition: "width 0.4s",
                 }}
@@ -526,7 +526,7 @@ export default function AdminProductFormPage() {
               style={{
                 fontSize: 11,
                 fontWeight: 600,
-                color: "var(--color-muted-foreground)",
+                color: "#888",
                 whiteSpace: "nowrap",
               }}
             >
@@ -599,7 +599,7 @@ export default function AdminProductFormPage() {
                           style={{
                             color: formData.category
                               ? "inherit"
-                              : "var(--color-muted-foreground)",
+                              : "#999",
                           }}
                         >
                           {formData.category || "Select Category"}
@@ -767,16 +767,16 @@ export default function AdminProductFormPage() {
                         className={`size-btn ${errors.sizes ? "error" : ""}`}
                         style={{
                           borderColor: active
-                            ? "var(--color-foreground)"
+                            ? "#1a1a1a"
                             : errors.sizes
                               ? "#ef4444"
-                              : "var(--color-border)",
+                              : "#e8e6e0",
                           background: active
-                            ? "var(--color-foreground)"
+                            ? "#1a1a1a"
                             : "transparent",
                           color: active
-                            ? "var(--color-background)"
-                            : "var(--color-foreground)",
+                            ? "#fff"
+                            : "#1a1a1a",
                         }}
                       >
                         {active && (
@@ -804,7 +804,7 @@ export default function AdminProductFormPage() {
                     style={{
                       marginTop: 10,
                       fontSize: 11,
-                      color: "var(--color-muted-foreground)",
+                      color: "#888",
                       fontWeight: 500,
                     }}
                   >
@@ -837,7 +837,7 @@ export default function AdminProductFormPage() {
                       gap: 5,
                       fontSize: 12,
                       fontWeight: 700,
-                      color: "var(--color-gold, #b45309)",
+                      color: "#c9a84c",
                       background: "none",
                       border: "none",
                       cursor: "pointer",
@@ -847,7 +847,7 @@ export default function AdminProductFormPage() {
                     }}
                     onMouseEnter={(e) =>
                     (e.currentTarget.style.background =
-                      "var(--color-surface)")
+                      "#faf9f7")
                     }
                     onMouseLeave={(e) =>
                       (e.currentTarget.style.background = "none")
@@ -861,7 +861,7 @@ export default function AdminProductFormPage() {
                     <div
                       style={{
                         fontSize: 13,
-                        color: "var(--color-muted-foreground)",
+                        color: "#999",
                         textAlign: "center",
                         padding: "16px 0",
                         fontStyle: "italic",
@@ -879,7 +879,7 @@ export default function AdminProductFormPage() {
                           height: 20,
                           borderRadius: "50%",
                           background: color.hex,
-                          border: "1.5px solid var(--color-border)",
+                          border: "1.5px solid #e8e6e0",
                           flexShrink: 0,
                         }}
                       />
@@ -892,8 +892,8 @@ export default function AdminProductFormPage() {
                           flex: 1,
                           padding: "8px 10px",
                           borderRadius: 8,
-                          border: "1.5px solid var(--color-border)",
-                          background: "var(--color-background)",
+                          border: "1.5px solid #e8e6e0",
+                          background: "#fff",
                           fontSize: 13,
                           outline: "none",
                         }}
@@ -907,7 +907,7 @@ export default function AdminProductFormPage() {
                           height: 36,
                           padding: 2,
                           borderRadius: 8,
-                          border: "1.5px solid var(--color-border)",
+                          border: "1.5px solid #e8e6e0",
                           cursor: "pointer",
                           flexShrink: 0,
                         }}
@@ -1050,9 +1050,9 @@ export default function AdminProductFormPage() {
                   style={{
                     padding: "16px",
                     textAlign: "center",
-                    background: "var(--color-surface)",
+                    background: "#faf9f7",
                     borderRadius: 12,
-                    border: "1px dashed var(--color-border)",
+                    border: "1px dashed #e8e6e0",
                     marginTop: 12,
                   }}
                 >
@@ -1060,7 +1060,7 @@ export default function AdminProductFormPage() {
                     size={18}
                     className="animate-spin"
                     style={{
-                      color: "var(--color-muted-foreground)",
+                      color: "#999",
                       marginBottom: 8,
                       display: "inline-block",
                     }}
@@ -1069,7 +1069,7 @@ export default function AdminProductFormPage() {
                     style={{
                       fontSize: 11,
                       fontWeight: 600,
-                      color: "var(--color-muted-foreground)",
+                      color: "#999",
                     }}
                   >
                     Extracting colors...
@@ -1089,13 +1089,13 @@ export default function AdminProductFormPage() {
                   >
                     <Palette
                       size={14}
-                      style={{ color: "var(--color-muted-foreground)" }}
+                      style={{ color: "#999" }}
                     />
                     <span
                       style={{
                         fontSize: 11,
                         fontWeight: 700,
-                        color: "var(--color-muted-foreground)",
+                        color: "#999",
                         textTransform: "uppercase",
                         letterSpacing: "0.05em",
                       }}
@@ -1118,9 +1118,9 @@ export default function AdminProductFormPage() {
                           alignItems: "center",
                           gap: 10,
                           padding: "8px 10px",
-                          background: "var(--color-surface)",
+                          background: "#faf9f7",
                           borderRadius: 12,
-                          border: "1.2px solid var(--color-border)",
+                          border: "1.2px solid #e8e6e0",
                         }}
                       >
                         <div
@@ -1138,7 +1138,7 @@ export default function AdminProductFormPage() {
                             style={{
                               fontSize: 12,
                               fontWeight: 700,
-                              color: "var(--color-foreground)",
+                              color: "#1a1a1a",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               whiteSpace: "nowrap",
@@ -1150,7 +1150,7 @@ export default function AdminProductFormPage() {
                             style={{
                               fontSize: 10,
                               fontWeight: 500,
-                              color: "var(--color-muted-foreground)",
+                              color: "#888",
                               fontFamily: "monospace",
                             }}
                           >
@@ -1166,7 +1166,7 @@ export default function AdminProductFormPage() {
               <p
                 style={{
                   fontSize: 11,
-                  color: "var(--color-muted-foreground)",
+                  color: "#888",
                   textAlign: "center",
                   lineHeight: 1.6,
                 }}
@@ -1192,9 +1192,9 @@ export default function AdminProductFormPage() {
                       width: 20,
                       height: 20,
                       borderRadius: 6,
-                      border: `2px solid ${formData.newArrival ? "var(--color-foreground)" : "var(--color-border)"}`,
+                      border: `2px solid ${formData.newArrival ? "#1a1a1a" : "#e8e6e0"}`,
                       background: formData.newArrival
-                        ? "var(--color-foreground)"
+                        ? "#1a1a1a"
                         : "transparent",
                       display: "flex",
                       alignItems: "center",
@@ -1204,7 +1204,7 @@ export default function AdminProductFormPage() {
                     }}
                   >
                     {formData.newArrival && (
-                      <CheckCircle2 size={13} color="var(--color-background)" />
+                      <CheckCircle2 size={13} color="#fff" />
                     )}
                   </div>
                   <div>
@@ -1222,7 +1222,7 @@ export default function AdminProductFormPage() {
                     <div
                       style={{
                         fontSize: 11,
-                        color: "var(--color-muted-foreground)",
+                        color: "#888",
                         marginTop: 3,
                       }}
                     >
@@ -1240,9 +1240,9 @@ export default function AdminProductFormPage() {
                       width: 20,
                       height: 20,
                       borderRadius: 6,
-                      border: `2px solid ${formData.isBestseller ? "var(--color-foreground)" : "var(--color-border)"}`,
+                      border: `2px solid ${formData.isBestseller ? "#1a1a1a" : "#e8e6e0"}`,
                       background: formData.isBestseller
-                        ? "var(--color-foreground)"
+                        ? "#1a1a1a"
                         : "transparent",
                       display: "flex",
                       alignItems: "center",
@@ -1252,7 +1252,7 @@ export default function AdminProductFormPage() {
                     }}
                   >
                     {formData.isBestseller && (
-                      <CheckCircle2 size={13} color="var(--color-background)" />
+                      <CheckCircle2 size={13} color="#fff" />
                     )}
                   </div>
                   <div>
@@ -1271,7 +1271,7 @@ export default function AdminProductFormPage() {
                     <div
                       style={{
                         fontSize: 11,
-                        color: "var(--color-muted-foreground)",
+                        color: "#888",
                         marginTop: 3,
                       }}
                     >
@@ -1283,7 +1283,7 @@ export default function AdminProductFormPage() {
             </div>
 
             {/* Actions */}
-            <div style={{ display: "grid", gap: 10 }}>
+            <div style={{ display: "grid", gap: 10, marginBottom: "10px" }}>
               <button
                 type="submit"
                 disabled={loading}

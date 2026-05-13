@@ -11,8 +11,6 @@ import {
   Filter,
   Package,
   AlertTriangle,
-  LayoutGrid,
-  LayoutList,
   X,
   Loader2,
   CheckCircle2,
@@ -52,16 +50,6 @@ const STYLES = `
   .admp-filter-btn:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.07); }
   .admp-filter-btn.active { border-color: #1a1a1a; background: #1a1a1a; color: #fff; }
 
-  .admp-view-toggle {
-    display: flex; border: 1.5px solid #e8e6e0;
-    border-radius: 10px; overflow: hidden; background: #fff;
-  }
-  .admp-view-btn {
-    padding: 8px 12px; border: none; cursor: pointer;
-    transition: all 0.15s; display: flex; align-items: center;
-    background: transparent; color: #888;
-  }
-  .admp-view-btn.active { background: #1a1a1a; color: #fff; }
 
   /* Table */
   .admp-table-wrap {
@@ -80,23 +68,6 @@ const STYLES = `
   .admp-table td { padding: 14px 16px; vertical-align: middle; border-top: 1px solid #f5f3ef; }
   .admp-row { transition: background 0.12s; cursor: pointer; }
   .admp-row:hover td { background: #faf9f7; }
-  .admp-row.selected td { background: #f0f0ff; }
-
-  .admp-checkbox {
-    width: 16px; height: 16px; border-radius: 5px;
-    border: 1.5px solid #d0cdc6; cursor: pointer;
-    appearance: none; background: #fff;
-    display: inline-flex; align-items: center; justify-content: center;
-    flex-shrink: 0; transition: all 0.12s;
-    position: relative;
-  }
-  .admp-checkbox:checked { background: #7c3aed; border-color: #7c3aed; }
-  .admp-checkbox:checked::after {
-    content: ''; position: absolute;
-    width: 4px; height: 7px;
-    border: 1.5px solid #fff; border-top: none; border-left: none;
-    transform: rotate(45deg) translate(-1px, -1px);
-  }
 
   .admp-status {
     display: inline-flex; align-items: center; gap: 5px;
@@ -124,46 +95,6 @@ const STYLES = `
   }
   .admp-add-btn:hover { background: #6d28d9; transform: translateY(-1px); }
 
-  /* Bulk bar */
-  .admp-bulk-bar {
-    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
-    background: #1a1a1a; color: #fff; border-radius: 14px;
-    padding: 14px 20px;
-    display: flex; align-items: center; gap: 12px;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
-    z-index: 200; white-space: nowrap;
-    animation: bulkIn 0.3s cubic-bezier(0.16,1,0.3,1);
-  }
-  @keyframes bulkIn {
-    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
-  }
-  .admp-bulk-btn {
-    display: flex; align-items: center; gap: 6px;
-    padding: 8px 14px; border-radius: 9px;
-    border: 1.5px solid rgba(255,255,255,0.2); background: transparent;
-    color: #fff; font-size: 12.5px; font-weight: 600; cursor: pointer;
-    font-family: 'DM Sans', sans-serif; transition: all 0.15s;
-  }
-  .admp-bulk-btn:hover { background: rgba(255,255,255,0.12); }
-  .admp-bulk-btn.del { border-color: #ef4444; color: #fca5a5; }
-  .admp-bulk-btn.del:hover { background: rgba(239,68,68,0.15); }
-
-  /* Grid */
-  .admp-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 16px;
-  }
-  .admp-grid-card {
-    background: #fff; border: 1px solid #e8e6e0;
-    border-radius: 14px; overflow: hidden; cursor: pointer;
-    transition: box-shadow 0.2s, transform 0.2s;
-  }
-  .admp-grid-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); transform: translateY(-2px); }
-  .admp-grid-card.selected { border-color: #7c3aed; box-shadow: 0 0 0 2px rgba(124,58,237,0.2); }
-  /* Edit btn in grid - hidden mobile */
-  .admp-grid-edit { display: flex; }
 
   /* Pagination */
   .admp-pagination { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 24px; }
@@ -209,21 +140,14 @@ const STYLES = `
     .admp-toolbar { gap: 8px; }
     .admp-search { max-width: 100%; flex: 1 1 100%; }
 
-    /* Table: hide stock + status + actions, show only checkbox+name+price */
+    /* Table: hide stock + status + actions, show name+price */
     .hide-sm { display: none !important; }
     .admp-table td { padding: 10px 8px; }
     .admp-table th { padding: 10px 8px; }
-    .admp-table td.col-check,
-    .admp-table th.col-check { padding-left: 12px; width: 36px; }
     .admp-table td.col-price,
     .admp-table th.col-price { padding-right: 12px; text-align: right; white-space: nowrap; }
 
-    /* Grid: 2 cols, no edit btn */
-    .admp-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .admp-grid-edit { display: none !important; }
-
     .admp-add-btn span { display: none; }
-    .admp-bulk-bar { width: calc(100% - 32px); border-radius: 12px; flex-wrap: wrap; justify-content: center; bottom: 16px; }
   }
 
   .admp-table td.col-name { max-width: 140px; }
@@ -397,8 +321,6 @@ export default function AdminProductsPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState("All");
-  const [viewMode, setViewMode] = useState("table");
-  const [selected, setSelected] = useState(new Set());
   const [confirmProduct, setConfirmProduct] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
@@ -422,32 +344,6 @@ export default function AdminProductsPage() {
     });
   }, [products, search, filterCat]);
 
-  const allSelected =
-    filtered.length > 0 && filtered.every((p) => selected.has(p._id));
-  const someSelected = filtered.some((p) => selected.has(p._id));
-
-  const toggleAll = () => {
-    if (allSelected) {
-      setSelected((prev) => {
-        const n = new Set(prev);
-        filtered.forEach((p) => n.delete(p._id));
-        return n;
-      });
-    } else {
-      setSelected((prev) => {
-        const n = new Set(prev);
-        filtered.forEach((p) => n.add(p._id));
-        return n;
-      });
-    }
-  };
-  const toggleOne = (id) =>
-    setSelected((prev) => {
-      const n = new Set(prev);
-      n.has(id) ? n.delete(id) : n.add(id);
-      return n;
-    });
-
   const confirmDelete = async () => {
     if (!confirmProduct) return;
     setDeletingId(confirmProduct._id);
@@ -461,32 +357,11 @@ export default function AdminProductsPage() {
         type: "success",
       });
       setConfirmProduct(null);
-      setSelected((prev) => {
-        const n = new Set(prev);
-        n.delete(confirmProduct._id);
-        return n;
-      });
     } catch (error) {
       pushToast({ title: "Error", message: error.message, type: "error" });
     } finally {
       setDeletingId(null);
     }
-  };
-
-  const bulkDelete = async () => {
-    if (!window.confirm(`Delete ${selected.size} product(s)?`)) return;
-    for (const id of selected) {
-      try {
-        await productApi.delete(id);
-        setProducts((prev) => prev.filter((p) => p._id !== id));
-      } catch {}
-    }
-    invalidateCache();
-    setSelected(new Set());
-    pushToast({
-      message: `${selected.size} products deleted`,
-      type: "success",
-    });
   };
 
   if (authLoading)
@@ -520,48 +395,6 @@ export default function AdminProductsPage() {
         onConfirm={confirmDelete}
         onCancel={() => !deletingId && setConfirmProduct(null)}
       />
-
-      {/* Bulk bar */}
-      {selected.size > 0 && (
-        <div className="admp-bulk-bar">
-          <span style={{ fontSize: 13, fontWeight: 700 }}>
-            {selected.size} Selected
-          </span>
-          <button
-            className="admp-bulk-btn"
-            onClick={() =>
-              pushToast({ message: "Export coming soon", type: "success" })
-            }
-          >
-            <Download size={13} /> Export
-          </button>
-          <button
-            className="admp-bulk-btn"
-            onClick={() =>
-              pushToast({ message: "Bulk edit coming soon", type: "success" })
-            }
-          >
-            <Edit2 size={13} /> Edit
-          </button>
-          <button className="admp-bulk-btn del" onClick={bulkDelete}>
-            <Trash2 size={13} /> Delete
-          </button>
-          <button
-            onClick={() => setSelected(new Set())}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#aaa",
-              cursor: "pointer",
-              padding: 4,
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <X size={14} />
-          </button>
-        </div>
-      )}
 
       <div className="admp-page">
         {/* Header */}
@@ -673,71 +506,29 @@ export default function AdminProductsPage() {
               </button>
             ))}
           </div>
-          <div className="admp-view-toggle" style={{ marginLeft: "auto" }}>
-            {[
-              ["table", LayoutList],
-              ["grid", LayoutGrid],
-            ].map(([mode, Icon]) => (
-              <button
-                key={mode}
-                className={`admp-view-btn${viewMode === mode ? " active" : ""}`}
-                onClick={() => setViewMode(mode)}
-              >
-                <Icon size={14} />
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* ── TABLE ── */}
-        {viewMode === "table" && (
-          <div className="admp-table-wrap">
+        <div className="admp-table-wrap">
             <table className="admp-table">
               <thead>
                 <tr>
-                  <th
-                    className="col-check"
-                    style={{ width: 40, paddingLeft: 16 }}
-                  >
-                    <input
-                      type="checkbox"
-                      className="admp-checkbox"
-                      checked={allSelected}
-                      ref={(el) => {
-                        if (el) el.indeterminate = someSelected && !allSelected;
-                      }}
-                      onChange={toggleAll}
-                    />
-                  </th>
                   <th className="col-name">Product Name</th>
                   <th className="col-id hide-md">ID & Date</th>
                   <th className="col-price" style={{ textAlign: "right" }}>
                     Price
                   </th>
-                  <th className="col-stock hide-sm">Stock</th>
+                  <th className="col-stock hide-sm" style={{ textAlign: "right" }}>Stock</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((p) => {
-                  const isSel = selected.has(p._id);
                   return (
                     <tr
                       key={p._id}
-                      className={`admp-row${isSel ? " selected" : ""}`}
+                      className="admp-row"
                       onClick={() => navigate(`/admin/products/view/${p._id}`)}
                     >
-                      <td
-                        className="col-check"
-                        onClick={(e) => e.stopPropagation()}
-                        style={{ paddingLeft: 16, width: 40 }}
-                      >
-                        <input
-                          type="checkbox"
-                          className="admp-checkbox"
-                          checked={isSel}
-                          onChange={() => toggleOne(p._id)}
-                        />
-                      </td>
                       <td className="col-name">
                         <div
                           style={{
@@ -844,7 +635,7 @@ export default function AdminProductsPage() {
                           </div>
                         )}
                       </td>
-                      <td className="col-stock hide-sm">
+                      <td className="col-stock hide-sm" style={{ textAlign: "right" }}>
                         <span
                           style={{
                             fontWeight: 700,
@@ -872,7 +663,7 @@ export default function AdminProductsPage() {
                 {filtered.length === 0 && (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={4}
                       style={{
                         padding: "60px",
                         textAlign: "center",
@@ -894,141 +685,7 @@ export default function AdminProductsPage() {
               </tbody>
             </table>
           </div>
-        )}
-
-        {/* ── GRID ── */}
-        {viewMode === "grid" && (
-          <div className="admp-grid">
-            {filtered.map((p) => {
-              const isSel = selected.has(p._id);
-              return (
-                <div
-                  key={p._id}
-                  className={`admp-grid-card${isSel ? " selected" : ""}`}
-                  onClick={() => navigate(`/admin/products/view/${p._id}`)}
-                >
-                  <div
-                    style={{
-                      position: "relative",
-                      aspectRatio: "4/5",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <img
-                      src={p.images?.[0]?.url || p.images?.[0] || ""}
-                      alt={p.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        display: "block",
-                      }}
-                    />
-                    <div
-                      style={{ position: "absolute", top: 8, left: 8 }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <input
-                        type="checkbox"
-                        className="admp-checkbox"
-                        checked={isSel}
-                        onChange={() => toggleOne(p._id)}
-                      />
-                    </div>
-                    {p.salePrice && (
-                      <span
-                        style={{
-                          position: "absolute",
-                          top: 8,
-                          right: 8,
-                          background: "#7c3aed",
-                          color: "#fff",
-                          fontSize: 9,
-                          padding: "3px 7px",
-                          borderRadius: 20,
-                          fontWeight: 800,
-                        }}
-                      >
-                        SALE
-                      </span>
-                    )}
-                    {p.stock === 0 && (
-                      <span
-                        style={{
-                          position: "absolute",
-                          bottom: 8,
-                          left: 8,
-                          background: "#ef4444",
-                          color: "#fff",
-                          fontSize: 9,
-                          padding: "3px 7px",
-                          borderRadius: 20,
-                          fontWeight: 800,
-                        }}
-                      >
-                        OUT
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ padding: "10px 10px 12px" }}>
-                    <div
-                      style={{
-                        fontWeight: 700,
-                        fontSize: 12.5,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        marginBottom: 2,
-                      }}
-                    >
-                      {p.name}
-                    </div>
-                    <div
-                      style={{ fontSize: 11, color: "#bbb", marginBottom: 6 }}
-                    >
-                      {p.category}
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <div>
-                        <span style={{ fontWeight: 800, fontSize: 13 }}>
-                          ₹{p.price?.toLocaleString("en-IN")}
-                        </span>
-                        {p.salePrice && (
-                          <div
-                            style={{
-                              fontSize: 10,
-                              color: "#b45309",
-                              fontWeight: 600,
-                            }}
-                          >
-                            ₹{p.salePrice?.toLocaleString("en-IN")}
-                          </div>
-                        )}
-                      </div>
-                      {/* Edit btn: hidden on mobile via CSS */}
-                      <button
-                        className="admp-action-btn admp-grid-edit"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/admin/products/edit/${p._id}`);
-                        }}
-                        title="Edit"
-                      >
-                        <Edit2 size={13} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <div style={{ marginTop: 24 }} />
 
         {/* Pagination */}
         <div className="admp-pagination">
