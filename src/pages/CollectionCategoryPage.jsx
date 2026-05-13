@@ -1263,6 +1263,12 @@ export default function CollectionCategoryPage() {
         @media (min-width: 1280px) {
           .ccp-grid { grid-template-columns: repeat(4, 1fr); }
         }
+        @media (min-width: 1536px) {
+          .ccp-grid { grid-template-columns: repeat(5, 1fr); }
+        }
+        @media (min-width: 1780px) {
+          .ccp-grid { grid-template-columns: repeat(6, 1fr); }
+        }
 
       `}</style>
     </div>

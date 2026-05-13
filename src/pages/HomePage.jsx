@@ -770,11 +770,19 @@ export default function HomePage() {
           .hero-content { order: 1 !important; padding: 80px 80px !important; }
           .hero-image { order: 2 !important; min-height: 100% !important; }
           .categories-grid { grid-template-columns: repeat(4, 1fr) !important; }
-          .featured-grid { grid-template-columns: repeat(3, 1fr) !important; }
+          .featured-grid { grid-template-columns: repeat(4, 1fr) !important; }
           .editorial-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .editorial-image { aspect-ratio: auto !important; }
           .editorial-content { padding: 80px 100px !important; }
           .story-grid { grid-template-columns: repeat(2, 1fr) !important; text-align: left; }
+        }
+
+        @media (min-width: 1280px) {
+          .featured-grid { grid-template-columns: repeat(5, 1fr) !important; }
+        }
+
+        @media (min-width: 1440px) {
+          .featured-grid { grid-template-columns: repeat(6, 1fr) !important; }
         }
 
         .category-card:hover .category-img { transform: scale(1.05); }

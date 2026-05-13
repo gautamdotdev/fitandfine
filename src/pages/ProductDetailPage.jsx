@@ -673,30 +673,6 @@ export default function ProductDetailPage() {
     let cancelled = false;
 
     const fetchProduct = async () => {
-      // Cache hit: product already in ShopContext list
-      const found = products.find((p) => p.slug === slug || p._id === slug);
-      if (found) {
-        if (!cancelled) {
-          setProduct(found);
-          setLoading(false);
-          // Still fetch related from API for cache-hit case
-          const rel = products
-            .filter(
-              (p) =>
-                p._id !== found._id &&
-                (p.categorySlug === found.categorySlug ||
-                  p.category === found.category),
-            )
-            .slice(0, 6);
-          setRelatedProducts(rel);
-          setRelatedLoading(false);
-        }
-        return;
-      }
-
-      // Always fetch directly by slug -- do NOT gate on shopLoading.
-      // On direct URL load / hard reload, ShopContext may not have
-      // fetched the full list yet, so we resolve independently.
       try {
         setLoading(true);
         const data = await productApi.getOne(slug);
@@ -1685,77 +1661,79 @@ export default function ProductDetailPage() {
               paddingBottom: "2px",
               transition: "color 0.2s, border-color 0.2s",
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = "var(--color-foreground)";
-              e.currentTarget.style.borderColor = "var(--color-foreground)";
+            to="/collections/all"
+            className="label-caps view-all-link"
+            style={{
+              borderBottom: "1px solid var(--color-foreground)",
+              paddingBottom: "4px",
+              textDecoration: "none",
+              transition: "color 0.2s",
             }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = "var(--color-muted-foreground)";
-              e.currentTarget.style.borderColor = "var(--color-border)";
-            }}
+            onMouseEnter={(e) => (e.target.style.color = "var(--color-gold)")}
+            onMouseLeave={(e) => (e.target.style.color = "")}
           >
-            View All →
+            View All
           </Link>
         </div>
-        <div className="pdp-related-grid">
+        <div
+          className="scrollbar-hide"
+          style={{
+            display: "flex",
+            gap: "12px",
+            overflowX: "auto",
+            margin: "0 -20px",
+            padding: "0 20px 16px",
+          }}
+        >
           {relatedLoading
             ? Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px",
-                  }}
+                  style={{ width: "180px", minWidth: "180px", flexShrink: 0 }}
                 >
-                  <SkeletonBox
-                    h="0"
-                    style={{
-                      paddingBottom: "133%",
-                      borderRadius: "12px",
-                      height: "0",
-                    }}
-                  />
                   <div
                     style={{
                       display: "flex",
                       flexDirection: "column",
-                      gap: "7px",
-                      padding: "0 2px",
+                      gap: "8px",
                     }}
                   >
-                    <SkeletonBox w="70%" h="13px" />
-                    <SkeletonBox w="45%" h="11px" />
                     <SkeletonBox
-                      w="20%"
-                      h="14px"
-                      style={{ marginTop: "2px" }}
+                      h="0"
+                      style={{
+                        paddingBottom: "133%",
+                        borderRadius: "12px",
+                        height: "0",
+                      }}
                     />
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "5px",
+                        padding: "0 2px",
+                      }}
+                    >
+                      <SkeletonBox w="70%" h="11px" />
+                      <SkeletonBox w="45%" h="9px" />
+                      <SkeletonBox
+                        w="20%"
+                        h="12px"
+                        style={{ marginTop: "2px" }}
+                      />
+                    </div>
                   </div>
                 </div>
               ))
-            : [
-                ...relatedProducts
-                  .slice(0, 6)
-                  .map((p) => <ProductCard key={p.id || p._id} product={p} />),
-                ...Array.from({
-                  length: 6 - Math.min(6, relatedProducts.length),
-                }).map((_, i) => (
-                  <div key={"empty-" + i} style={{ visibility: "hidden" }} />
-                )),
-              ]}
+            : relatedProducts.slice(0, 8).map((p) => (
+                <div
+                  key={p.id || p._id}
+                  style={{ width: "180px", minWidth: "180px", flexShrink: 0 }}
+                >
+                  <ProductCard product={p} />
+                </div>
+              ))}
         </div>
-        <style>{`
-          .pdp-related-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 18px;
-            margin-top: 18px;
-          }
-          @media (max-width: 1200px) { .pdp-related-grid { grid-template-columns: repeat(4, 1fr); } }
-          @media (max-width: 900px) { .pdp-related-grid { grid-template-columns: repeat(3, 1fr); } }
-          @media (max-width: 600px) { .pdp-related-grid { grid-template-columns: repeat(2, 1fr); } }
-        `}</style>
       </section>
 
       {/* ── Reviews ── */}
@@ -2446,24 +2424,12 @@ export default function ProductDetailPage() {
         /* Add to Cart btn + WhatsApp link hidden on mobile */
         .pdp-desktop-action { display: none !important; }
 
-        @media (min-width: 768px) {
-          .pdp-related-grid { grid-template-columns: repeat(2, 1fr) !important; }
-        }
-
         @media (min-width: 1024px) {
           .pdp-grid { grid-template-columns: 1.15fr 1fr !important; }
-          .pdp-related-grid { grid-template-columns: repeat(4, 1fr) !important; }
           .pdp-reviews-grid { grid-template-columns: 300px 1fr !important; }
           .pdp-mobile-bar { display: none !important; }
           .pdp-desktop-action { display: flex !important; }
-          .pdp-related-section .pdp-related-grid > * [style*="aspect-ratio"] {
-            aspect-ratio: 3/4 !important;
-          }
-          .pdp-related-section .pdp-related-grid > * img {
-            max-height: 280px;
-            object-fit: cover;
-          }
-          .pdp-related-section { max-width: 960px; }
+          .pdp-related-section { max-width: 1400px; margin: 96px auto 0; padding: 0 10px; }
         }
 
         @keyframes fadeIn {

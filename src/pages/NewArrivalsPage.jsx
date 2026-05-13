@@ -117,6 +117,8 @@ export default function NewArrivalsPage() {
           @media (min-width: 480px) { .na-grid { gap: 24px; } }
           @media (min-width: 768px) { .na-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; } }
           @media (min-width: 1280px) { .na-grid { grid-template-columns: repeat(4, 1fr); gap: 28px; } }
+          @media (min-width: 1440px) { .na-grid { grid-template-columns: repeat(5, 1fr); gap: 28px; } }
+          @media (min-width: 1600px) { .na-grid { grid-template-columns: repeat(6, 1fr); gap: 28px; } }
         `}</style>
     </div>
   );

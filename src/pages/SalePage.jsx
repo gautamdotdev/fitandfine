@@ -124,6 +124,8 @@ export default function SalePage() {
         @media (min-width: 480px) { .sale-grid { gap: 24px; } }
         @media (min-width: 768px) { .sale-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; } }
         @media (min-width: 1280px) { .sale-grid { grid-template-columns: repeat(4, 1fr); gap: 28px; } }
+        @media (min-width: 1440px) { .sale-grid { grid-template-columns: repeat(5, 1fr); gap: 28px; } }
+        @media (min-width: 1600px) { .sale-grid { grid-template-columns: repeat(6, 1fr); gap: 28px; } }
         
         .loading-spinner {
           width: 40px;

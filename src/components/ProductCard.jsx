@@ -15,7 +15,7 @@ export function ProductCard({ product, badge }) {
 
   return (
     <div
-      className="product-card full-width-card"
+      className="product-card"
       style={{
         position: "relative",
         borderRadius: "0",
@@ -107,7 +107,7 @@ export function ProductCard({ product, badge }) {
                 backgroundColor: "rgba(24,23,20,0.88)",
                 backdropFilter: "blur(4px)",
                 color: "var(--color-background)",
-                padding: "5px 9px",
+                padding: "10px 10px",
                 borderRadius: "4px",
                 fontSize: "9px",
                 fontWeight: 700,
@@ -127,7 +127,7 @@ export function ProductCard({ product, badge }) {
                 left: "10px",
                 backgroundColor: "var(--color-gold)",
                 color: "white",
-                padding: "5px 9px",
+                padding: "10px 10px",
                 borderRadius: "4px",
                 fontSize: "9px",
                 fontWeight: 700,
