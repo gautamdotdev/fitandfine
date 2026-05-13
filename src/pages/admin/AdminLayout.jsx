@@ -79,7 +79,7 @@ const SIDEBAR_STYLES = `
 
   .adm-nav-link {
     display: flex; align-items: center; gap: 10px;
-    padding: 9px 10px; border-radius: 10px;
+    padding: 9px 10px; border-radius: 2px;
     font-size: 13.5px; font-weight: 500;
     color: #666; text-decoration: none;
     transition: all 0.15s; margin-bottom: 2px;

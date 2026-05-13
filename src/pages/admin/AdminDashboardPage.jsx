@@ -13,6 +13,8 @@ import {
   Plus,
   ChevronRight,
   BarChart3,
+  Zap,
+  Settings,
 } from "lucide-react";
 
 const DASH_STYLES = `
@@ -273,297 +275,55 @@ export default function AdminDashboardPage() {
           Manage inventory, pricing and availability across your store
         </p>
 
-        {/* Stats */}
-        <div className="dash-stats">
-          {STATS.map((s) => (
-            <div className="dash-stat-card" key={s.label}>
-              <div className="dash-stat-label">
-                <span>{s.label}</span>
-                <div
-                  className="dash-stat-icon"
-                  style={{ background: s.accent + "18" }}
-                >
-                  <s.icon size={14} color={s.accent} />
-                </div>
-              </div>
-              <div className="dash-stat-value">
-                {isDataLoading ? (
-                  <Skeleton w="120px" h="32px" />
-                ) : (
-                  s.value(products, dashboard, dashboard.stats || {})
-                )}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                {isDataLoading ? (
-                  <Skeleton w="80px" h="14px" />
-                ) : (
-                  <>
-                    <span
-                      className="dash-stat-trend"
-                      style={{ color: s.up ? "#10b981" : "#ef4444" }}
-                    >
-                      {s.up ? (
-                        <ArrowUpRight size={13} />
-                      ) : (
-                        <ArrowDownRight size={13} />
-                      )}
-                      {s.trend}
-                    </span>
-                    <span className="dash-stat-sub">{s.sub}</span>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Main grid */}
-        <div className="dash-grid-2">
-          {/* Recent products - TEMPORARILY COMMENTED 
-          <div className="dash-card">
-            <div className="dash-card-head">
-              <span className="dash-card-title">Recent Products</span>
-              <Link to="/admin/products" className="dash-card-action">
-                View all <ChevronRight size={12} />
-              </Link>
-            </div>
-            <div className="dash-table-container">
-              <table className="dash-table" style={{ minWidth: "600px" }}>
-                <thead>
-                  <tr>
-                    <th>Product Name</th>
-                    <th>Price</th>
-                    <th>Stock</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {isDataLoading ? (
-                    [...Array(5)].map((_, i) => (
-                      <tr key={i}>
-                        <td><Skeleton w="150px" h="40px" /></td>
-                        <td><Skeleton w="80px" h="20px" /></td>
-                        <td><Skeleton w="40px" h="20px" /></td>
-                        <td><Skeleton w="100px" h="24px" /></td>
-                      </tr>
-                    ))
-                  ) : (
-                    recent.map((p) => (
-                      <tr
-                        key={p._id}
-                        style={{ cursor: "pointer" }}
-                        onClick={() => navigate(`/admin/products/edit/${p._id}`)}
-                      >
-                        <td>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 10,
-                            }}
-                          >
-                            <img
-                              src={p.images?.[0]?.url || p.images?.[0] || ""}
-                              alt={p.name}
-                              style={{
-                                width: 34,
-                                height: 42,
-                                objectFit: "cover",
-                                borderRadius: 7,
-                                background: "#f0ede6",
-                                flexShrink: 0,
-                              }}
-                            />
-                            <div>
-                              <div
-                                style={{
-                                  fontSize: 13,
-                                  fontWeight: 600,
-                                  lineHeight: 1.3,
-                                  maxWidth: "240px",
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                {p.name}
-                              </div>
-                              <div style={{ fontSize: 11, color: "#bbb" }}>
-                                {p.category}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <div style={{ fontSize: 13, fontWeight: 700 }}>
-                            ₹{p.price?.toLocaleString("en-IN")}
-                          </div>
-                          {p.salePrice && (
-                            <div style={{ fontSize: 11, color: "#b45309" }}>
-                              ₹{p.salePrice?.toLocaleString("en-IN")}
-                            </div>
-                          )}
-                        </td>
-                        <td style={{ fontSize: 13, fontWeight: 600 }}>
-                          {p.stock ?? "—"}
-                        </td>
-                        <td>
-                          <StatusBadge stock={p.stock} salePrice={p.salePrice} />
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                  {!isDataLoading && recent.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        style={{
-                          textAlign: "center",
-                          padding: "40px",
-                          color: "#bbb",
-                          fontSize: 13,
-                        }}
-                      >
-                        No products yet
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+        {/* Maintenance Message */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '60vh',
+          textAlign: 'center',
+          background: '#fff',
+          border: '1px solid #e8e6e0',
+          borderRadius: '2px',
+          padding: '48px 24px',
+          marginTop: '20px'
+        }}>
+          <div style={{
+            width: 64,
+            height: 64,
+            borderRadius: 20,
+            background: '#fff7ed',
+            border: '1.5px solid #ffedd5',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 24,
+            color: '#f97316'
+          }}>
+            <Zap size={32} />
           </div>
-          */}
 
-          {/* Right column */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {/* Quick Actions */}
-            <div className="dash-card">
-              <div className="dash-card-head">
-                <span className="dash-card-title">Quick Actions</span>
-              </div>
-              <div className="dash-quick">
-                {[
-                  {
-                    icon: Plus,
-                    bg: "#1a1a1a",
-                    color: "#fff",
-                    label: "Add Product",
-                    sub: "New listing",
-                    to: "/admin/products/add",
-                  },
-                  {
-                    icon: ShoppingCart,
-                    bg: "#6366f118",
-                    color: "#6366f1",
-                    label: "Orders",
-                    sub: "Manage orders",
-                    to: "/admin/orders",
-                  },
-                  {
-                    icon: Users,
-                    bg: "#10b98118",
-                    color: "#10b981",
-                    label: "Customers",
-                    sub: "View all",
-                    to: "/admin/customers",
-                  },
-                  {
-                    icon: BarChart3,
-                    bg: "#f59e0b18",
-                    color: "#f59e0b",
-                    label: "Analytics",
-                    sub: "See insights",
-                    to: "/admin/analytics",
-                  },
-                ].map((a) => (
-                  <Link key={a.label} to={a.to} className="dash-qa-btn">
-                    <div className="dash-qa-icon" style={{ background: a.bg }}>
-                      <a.icon size={15} color={a.color} />
-                    </div>
-                    <div className="dash-qa-label">{a.label}</div>
-                    <div className="dash-qa-sub">{a.sub}</div>
-                  </Link>
-                ))}
-              </div>
-            </div>
+          <h1 style={{
+            fontFamily: 'var(--font-serif, serif)',
+            fontSize: '32px',
+            fontWeight: 700,
+            marginBottom: 12,
+            color: '#1a1a1a'
+          }}>
+            Dashboard Under Construction
+          </h1>
 
-            {/* Low stock */}
-            <div className="dash-card">
-              <div className="dash-card-head">
-                <span
-                  className="dash-card-title"
-                  style={{ display: "flex", alignItems: "center", gap: 7 }}
-                >
-                  <AlertTriangle size={14} color="#f59e0b" /> Low Stock
-                </span>
-                <Link to="/admin/products" className="dash-card-action">
-                  See all
-                </Link>
-              </div>
-              {isDataLoading ? (
-                [...Array(3)].map((_, i) => (
-                  <div className="dash-low-item" key={i}>
-                    <Skeleton w="38px" h="46px" r="8px" />
-                    <div style={{ flex: 1 }}>
-                      <Skeleton w="80%" h="14px" />
-                      <Skeleton w="40%" h="10px" style={{ marginTop: 4 }} />
-                    </div>
-                  </div>
-                ))
-              ) : lowStock.length === 0 ? (
-                <div
-                  style={{
-                    padding: "24px",
-                    textAlign: "center",
-                    fontSize: 13,
-                    color: "#bbb",
-                  }}
-                >
-                  All products well-stocked ✓
-                </div>
-              ) : (
-                lowStock.map((p) => (
-                  <div className="dash-low-item" key={p._id}>
-                    <img
-                      className="dash-low-img"
-                      src={p.images?.[0]?.url || p.images?.[0] || ""}
-                      alt={p.name}
-                    />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 600,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {p.name}
-                      </div>
-                      <div style={{ fontSize: 11, color: "#bbb" }}>
-                        {p.category}
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 700,
-                        padding: "3px 9px",
-                        borderRadius: 20,
-                        flexShrink: 0,
-                        background: (p.stock ?? 0) === 0 ? "#fef2f2" : "#fff7ed",
-                        color: (p.stock ?? 0) === 0 ? "#ef4444" : "#d97706",
-                        border: `1px solid ${(p.stock ?? 0) === 0 ? "#fecaca" : "#fed7aa"}`,
-                      }}
-                    >
-                      {p.stock ?? 0} left
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+          <p style={{
+            fontSize: '15px',
+            color: '#666',
+            maxWidth: '440px',
+            lineHeight: 1.6,
+            marginBottom: 32
+          }}>
+            We're currently refining the dashboard to provide better insights and analytics.
+            All other admin sections (Products, Orders, etc.) remain fully functional.
+          </p>
         </div>
       </div>
     </>
