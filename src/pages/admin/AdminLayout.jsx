@@ -14,6 +14,7 @@ import {
   Zap,
   LogOut,
   Plus,
+  Globe,
 } from "lucide-react";
 import { AdminHeader } from "./AdminHeader.jsx";
 
@@ -226,6 +227,9 @@ const NAV = [
   {
     label: "SETTINGS",
     items: [{ to: "/admin/settings", icon: Settings, text: "Settings" }],
+  },
+  {
+    items: [{ to: "/", icon: Globe, text: "Website" }],
   },
 ];
 
