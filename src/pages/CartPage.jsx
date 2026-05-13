@@ -31,7 +31,9 @@ export default function CartPage() {
   const [loading, setLoading] = useState(false);
   const addresses = user?.addresses || [];
   const defaultAddress = addresses.find((addr) => addr.default) || addresses[0];
-  const [selectedAddressId, setSelectedAddressId] = useState(defaultAddress?._id || "");
+  const [selectedAddressId, setSelectedAddressId] = useState(
+    defaultAddress?._id || "",
+  );
   const selectedAddress =
     addresses.find((addr) => addr._id === selectedAddressId) || defaultAddress;
 
@@ -74,7 +76,8 @@ export default function CartPage() {
     if (!selectedAddress) {
       push({
         type: "info",
-        message: "Please add a delivery address from your profile before checkout.",
+        message:
+          "Please add a delivery address from your profile before checkout.",
       });
       navigate("/profile");
       return;
@@ -501,11 +504,11 @@ export default function CartPage() {
               {addresses.length === 0 ? (
                 <div
                   style={{
-                    border: "1px dashed var(--color-border)",
+                    border: "1px dashed #cc272e",
                     borderRadius: "10px",
                     padding: "14px",
                     fontSize: "13px",
-                    color: "var(--color-muted-foreground)",
+                    color: "#cc272e",
                   }}
                 >
                   Add an address in your profile before checkout.
