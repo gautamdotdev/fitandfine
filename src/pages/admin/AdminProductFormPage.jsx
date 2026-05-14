@@ -123,7 +123,11 @@ function SectionHead({ title, sub }) {
         borderBottom: "1px solid #f5f3ef",
       }}
     >
-      <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "#1a1a1a" }}>{title}</h3>
+      <h3
+        style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "#1a1a1a" }}
+      >
+        {title}
+      </h3>
       {sub && (
         <p
           style={{
@@ -504,7 +508,7 @@ export default function AdminProductFormPage() {
       saveProduct(id, data, { name: formData.name });
 
       // Navigate immediately
-      navigate("/admin");
+      navigate("/admin/products");
     } catch (error) {
       pushToast({ title: "Error", message: error.message, type: "error" });
     } finally {
@@ -556,8 +560,7 @@ export default function AdminProductFormPage() {
                 style={{
                   height: "100%",
                   width: `${progress}%`,
-                  background:
-                    progress === 100 ? "#10b981" : "#1a1a1a",
+                  background: progress === 100 ? "#10b981" : "#1a1a1a",
                   borderRadius: 99,
                   transition: "width 0.4s",
                 }}
@@ -638,9 +641,7 @@ export default function AdminProductFormPage() {
                       >
                         <span
                           style={{
-                            color: formData.category
-                              ? "inherit"
-                              : "#999",
+                            color: formData.category ? "inherit" : "#999",
                           }}
                         >
                           {formData.category || "Select Category"}
@@ -812,12 +813,8 @@ export default function AdminProductFormPage() {
                             : errors.sizes
                               ? "#ef4444"
                               : "#e8e6e0",
-                          background: active
-                            ? "#1a1a1a"
-                            : "transparent",
-                          color: active
-                            ? "#fff"
-                            : "#1a1a1a",
+                          background: active ? "#1a1a1a" : "transparent",
+                          color: active ? "#fff" : "#1a1a1a",
                         }}
                       >
                         {active && (
@@ -887,8 +884,7 @@ export default function AdminProductFormPage() {
                       transition: "background 0.15s",
                     }}
                     onMouseEnter={(e) =>
-                    (e.currentTarget.style.background =
-                      "#faf9f7")
+                      (e.currentTarget.style.background = "#faf9f7")
                     }
                     onMouseLeave={(e) =>
                       (e.currentTarget.style.background = "none")
@@ -1128,10 +1124,7 @@ export default function AdminProductFormPage() {
                       marginBottom: 16,
                     }}
                   >
-                    <Palette
-                      size={14}
-                      style={{ color: "#999" }}
-                    />
+                    <Palette size={14} style={{ color: "#999" }} />
                     <span
                       style={{
                         fontSize: 11,
