@@ -199,11 +199,10 @@ export function Header() {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "16px",
                 width: "100%",
                 height: "100%",
                 maxWidth: "800px",
-                margin: "0 auto",
+                margin: "0px 5px 5px 0px",
               }}
             >
               <button
