@@ -114,12 +114,12 @@ export function Header() {
   const results =
     query.trim().length > 0
       ? products
-        .filter(
-          (p) =>
-            p.name.toLowerCase().includes(query.toLowerCase()) ||
-            (p.category?.toLowerCase() || "").includes(query.toLowerCase()),
-        )
-        .slice(0, 6)
+          .filter(
+            (p) =>
+              p.name.toLowerCase().includes(query.toLowerCase()) ||
+              (p.category?.toLowerCase() || "").includes(query.toLowerCase()),
+          )
+          .slice(0, 6)
       : [];
 
   const isSearchPage = location.pathname.startsWith("/search");
@@ -149,7 +149,9 @@ export function Header() {
           transition:
             "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease",
           transform:
-            hidden && !mobileOpen && !isSearchPage ? "translateY(-100%)" : "translateY(0)",
+            hidden && !mobileOpen && !isSearchPage
+              ? "translateY(-100%)"
+              : "translateY(0)",
           opacity: hidden && !mobileOpen && !isSearchPage ? 0 : 1,
           willChange: "transform",
         }}
@@ -168,11 +170,11 @@ export function Header() {
                 : "var(--color-background)",
             ...(scrolled && !mobileOpen
               ? {
-                backdropFilter: "blur(20px)",
-                WebkitBackdropFilter: "blur(20px)",
-                borderBottom: "1px solid var(--color-border)",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-              }
+                  backdropFilter: "blur(20px)",
+                  WebkitBackdropFilter: "blur(20px)",
+                  borderBottom: "1px solid var(--color-border)",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                }
               : {}),
           }}
         />
@@ -182,8 +184,8 @@ export function Header() {
           style={{
             maxWidth: "1400px",
             margin: "0 auto",
-            padding: "0 20px",
             height: "100%",
+            marginLeft: "5px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -216,8 +218,12 @@ export function Header() {
                   alignItems: "center",
                   transition: "transform 0.2s",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.transform = "translateX(-4px)")}
-                onMouseLeave={(e) => (e.currentTarget.style.transform = "translateX(0)")}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.transform = "translateX(-4px)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.transform = "translateX(0)")
+                }
               >
                 <ArrowLeft size={22} />
               </button>
@@ -276,7 +282,9 @@ export function Header() {
                     onClick={() => {
                       const params = new URLSearchParams(location.search);
                       params.delete("q");
-                      navigate(`/search?${params.toString()}`, { replace: true });
+                      navigate(`/search?${params.toString()}`, {
+                        replace: true,
+                      });
                     }}
                     style={{
                       position: "absolute",
@@ -348,7 +356,7 @@ export function Header() {
                             desktopDropdown === l.to ? "0.12em" : "0.08em",
                           color:
                             location.pathname.startsWith(l.to) ||
-                              desktopDropdown === l.to
+                            desktopDropdown === l.to
                               ? "var(--color-foreground)"
                               : "color-mix(in oklch, var(--color-foreground) 60%, transparent)",
                           fontWeight: location.pathname.startsWith(l.to)
@@ -397,7 +405,8 @@ export function Header() {
                               ? "translateX(-50%) translateY(0)"
                               : "translateX(-50%) translateY(-8px)",
                           transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-                          pointerEvents: desktopDropdown === l.to ? "auto" : "none",
+                          pointerEvents:
+                            desktopDropdown === l.to ? "auto" : "none",
                         }}
                       >
                         <div style={{ padding: "8px" }}>
@@ -426,14 +435,14 @@ export function Header() {
                                       : "transparent",
                                 }}
                                 onMouseEnter={(e) =>
-                                (e.currentTarget.style.backgroundColor =
-                                  "color-mix(in oklch, var(--color-foreground) 5%, transparent)")
+                                  (e.currentTarget.style.backgroundColor =
+                                    "color-mix(in oklch, var(--color-foreground) 5%, transparent)")
                                 }
                                 onMouseLeave={(e) =>
-                                (e.currentTarget.style.backgroundColor =
-                                  location.pathname === child.to
-                                    ? "color-mix(in oklch, var(--color-gold) 10%, transparent)"
-                                    : "transparent")
+                                  (e.currentTarget.style.backgroundColor =
+                                    location.pathname === child.to
+                                      ? "color-mix(in oklch, var(--color-gold) 10%, transparent)"
+                                      : "transparent")
                                 }
                               >
                                 <div>
@@ -576,9 +585,12 @@ export function Header() {
                         cursor: "pointer",
                       }}
                       onClick={() => setShowUserMenu((v) => !v)}
-                      onBlur={() => setTimeout(() => setShowUserMenu(false), 150)}
+                      onBlur={() =>
+                        setTimeout(() => setShowUserMenu(false), 150)
+                      }
                     >
-                      {user?.name?.split(" ")[0] || user?.email?.split("@")[0]} ▼
+                      {user?.name?.split(" ")[0] || user?.email?.split("@")[0]}{" "}
+                      ▼
                     </button>
                     {showUserMenu && (
                       <div
@@ -874,7 +886,7 @@ export function Header() {
                 backdropFilter: "blur(24px)",
                 WebkitBackdropFilter: "blur(24px)",
                 border: "1px solid var(--color-border)",
-                borderRadius: "16px",
+                borderRadius: "2px",
                 boxShadow: "0 25px 50px rgba(0,0,0,0.18)",
                 overflow: "hidden",
               }}
@@ -938,8 +950,8 @@ export function Header() {
                     color: "var(--color-foreground)",
                   }}
                   onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor =
-                    "var(--color-border)")
+                    (e.currentTarget.style.backgroundColor =
+                      "var(--color-border)")
                   }
                   onMouseLeave={(e) =>
                     (e.currentTarget.style.backgroundColor = "")
@@ -994,12 +1006,12 @@ export function Header() {
                               transition: "background 0.15s",
                             }}
                             onMouseEnter={(e) =>
-                            (e.currentTarget.style.backgroundColor =
-                              "var(--color-surface)")
+                              (e.currentTarget.style.backgroundColor =
+                                "var(--color-surface)")
                             }
                             onMouseLeave={(e) =>
-                            (e.currentTarget.style.backgroundColor =
-                              "transparent")
+                              (e.currentTarget.style.backgroundColor =
+                                "transparent")
                             }
                           >
                             <div
@@ -1204,8 +1216,7 @@ export function Header() {
               top: 0,
               width: "3px",
               height: "100%",
-              background:
-                "linear-gradient(to bottom, var(--color-gold), transparent 60%)",
+
               opacity: 0.6,
             }}
           />
@@ -1217,7 +1228,7 @@ export function Header() {
               alignItems: "center",
               justifyContent: "space-between",
               height: "64px",
-              padding: "0 24px",
+              margin: "0px 5px",
               borderBottom:
                 "1px solid color-mix(in oklch, var(--color-border) 60%, transparent)",
               flexShrink: 0,
@@ -1228,7 +1239,7 @@ export function Header() {
               onClick={() => setMobileOpen(false)}
               style={{
                 fontFamily: "var(--font-serif)",
-                fontSize: "1.1rem",
+                fontSize: "1.25rem",
                 fontWeight: 600,
                 display: "flex",
                 alignItems: "baseline",
@@ -1298,8 +1309,8 @@ export function Header() {
                         transition: `transform 0.6s cubic-bezier(0.16,1,0.3,1) ${i * 60}ms, opacity 0.6s ${i * 60}ms, background 0.2s`,
                       }}
                       onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor =
-                        "color-mix(in oklch, var(--color-foreground) 4%, transparent)")
+                        (e.currentTarget.style.backgroundColor =
+                          "color-mix(in oklch, var(--color-foreground) 4%, transparent)")
                       }
                       onMouseLeave={(e) =>
                         (e.currentTarget.style.backgroundColor = "")
@@ -1380,8 +1391,8 @@ export function Header() {
                               marginLeft: "4px",
                             }}
                             onMouseEnter={(e) =>
-                            (e.currentTarget.style.backgroundColor =
-                              "color-mix(in oklch, var(--color-foreground) 4%, transparent)")
+                              (e.currentTarget.style.backgroundColor =
+                                "color-mix(in oklch, var(--color-foreground) 4%, transparent)")
                             }
                             onMouseLeave={(e) =>
                               (e.currentTarget.style.backgroundColor = "")
@@ -1462,8 +1473,8 @@ export function Header() {
                       transition: `transform 0.6s cubic-bezier(0.16,1,0.3,1) ${i * 60}ms, opacity 0.6s ${i * 60}ms, background 0.2s`,
                     }}
                     onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor =
-                      "color-mix(in oklch, var(--color-foreground) 4%, transparent)")
+                      (e.currentTarget.style.backgroundColor =
+                        "color-mix(in oklch, var(--color-foreground) 4%, transparent)")
                     }
                     onMouseLeave={(e) =>
                       (e.currentTarget.style.backgroundColor = "")

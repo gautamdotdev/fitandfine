@@ -517,8 +517,6 @@ export default function HomePage() {
             display: "flex",
             gap: "24px",
             overflowX: "auto",
-            margin: "0 -20px",
-            padding: "0 20px 16px",
           }}
         >
           {newArrivals.map((p) => (

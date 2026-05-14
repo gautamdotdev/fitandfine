@@ -88,7 +88,7 @@ function QtyStepper({ value, onChange, min = 1, max = 10 }) {
         display: "inline-flex",
         alignItems: "center",
         border: "1.5px solid var(--color-border)",
-        borderRadius: "10px",
+        borderRadius: "2px",
         overflow: "hidden",
         height: "44px",
       }}
@@ -1268,7 +1268,7 @@ export default function ProductDetailPage() {
                       minWidth: "48px",
                       height: "44px",
                       padding: "0 14px",
-                      borderRadius: "10px",
+                      borderRadius: "2px",
                       border: `1.5px solid ${active ? "var(--color-foreground)" : "var(--color-border)"}`,
                       backgroundColor: active
                         ? "var(--color-foreground)"
