@@ -307,7 +307,7 @@ function LoginForm({ onSwitch }) {
         const params = new URLSearchParams(location.search);
         const next = params.get("next");
         if (next && next.startsWith("/")) {
-          navigate(next, { replace: true });
+          navigate(decodeURIComponent(next), { replace: true });
         } else {
           navigate("/");
         }
@@ -341,7 +341,7 @@ function LoginForm({ onSwitch }) {
       const params = new URLSearchParams(location.search);
       const next = params.get("next");
       if (next && next.startsWith("/")) {
-        navigate(next, { replace: true });
+        navigate(decodeURIComponent(next), { replace: true });
       } else {
         navigate("/");
       }
@@ -590,7 +590,7 @@ function RegisterForm({ onSwitch }) {
         const params = new URLSearchParams(location.search);
         const next = params.get("next");
         if (next && next.startsWith("/")) {
-          navigate(next, { replace: true });
+          navigate(decodeURIComponent(next), { replace: true });
         } else {
           navigate("/");
         }
@@ -641,7 +641,7 @@ function RegisterForm({ onSwitch }) {
       push({ type: "success", message: "Account created! Please sign in." });
       const params = new URLSearchParams(location.search);
       const next = params.get("next");
-      if (next && next.startsWith("/")) navigate(next, { replace: true });
+      if (next && next.startsWith("/")) navigate(decodeURIComponent(next), { replace: true });
       else navigate("/");
     } catch (err) {
       setErrors({ email: err.message });

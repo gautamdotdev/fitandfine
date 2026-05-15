@@ -70,7 +70,7 @@ export default function CartPage() {
   async function handleCheckout() {
     if (!user) {
       push({ type: "info", message: "Please sign in to complete your order." });
-      navigate("/auth#login");
+      navigate(`/auth?next=${encodeURIComponent("/cart")}`);
       return;
     }
 
