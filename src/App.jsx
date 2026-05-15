@@ -19,6 +19,7 @@ import NotFoundPage from "./pages/NotFoundPage.jsx";
 import ComingSoonPage from "./pages/ComingSoonPage.jsx";
 import AuthPage from "./pages/AuthPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AdminProductsPage from "./pages/admin/AdminProductsPage.jsx";
 import AdminProductFormPage from "./pages/admin/AdminProductFormPage.jsx";
 import AdminProductDetailPage from "./pages/admin/AdminProductDetailPage.jsx";
@@ -71,15 +72,35 @@ export default function App() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/auth" element={<AuthPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Admin Routes */}
-            <Route path="/admin" element={<AdminLayout />}>
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
               <Route index element={<AdminDashboardPage />} />
               <Route path="products" element={<AdminProductsPage />} />
               <Route path="products/add" element={<AdminProductFormPage />} />
-              <Route path="products/edit/:id" element={<AdminProductFormPage />} />
-              <Route path="products/view/:id" element={<AdminProductDetailPage />} />
+              <Route
+                path="products/edit/:id"
+                element={<AdminProductFormPage />}
+              />
+              <Route
+                path="products/view/:id"
+                element={<AdminProductDetailPage />}
+              />
               <Route path="orders" element={<AdminOrdersPage />} />
             </Route>
 

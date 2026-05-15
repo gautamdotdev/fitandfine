@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Eye,
   EyeOff,
@@ -189,6 +189,7 @@ function LoginForm({ onSwitch }) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
   const validate = () => {
@@ -209,7 +210,14 @@ function LoginForm({ onSwitch }) {
     setLoading(true);
     try {
       await login({ email, password });
-      navigate("/");
+      const params = new URLSearchParams(location.search);
+      const next = params.get("next");
+      if (next) {
+        // URL may be encoded
+        navigate(decodeURIComponent(next), { replace: true });
+      } else {
+        navigate("/");
+      }
     } catch (err) {
       setErrors({ password: err.message });
     } finally {
@@ -243,8 +251,14 @@ function LoginForm({ onSwitch }) {
         Sign in to your FIT & FINE account
       </p>
 
-      <div style={{ display: "flex", gap: "10px", marginBottom: "24px", justifyContent: "center" }}>
-
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          marginBottom: "24px",
+          justifyContent: "center",
+        }}
+      >
         <SocialBtn>
           <svg width="16" height="16" viewBox="0 0 24 24">
             <path
@@ -433,6 +447,7 @@ function RegisterForm({ onSwitch }) {
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const push = useToasts((s) => s.push);
+  const location = useLocation();
 
   const set = (field) => (e) => {
     setForm((f) => ({ ...f, [field]: e.target.value }));
@@ -470,7 +485,10 @@ function RegisterForm({ onSwitch }) {
         phone: form.phone,
       });
       push({ type: "success", message: "Account created! Please sign in." });
-      navigate("/");
+      const params = new URLSearchParams(location.search);
+      const next = params.get("next");
+      if (next) navigate(decodeURIComponent(next), { replace: true });
+      else navigate("/");
     } catch (err) {
       setErrors({ email: err.message });
       push({ type: "error", message: err.message });
@@ -505,8 +523,14 @@ function RegisterForm({ onSwitch }) {
         Join FIT & FINE — it only takes a minute
       </p>
 
-      <div style={{ display: "flex", gap: "10px", marginBottom: "24px", justifyContent: "center" }}>
-
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          marginBottom: "24px",
+          justifyContent: "center",
+        }}
+      >
         <SocialBtn>
           <svg width="16" height="16" viewBox="0 0 24 24">
             <path
@@ -798,7 +822,6 @@ export default function AuthPage() {
         justifyContent: "center",
       }}
     >
-
       <div
         className="auth-brand-panel"
         style={{ flex: "0 0 45%", padding: "32px", display: "none" }}
