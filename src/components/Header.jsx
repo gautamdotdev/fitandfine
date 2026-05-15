@@ -182,10 +182,11 @@ export function Header() {
         <div
           className="header-inner"
           style={{
-            maxWidth: "1400px",
-            margin: "0px 10px",
+            maxWidth: "1200px",
+            width: "100%",
+            padding: "0 20px",
             height: "100%",
-            marginLeft: "5px",
+            margin: "0 auto",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
