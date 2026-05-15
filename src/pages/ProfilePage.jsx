@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/ShopContext";
 import UserOrders from "../components/UserOrders";
 import { wishlistApi } from "../lib/api";
+import { clearWebsiteData } from "../lib/siteCache";
 
 import {
   User,
@@ -612,7 +613,7 @@ function AddressesTab({ user, updateUser }) {
 }
 
 /* ── Settings Tab ── */
-function SettingsTab({ user, updateUser }) {
+function SettingsTab({ user, updateUser, isAdmin }) {
   const [notifs, setNotifs] = useState(
     user?.preferences?.notifications || {
       orders: true,
@@ -627,6 +628,7 @@ function SettingsTab({ user, updateUser }) {
   const [email, setEmail] = useState(user?.email || "");
   const [phone, setPhone] = useState(user?.phone || "");
   const [saving, setSaving] = useState(false);
+  const [clearingCache, setClearingCache] = useState(false);
 
   useEffect(() => {
     setName(user?.name || "");
@@ -656,6 +658,20 @@ function SettingsTab({ user, updateUser }) {
     const next = { ...notifs, [key]: !notifs[key] };
     setNotifs(next);
     await updateUser({ preferences: { notifications: next } });
+  };
+
+  const clearSiteCache = async () => {
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(
+        "This will clear browser cache, website storage, service workers, and reload the app on this device. Your login will stay on this device. Continue?",
+      )
+    ) {
+      return;
+    }
+
+    setClearingCache(true);
+    await clearWebsiteData({ preserveAuth: true });
   };
 
   return (
@@ -1096,6 +1112,78 @@ function SettingsTab({ user, updateUser }) {
         </div>
       </Card>
 
+      {isAdmin ? (
+        <Card style={{ borderColor: "rgba(0,0,0,0.08)" }}>
+          <div
+            style={{
+              padding: "20px 24px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "16px",
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ minWidth: 0 }}>
+              <p
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: "var(--color-muted-foreground)",
+                  marginBottom: "6px",
+                }}
+              >
+                Admin Tools
+              </p>
+              <h3
+                style={{
+                  fontFamily: "var(--font-serif)",
+                  fontSize: "1.05rem",
+                  marginBottom: "6px",
+                }}
+              >
+                Hard reset website cache
+              </h3>
+              <p
+                style={{
+                  fontSize: "13px",
+                  color: "var(--color-muted-foreground)",
+                  lineHeight: 1.6,
+                  maxWidth: "640px",
+                }}
+              >
+                Clears browser cache, persisted site storage, IndexedDB, service
+                workers, and image caches on this device, then reloads the site.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={clearSiteCache}
+              disabled={clearingCache}
+              style={{
+                height: "42px",
+                padding: "0 18px",
+                borderRadius: "10px",
+                border: "none",
+                backgroundColor: "var(--color-foreground)",
+                color: "var(--color-background)",
+                fontSize: "12px",
+                fontWeight: 800,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                cursor: clearingCache ? "not-allowed" : "pointer",
+                fontFamily: "inherit",
+                opacity: clearingCache ? 0.75 : 1,
+              }}
+            >
+              {clearingCache ? "Clearing..." : "Clear & reload"}
+            </button>
+          </div>
+        </Card>
+      ) : null}
+
       {/* Danger zone */}
       <Card style={{ borderColor: "#fee2e2" }}>
         <div style={{ padding: "20px 24px" }}>
@@ -1155,7 +1243,7 @@ function SettingsTab({ user, updateUser }) {
 
 /* ── Main Profile Page ── */
 export default function ProfilePage() {
-  const { user, logout, updateUser } = useAuth();
+  const { user, logout, updateUser, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState("orders");
 
@@ -1478,7 +1566,11 @@ export default function ProfilePage() {
             <AddressesTab user={user} updateUser={updateUser} />
           )}
           {tab === "settings" && (
-            <SettingsTab user={user} updateUser={updateUser} />
+            <SettingsTab
+              user={user}
+              updateUser={updateUser}
+              isAdmin={isAdmin}
+            />
           )}
         </div>
       </div>

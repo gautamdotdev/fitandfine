@@ -351,6 +351,12 @@ export default function AdminProductsPage() {
       await productApi.delete(confirmProduct._id);
       setProducts((prev) => prev.filter((p) => p._id !== confirmProduct._id));
       invalidateCache();
+      await fetchProducts({
+        page,
+        limit: 20,
+        append: false,
+        forceRefresh: true,
+      }).catch(() => {});
       pushToast({
         title: "Deleted",
         message: "Product removed.",
@@ -510,181 +516,186 @@ export default function AdminProductsPage() {
 
         {/* ── TABLE ── */}
         <div className="admp-table-wrap">
-            <table className="admp-table">
-              <thead>
-                <tr>
-                  <th className="col-name">Product Name</th>
-                  <th className="col-id hide-md">ID & Date</th>
-                  <th className="col-price" style={{ textAlign: "right" }}>
-                    Price
-                  </th>
-                  <th className="col-stock hide-sm" style={{ textAlign: "right" }}>Stock</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((p) => {
-                  return (
-                    <tr
-                      key={p._id}
-                      className="admp-row"
-                      onClick={() => navigate(`/admin/products/view/${p._id}`)}
-                    >
-                      <td className="col-name">
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 10,
-                          }}
-                        >
-                          <div style={{ position: "relative", flexShrink: 0 }}>
-                            <img
-                              src={p.images?.[0]?.url || p.images?.[0] || ""}
-                              alt={p.name}
+          <table className="admp-table">
+            <thead>
+              <tr>
+                <th className="col-name">Product Name</th>
+                <th className="col-id hide-md">ID & Date</th>
+                <th className="col-price" style={{ textAlign: "right" }}>
+                  Price
+                </th>
+                <th
+                  className="col-stock hide-sm"
+                  style={{ textAlign: "right" }}
+                >
+                  Stock
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((p) => {
+                return (
+                  <tr
+                    key={p._id}
+                    className="admp-row"
+                    onClick={() => navigate(`/admin/products/view/${p._id}`)}
+                  >
+                    <td className="col-name">
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                        }}
+                      >
+                        <div style={{ position: "relative", flexShrink: 0 }}>
+                          <img
+                            src={p.images?.[0]?.url || p.images?.[0] || ""}
+                            alt={p.name}
+                            style={{
+                              width: 40,
+                              height: 50,
+                              objectFit: "cover",
+                              borderRadius: 8,
+                              display: "block",
+                              background: "#f0ede6",
+                            }}
+                          />
+                          {p.stock <= 5 && p.stock > 0 && (
+                            <span
                               style={{
-                                width: 40,
-                                height: 50,
-                                objectFit: "cover",
-                                borderRadius: 8,
-                                display: "block",
-                                background: "#f0ede6",
-                              }}
-                            />
-                            {p.stock <= 5 && p.stock > 0 && (
-                              <span
-                                style={{
-                                  position: "absolute",
-                                  top: -3,
-                                  right: -3,
-                                  background: "#f59e0b",
-                                  color: "#fff",
-                                  fontSize: 7,
-                                  padding: "1px 3px",
-                                  borderRadius: 20,
-                                  fontWeight: 800,
-                                }}
-                              >
-                                LOW
-                              </span>
-                            )}
-                          </div>
-                          <div style={{ minWidth: 0 }}>
-                            <div
-                              style={{
-                                fontWeight: 700,
-                                fontSize: 13,
-                                lineHeight: 1.3,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                maxWidth: 200,
+                                position: "absolute",
+                                top: -3,
+                                right: -3,
+                                background: "#f59e0b",
+                                color: "#fff",
+                                fontSize: 7,
+                                padding: "1px 3px",
+                                borderRadius: 20,
+                                fontWeight: 800,
                               }}
                             >
-                              {p.name}
-                            </div>
-                            <div
-                              style={{
-                                fontSize: 11,
-                                color: "#bbb",
-                                marginTop: 1,
-                              }}
-                            >
-                              {p.category}
-                            </div>
-                          </div>
+                              LOW
+                            </span>
+                          )}
                         </div>
-                      </td>
-                      <td className="col-id hide-md">
-                        <div
-                          style={{
-                            fontFamily: "monospace",
-                            fontSize: 11,
-                            color: "#888",
-                          }}
-                        >
-                          #{p.productId || p._id?.slice(-7)?.toUpperCase()}
-                        </div>
-                        <div
-                          style={{ fontSize: 11, color: "#bbb", marginTop: 2 }}
-                        >
-                          {p.createdAt
-                            ? new Date(p.createdAt).toLocaleDateString(
-                                "en-IN",
-                                {
-                                  day: "2-digit",
-                                  month: "short",
-                                  year: "numeric",
-                                },
-                              )
-                            : "—"}
-                        </div>
-                      </td>
-                      <td className="col-price" style={{ textAlign: "right" }}>
-                        <div style={{ fontWeight: 800, fontSize: 13 }}>
-                          ₹{p.price?.toLocaleString("en-IN")}
-                        </div>
-                        {p.salePrice && (
+                        <div style={{ minWidth: 0 }}>
                           <div
                             style={{
-                              fontSize: 10,
-                              color: "#b45309",
-                              fontWeight: 600,
+                              fontWeight: 700,
+                              fontSize: 13,
+                              lineHeight: 1.3,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              maxWidth: 200,
                             }}
                           >
-                            Sale ₹{p.salePrice?.toLocaleString("en-IN")}
+                            {p.name}
                           </div>
-                        )}
-                      </td>
-                      <td className="col-stock hide-sm" style={{ textAlign: "right" }}>
-                        <span
-                          style={{
-                            fontWeight: 700,
-                            fontSize: 13,
-                            color: p.stock <= 5 ? "#ef4444" : "#1a1a1a",
-                          }}
-                        >
-                          {p.stock?.toLocaleString() ?? "—"}
-                        </span>
-                        {p.stock > 0 && (
-                          <span
+                          <div
                             style={{
                               fontSize: 11,
                               color: "#bbb",
-                              marginLeft: 3,
+                              marginTop: 1,
                             }}
                           >
-                            units
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-                {filtered.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      style={{
-                        padding: "60px",
-                        textAlign: "center",
-                        color: "#bbb",
-                      }}
-                    >
-                      <Package
-                        size={32}
+                            {p.category}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="col-id hide-md">
+                      <div
                         style={{
-                          margin: "0 auto 10px",
-                          opacity: 0.3,
-                          display: "block",
+                          fontFamily: "monospace",
+                          fontSize: 11,
+                          color: "#888",
                         }}
-                      />
-                      <div style={{ fontSize: 14 }}>No products found</div>
+                      >
+                        #{p.productId || p._id?.slice(-7)?.toUpperCase()}
+                      </div>
+                      <div
+                        style={{ fontSize: 11, color: "#bbb", marginTop: 2 }}
+                      >
+                        {p.createdAt
+                          ? new Date(p.createdAt).toLocaleDateString("en-IN", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })
+                          : "—"}
+                      </div>
+                    </td>
+                    <td className="col-price" style={{ textAlign: "right" }}>
+                      <div style={{ fontWeight: 800, fontSize: 13 }}>
+                        ₹{p.price?.toLocaleString("en-IN")}
+                      </div>
+                      {p.salePrice && (
+                        <div
+                          style={{
+                            fontSize: 10,
+                            color: "#b45309",
+                            fontWeight: 600,
+                          }}
+                        >
+                          Sale ₹{p.salePrice?.toLocaleString("en-IN")}
+                        </div>
+                      )}
+                    </td>
+                    <td
+                      className="col-stock hide-sm"
+                      style={{ textAlign: "right" }}
+                    >
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          fontSize: 13,
+                          color: p.stock <= 5 ? "#ef4444" : "#1a1a1a",
+                        }}
+                      >
+                        {p.stock?.toLocaleString() ?? "—"}
+                      </span>
+                      {p.stock > 0 && (
+                        <span
+                          style={{
+                            fontSize: 11,
+                            color: "#bbb",
+                            marginLeft: 3,
+                          }}
+                        >
+                          units
+                        </span>
+                      )}
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                );
+              })}
+              {filtered.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    style={{
+                      padding: "60px",
+                      textAlign: "center",
+                      color: "#bbb",
+                    }}
+                  >
+                    <Package
+                      size={32}
+                      style={{
+                        margin: "0 auto 10px",
+                        opacity: 0.3,
+                        display: "block",
+                      }}
+                    />
+                    <div style={{ fontSize: 14 }}>No products found</div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
         <div style={{ marginTop: 24 }} />
 
         {/* Pagination */}

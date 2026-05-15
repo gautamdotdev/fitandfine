@@ -6,6 +6,9 @@ import {
   STORY_IMAGE,
 } from "./products.js";
 
+const IMAGE_CACHE_NAME = "FIT & FINE-image-cache-v2";
+const IMAGE_CACHE_PREFIX = "FIT & FINE-image-cache-";
+
 const ALL_IMAGES = [
   HERO_IMAGE,
   EDITORIAL_IMAGE,
@@ -23,12 +26,36 @@ export async function initializeImageCache() {
   if (typeof window === "undefined" || !("caches" in window)) return;
 
   try {
-    const cacheName = "FIT & FINE-image-cache-v1";
-    const cache = await caches.open(cacheName);
+    const cacheNames = await caches.keys();
+    await Promise.all(
+      cacheNames
+        .filter(
+          (name) =>
+            name.startsWith(IMAGE_CACHE_PREFIX) && name !== IMAGE_CACHE_NAME,
+        )
+        .map((name) => caches.delete(name)),
+    );
 
-    // Check if we already have some images cached to avoid re-fetching everything
+    const cache = await caches.open(IMAGE_CACHE_NAME);
+
+    const expectedUrls = new Set(
+      ALL_IMAGES.map((url) => new URL(url, window.location.origin).href),
+    );
+
     const cachedRequests = await cache.keys();
-    if (cachedRequests.length >= ALL_IMAGES.length * 0.8) {
+    await Promise.all(
+      cachedRequests
+        .filter((request) => !expectedUrls.has(request.url))
+        .map((request) => cache.delete(request)),
+    );
+
+    const missingImages = [];
+    for (const url of ALL_IMAGES) {
+      const match = await cache.match(url);
+      if (!match) missingImages.push(url);
+    }
+
+    if (missingImages.length === 0) {
       console.log("Cache already populated");
       return;
     }
@@ -37,8 +64,8 @@ export async function initializeImageCache() {
 
     // We cache in small batches to keep the main thread smooth
     const batchSize = 3;
-    for (let i = 0; i < ALL_IMAGES.length; i += batchSize) {
-      const batch = ALL_IMAGES.slice(i, i + batchSize);
+    for (let i = 0; i < missingImages.length; i += batchSize) {
+      const batch = missingImages.slice(i, i + batchSize);
       await Promise.all(
         batch.map((url) =>
           cache

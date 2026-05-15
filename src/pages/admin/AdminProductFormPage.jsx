@@ -148,7 +148,6 @@ export default function AdminProductFormPage() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const { products, fetchProducts, saveProduct } = useShop();
-  const refreshProducts = () => fetchProducts();
 
   const pushToast = useToasts((s) => s.push);
   const [loading, setLoading] = useState(false);

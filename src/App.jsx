@@ -4,6 +4,8 @@ import { Header } from "./components/Header.jsx";
 import { Footer } from "./components/Footer.jsx";
 import { Toaster } from "./components/Toaster.jsx";
 import { initializeImageCache, preloadCriticalImages } from "./lib/cache.js";
+import { consumeCacheResetFlag } from "./lib/siteCache.js";
+import { useToasts } from "./lib/store";
 import HomePage from "./pages/HomePage.jsx";
 import AboutPage from "./pages/AboutPage.jsx";
 import ContactPage from "./pages/ContactPage.jsx";
@@ -36,6 +38,25 @@ function ScrollToTop() {
   return null;
 }
 
+function CacheBootstrap() {
+  const pushToast = useToasts((state) => state.push);
+
+  useEffect(() => {
+    initializeImageCache();
+    preloadCriticalImages();
+
+    if (consumeCacheResetFlag()) {
+      pushToast({
+        title: "Cache cleared",
+        message: "The website cache was reset on this device.",
+        type: "success",
+      });
+    }
+  }, [pushToast]);
+
+  return null;
+}
+
 export default function App() {
   const comingSoon = import.meta.env.VITE_COMING_SOON === "true";
 
@@ -43,13 +64,9 @@ export default function App() {
     return <ComingSoonPage />;
   }
 
-  useEffect(() => {
-    initializeImageCache();
-    preloadCriticalImages();
-  }, []);
-
   return (
     <>
+      <CacheBootstrap />
       <ScrollToTop />
       <div
         style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}

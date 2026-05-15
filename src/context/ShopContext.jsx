@@ -182,21 +182,29 @@ export const ShopProvider = ({ children }) => {
     filters = {},
     limit = 20,
     append = false,
+    forceRefresh = false,
   } = {}) => {
     // 1. Create request key for deduplication & caching
     const requestKey = JSON.stringify({ page, cursor, filters, limit });
 
     // 2. Check Cache
     const cached = cache.get(requestKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL && !append) {
+    if (
+      !forceRefresh &&
+      cached &&
+      Date.now() - cached.timestamp < CACHE_TTL &&
+      !append
+    ) {
       setProducts(cached.data.products);
       setNextCursor(cached.data.nextCursor);
       setHasMore(cached.data.hasMore);
+      setTotal(cached.data.total || 0);
+      setLoading(false);
       return cached.data;
     }
 
     // 3. Deduplication: Skip if same request is already in-flight
-    if (currentRequestKeyRef.current === requestKey) return;
+    if (!forceRefresh && currentRequestKeyRef.current === requestKey) return;
     currentRequestKeyRef.current = requestKey;
 
     // 4. Abort previous request
@@ -259,7 +267,18 @@ export const ShopProvider = ({ children }) => {
   };
 
   // Invalidate cache on mutations
-  const invalidateCache = () => cache.clear();
+  const invalidateCache = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
+    currentRequestKeyRef.current = null;
+    cache.clear();
+  };
+
+  const refreshProducts = (options = {}) =>
+    fetchProducts({ ...options, forceRefresh: true });
 
   const saveProduct = async (id, data, metadata) => {
     const taskId = Date.now().toString();
@@ -285,7 +304,7 @@ export const ShopProvider = ({ children }) => {
         prev.map((t) => (t.id === taskId ? { ...t, status: "success" } : t)),
       );
       invalidateCache();
-      fetchProducts({ limit: 20, append: false });
+      await fetchProducts({ limit: 20, append: false, forceRefresh: true });
 
       pushToast({
         title: "Success",
@@ -319,6 +338,7 @@ export const ShopProvider = ({ children }) => {
     total,
     backgroundTasks,
     fetchProducts,
+    refreshProducts,
     saveProduct,
     invalidateCache,
     setProducts,
