@@ -183,7 +183,7 @@ export function Header() {
           className="header-inner"
           style={{
             maxWidth: "1400px",
-            margin: "0 auto",
+            margin: "0px 10px",
             height: "100%",
             marginLeft: "5px",
             display: "flex",
@@ -1227,7 +1227,7 @@ export function Header() {
               alignItems: "center",
               justifyContent: "space-between",
               height: "64px",
-              margin: "0px 5px",
+              margin: "0px 10px",
               borderBottom:
                 "1px solid color-mix(in oklch, var(--color-border) 60%, transparent)",
               flexShrink: 0,
