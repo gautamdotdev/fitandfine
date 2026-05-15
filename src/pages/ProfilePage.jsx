@@ -131,114 +131,6 @@ const ORDERS = [
   },
 ];
 
-const WISHLIST = [
-  {
-    id: "w1",
-    name: "Cashmere Turtleneck",
-    category: "Sweaters",
-    price: 6999,
-    salePrice: null,
-    image:
-      "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=240&q=80",
-  },
-  {
-    id: "w2",
-    name: "Tailored Blazer",
-    category: "Jackets",
-    price: 8499,
-    salePrice: 6799,
-    image:
-      "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=240&q=80",
-  },
-  {
-    id: "w3",
-    name: "Premium Cargo Pants",
-    category: "Trousers",
-    price: 3799,
-    salePrice: null,
-    image:
-      "https://images.unsplash.com/photo-1542272604-787c3835535d?w=240&q=80",
-  },
-  {
-    id: "w4",
-    name: "Slim Formal Shirt",
-    category: "Shirts",
-    price: 2499,
-    salePrice: 1999,
-    image:
-      "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=240&q=80",
-  },
-];
-
-const ADDRESSES = [
-  {
-    id: "a1",
-    label: "Home",
-    name: "Arjun Mehta",
-    line1: "304, Shivalik Apartments",
-    line2: "Navrangpura",
-    city: "Ahmedabad",
-    state: "Gujarat",
-    pin: "380009",
-    phone: "+91 98765 43210",
-    default: true,
-  },
-  {
-    id: "a2",
-    label: "Office",
-    name: "Arjun Mehta",
-    line1: "B-12, Prahladnagar Corporate Road",
-    line2: "GIFT City",
-    city: "Gandhinagar",
-    state: "Gujarat",
-    pin: "382355",
-    phone: "+91 98765 43210",
-    default: false,
-  },
-];
-
-/* ── Status Badge ── */
-function StatusBadge({ status }) {
-  const map = {
-    Delivered: { bg: "#dcfce7", color: "#16a34a", dot: "#16a34a" },
-    "In Transit": {
-      bg: "color-mix(in oklch, var(--color-gold) 12%, transparent)",
-      color: "var(--color-gold)",
-      dot: "var(--color-gold)",
-    },
-    Processing: { bg: "#dbeafe", color: "#2563eb", dot: "#2563eb" },
-    Cancelled: { bg: "#fee2e2", color: "#dc2626", dot: "#dc2626" },
-  };
-  const s = map[status] || map["Processing"];
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "5px",
-        padding: "3px 10px",
-        borderRadius: "50px",
-        backgroundColor: s.bg,
-        color: s.color,
-        fontSize: "10px",
-        fontWeight: 700,
-        letterSpacing: "0.06em",
-      }}
-    >
-      <span
-        style={{
-          width: "5px",
-          height: "5px",
-          borderRadius: "50%",
-          backgroundColor: s.dot,
-          flexShrink: 0,
-        }}
-      />
-      {status.toUpperCase()}
-    </span>
-  );
-}
-
 /* ── Section Card ── */
 function Card({ children, style = {} }) {
   return (
@@ -252,64 +144,6 @@ function Card({ children, style = {} }) {
       }}
     >
       {children}
-    </div>
-  );
-}
-
-/* ── Stat Tile ── */
-function StatTile({ label, value, sub }) {
-  return (
-    <div
-      style={{
-        padding: "20px",
-        borderRadius: "12px",
-        border: "1px solid var(--color-border)",
-        backgroundColor: "var(--color-surface)",
-        transition: "border-color 0.2s, box-shadow 0.2s",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "var(--color-gold)";
-        e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.06)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "var(--color-border)";
-        e.currentTarget.style.boxShadow = "none";
-      }}
-    >
-      <p
-        style={{
-          fontSize: "10px",
-          fontWeight: 700,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          color: "var(--color-muted-foreground)",
-          marginBottom: "6px",
-        }}
-      >
-        {label}
-      </p>
-      <p
-        style={{
-          fontFamily: "var(--font-serif)",
-          fontSize: "1.8rem",
-          fontWeight: 600,
-          lineHeight: 1,
-          color: "var(--color-foreground)",
-        }}
-      >
-        {value}
-      </p>
-      {sub && (
-        <p
-          style={{
-            fontSize: "11px",
-            color: "var(--color-muted-foreground)",
-            marginTop: "4px",
-          }}
-        >
-          {sub}
-        </p>
-      )}
     </div>
   );
 }
@@ -375,239 +209,6 @@ function OrdersTab() {
   );
 }
 
-/* ── Wishlist Tab ── */
-function WishlistTab() {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    wishlistApi
-      .get()
-      .then((data) => setItems(data.products || []))
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const remove = async (id) => {
-    await wishlistApi.remove(id);
-    setItems((i) => i.filter((x) => x._id !== id));
-  };
-
-  return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "20px",
-        }}
-      >
-        <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "1.4rem" }}>
-          Wishlist
-        </h2>
-        <span
-          style={{ fontSize: "11px", color: "var(--color-muted-foreground)" }}
-        >
-          {items.length} items saved
-        </span>
-      </div>
-      <div
-        style={{ display: "grid", gap: "16px" }}
-        className="profile-wishlist-grid"
-      >
-        {items.map((item) => (
-          <Card
-            key={item._id}
-            style={{ transition: "border-color 0.2s, box-shadow 0.2s" }}
-          >
-            <div style={{ display: "flex", gap: "0" }}>
-              <div
-                style={{ width: "100px", flexShrink: 0, position: "relative" }}
-              >
-                <img
-                  src={item.images?.[0]?.url || item.images?.[0] || ""}
-                  alt={item.name}
-                  style={{ width: "100%", height: "130px", objectFit: "cover" }}
-                />
-                {item.salePrice && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "8px",
-                      left: "8px",
-                      backgroundColor: "var(--color-gold)",
-                      color: "white",
-                      fontSize: "9px",
-                      fontWeight: 700,
-                      padding: "2px 7px",
-                      borderRadius: "50px",
-                    }}
-                  >
-                    SALE
-                  </div>
-                )}
-              </div>
-              <div
-                style={{
-                  flex: 1,
-                  padding: "14px 16px",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                }}
-              >
-                <div>
-                  <p
-                    style={{
-                      fontSize: "10px",
-                      color: "var(--color-muted-foreground)",
-                      fontWeight: 600,
-                      letterSpacing: "0.06em",
-                      textTransform: "uppercase",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    {item.category}
-                  </p>
-                  <p
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      fontFamily: "var(--font-serif)",
-                    }}
-                  >
-                    {item.name}
-                  </p>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "baseline",
-                      gap: "8px",
-                      marginTop: "6px",
-                    }}
-                  >
-                    <span style={{ fontSize: "15px", fontWeight: 700 }}>
-                      ₹{(item.salePrice ?? item.price).toLocaleString("en-IN")}
-                    </span>
-                    {item.salePrice && (
-                      <span
-                        style={{
-                          fontSize: "12px",
-                          color: "var(--color-muted-foreground)",
-                          textDecoration: "line-through",
-                        }}
-                      >
-                        ₹{item.price.toLocaleString("en-IN")}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "8px",
-                    alignItems: "center",
-                    marginTop: "10px",
-                  }}
-                >
-                  <Link
-                    to={`/product/${item.slug || item._id}`}
-                    style={{
-                      flex: 1,
-                      height: "34px",
-                      borderRadius: "8px",
-                      backgroundColor: "var(--color-foreground)",
-                      color: "var(--color-background)",
-                      border: "none",
-                      fontSize: "11px",
-                      fontWeight: 700,
-                      letterSpacing: "0.06em",
-                      textTransform: "uppercase",
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                      transition: "opacity 0.2s",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      textDecoration: "none",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.opacity = "0.85")
-                    }
-                    onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-                  >
-                    View Product
-                  </Link>
-                  <button
-                    onClick={() => remove(item._id)}
-                    style={{
-                      width: "34px",
-                      height: "34px",
-                      borderRadius: "8px",
-                      border: "1px solid var(--color-border)",
-                      backgroundColor: "transparent",
-                      color: "#ef4444",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#fee2e2";
-                      e.currentTarget.style.borderColor = "#ef4444";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                      e.currentTarget.style.borderColor = "var(--color-border)";
-                    }}
-                  >
-                    <Trash2 size={13} strokeWidth={2} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
-      {loading && (
-        <div style={{ textAlign: "center", padding: "40px 0", color: "var(--color-muted-foreground)" }}>
-          Loading wishlist...
-        </div>
-      )}
-      {error && (
-        <div style={{ textAlign: "center", padding: "40px 0", color: "#ef4444" }}>
-          {error}
-        </div>
-      )}
-      {items.length === 0 && (
-        <div style={{ textAlign: "center", padding: "60px 0" }}>
-          <Heart
-            size={40}
-            style={{ color: "var(--color-border)", margin: "0 auto 12px" }}
-          />
-          <p
-            style={{
-              fontSize: "15px",
-              fontFamily: "var(--font-serif)",
-              marginBottom: "6px",
-            }}
-          >
-            Your wishlist is empty
-          </p>
-          <p
-            style={{ fontSize: "13px", color: "var(--color-muted-foreground)" }}
-          >
-            Items you save will appear here
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
-
 /* ── Addresses Tab ── */
 function AddressesTab({ user, updateUser }) {
   const emptyAddress = {
@@ -653,7 +254,11 @@ function AddressesTab({ user, updateUser }) {
       editing === "new"
         ? [...addresses, clean]
         : addresses.map((addr) => (addr._id === editing ? clean : addr));
-    persist(clean.default ? next.map((addr) => ({ ...addr, default: addr === clean })) : next);
+    persist(
+      clean.default
+        ? next.map((addr) => ({ ...addr, default: addr === clean }))
+        : next,
+    );
   };
 
   const setDefault = (id) =>
@@ -713,7 +318,13 @@ function AddressesTab({ user, updateUser }) {
               gap: "12px",
             }}
           >
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+                gap: "12px",
+              }}
+            >
               {[
                 ["label", "Label"],
                 ["name", "Full name"],
@@ -727,9 +338,18 @@ function AddressesTab({ user, updateUser }) {
                 <input
                   key={key}
                   value={form[key] || ""}
-                  onChange={(e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, [key]: e.target.value }))
+                  }
                   placeholder={label}
-                  required={["name", "line1", "city", "state", "pin", "phone"].includes(key)}
+                  required={[
+                    "name",
+                    "line1",
+                    "city",
+                    "state",
+                    "pin",
+                    "phone",
+                  ].includes(key)}
                   style={{
                     minWidth: 0,
                     height: "42px",
@@ -742,11 +362,21 @@ function AddressesTab({ user, updateUser }) {
                 />
               ))}
             </div>
-            <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 600 }}>
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                fontSize: "13px",
+                fontWeight: 600,
+              }}
+            >
               <input
                 type="checkbox"
                 checked={Boolean(form.default)}
-                onChange={(e) => setForm((prev) => ({ ...prev, default: e.target.checked }))}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, default: e.target.checked }))
+                }
               />
               Set as default delivery address
             </label>
@@ -860,8 +490,8 @@ function AddressesTab({ user, updateUser }) {
                       transition: "all 0.15s",
                     }}
                     onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor =
-                      "var(--color-surface)")
+                      (e.currentTarget.style.backgroundColor =
+                        "var(--color-surface)")
                     }
                     onMouseLeave={(e) =>
                       (e.currentTarget.style.backgroundColor = "transparent")
@@ -952,8 +582,8 @@ function AddressesTab({ user, updateUser }) {
                     (e.currentTarget.style.color = "var(--color-foreground)")
                   }
                   onMouseLeave={(e) =>
-                  (e.currentTarget.style.color =
-                    "var(--color-muted-foreground)")
+                    (e.currentTarget.style.color =
+                      "var(--color-muted-foreground)")
                   }
                 >
                   Set as default
@@ -964,7 +594,14 @@ function AddressesTab({ user, updateUser }) {
         ))}
         {addresses.length === 0 && (
           <Card>
-            <div style={{ padding: "32px", textAlign: "center", color: "var(--color-muted-foreground)", fontSize: "13px" }}>
+            <div
+              style={{
+                padding: "32px",
+                textAlign: "center",
+                color: "var(--color-muted-foreground)",
+                fontSize: "13px",
+              }}
+            >
               No saved addresses yet.
             </div>
           </Card>
@@ -1550,7 +1187,6 @@ export default function ProfilePage() {
 
   const tabs = [
     { id: "orders", label: "My Orders", icon: Package },
-    { id: "wishlist", label: "Wishlist", icon: Heart },
     { id: "addresses", label: "Addresses", icon: MapPin },
     { id: "settings", label: "Settings", icon: Settings },
   ];
@@ -1775,7 +1411,12 @@ export default function ProfilePage() {
                   margin: "8px 0",
                 }}
               />
-              <NavItem icon={LogOut} label="Sign Out" onClick={handleLogout} danger />
+              <NavItem
+                icon={LogOut}
+                label="Sign Out"
+                onClick={handleLogout}
+                danger
+              />
             </div>
           </Card>
         </aside>
@@ -1833,8 +1474,12 @@ export default function ProfilePage() {
         >
           {tab === "orders" && <OrdersTab />}
           {tab === "wishlist" && <WishlistTab />}
-          {tab === "addresses" && <AddressesTab user={user} updateUser={updateUser} />}
-          {tab === "settings" && <SettingsTab user={user} updateUser={updateUser} />}
+          {tab === "addresses" && (
+            <AddressesTab user={user} updateUser={updateUser} />
+          )}
+          {tab === "settings" && (
+            <SettingsTab user={user} updateUser={updateUser} />
+          )}
         </div>
       </div>
 

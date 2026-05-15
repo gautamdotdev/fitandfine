@@ -28,12 +28,19 @@ export const AuthProvider = ({ children }) => {
 
   const pushToast = useToasts((s) => s.push);
 
+  const syncCurrentUser = async () => {
+    const data = await authApi.getMe();
+    const userData = data.user || data;
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
+    return userData;
+  };
+
   const login = async (credentials) => {
     try {
       const data = await authApi.login(credentials);
-      setUser(data.user);
-      localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("token", data.token);
+      await syncCurrentUser();
 
       pushToast({
         title: "Success",
@@ -94,8 +101,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const data = await authApi.googleLogin({ idToken });
       localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setUser(data.user);
+      await syncCurrentUser();
       pushToast({
         title: "Success",
         message: "Signed in with Google",
@@ -119,10 +125,7 @@ export const AuthProvider = ({ children }) => {
       return;
     }
     try {
-      const data = await authApi.getMe();
-      const userData = data.user || data;
-      setUser(userData);
-      localStorage.setItem("user", JSON.stringify(userData));
+      await syncCurrentUser();
     } catch (error) {
       if (error.status === 401 || error.status === 403) {
         logout();
