@@ -20,7 +20,7 @@ import { CONTACT_NAME, WHATSAPP_NUMBER } from "../lib/products.js";
 
 export default function CartPage() {
   const { items, remove, setQty, subtotal, count } = useCart();
-  const { user, updateUser } = useAuth();
+  const { user, loading: authLoading, updateUser } = useAuth();
   const push = useToasts((s) => s.push);
   const navigate = useNavigate();
 
@@ -31,17 +31,18 @@ export default function CartPage() {
   const [loading, setLoading] = useState(false);
   const addresses = user?.addresses || [];
   const defaultAddress = addresses.find((addr) => addr.default) || addresses[0];
-  const [selectedAddressId, setSelectedAddressId] = useState(
-    defaultAddress?._id || "",
-  );
-  const selectedAddress =
-    addresses.find((addr) => addr._id === selectedAddressId) || defaultAddress;
+  const [selectedAddressId, setSelectedAddressId] = useState("");
 
+  // Sync selectedAddressId whenever user/addresses load or change
+  // (covers the case where checkAuth resolves after initial render)
   useEffect(() => {
-    if (!selectedAddressId && defaultAddress?._id) {
+    if (defaultAddress?._id && !selectedAddressId) {
       setSelectedAddressId(defaultAddress._id);
     }
-  }, [defaultAddress?._id, selectedAddressId]);
+  }, [defaultAddress?._id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const selectedAddress =
+    addresses.find((addr) => addr._id === selectedAddressId) || defaultAddress;
 
   const formatAddress = (addr) =>
     addr
@@ -515,7 +516,9 @@ export default function CartPage() {
                     color: "#cc272e",
                   }}
                 >
-                  Add an address in your profile before checkout.
+                  {authLoading
+                    ? "Loading your addresses…"
+                    : "Add an address in your profile before checkout."}
                 </div>
               ) : (
                 <div style={{ display: "grid", gap: "10px" }}>
