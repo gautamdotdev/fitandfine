@@ -726,9 +726,20 @@ export default function ProductDetailPage() {
   const discount = product.salePrice
     ? Math.round((1 - product.salePrice / product.price) * 100)
     : null;
+  const inStock = (product.stock ?? 0) > 0;
+  const lowStock = inStock && (product.stock ?? 0) <= 5;
+
   const handleAdd = () => {
+    if (!inStock) {
+      setError("This product is out of stock");
+      return;
+    }
     if (!size) {
       setError("Please select a size to continue");
+      return;
+    }
+    if (qty > (product.stock ?? 0)) {
+      setError(`Only ${product.stock} unit${product.stock === 1 ? "" : "s"} available`);
       return;
     }
     add({
@@ -1177,6 +1188,49 @@ export default function ProductDetailPage() {
             Incl. of all taxes
           </p>
 
+          {/* Stock badge */}
+          {!inStock ? (
+            <div
+              style={{
+                marginTop: "10px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                backgroundColor: "color-mix(in oklch, var(--color-destructive) 10%, transparent)",
+                color: "var(--color-destructive)",
+                fontSize: "11px",
+                fontWeight: 700,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                padding: "5px 12px",
+                borderRadius: "50px",
+                border: "1px solid color-mix(in oklch, var(--color-destructive) 30%, transparent)",
+              }}
+            >
+              Out of Stock
+            </div>
+          ) : lowStock ? (
+            <div
+              style={{
+                marginTop: "10px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                backgroundColor: "color-mix(in oklch, var(--color-gold) 10%, transparent)",
+                color: "var(--color-gold)",
+                fontSize: "11px",
+                fontWeight: 700,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                padding: "5px 12px",
+                borderRadius: "50px",
+                border: "1px solid color-mix(in oklch, var(--color-gold) 30%, transparent)",
+              }}
+            >
+              Only {product.stock} left
+            </div>
+          ) : null}
+
           {/* Description */}
           <p
             style={{
@@ -1425,25 +1479,28 @@ export default function ProductDetailPage() {
               flexWrap: "wrap",
             }}
           >
-            <QtyStepper value={qty} onChange={setQty} />
+            <QtyStepper value={qty} onChange={setQty} max={inStock ? Math.min(product.stock, 10) : 1} />
             <button
               className="pdp-desktop-action"
               onClick={handleAdd}
+              disabled={!inStock}
               style={{
                 flex: 1,
                 minWidth: "160px",
                 height: "44px",
                 borderRadius: "2px",
                 border: "none",
-                backgroundColor: addedAnim
+                backgroundColor: !inStock
+                  ? "var(--color-border)"
+                  : addedAnim
                   ? "var(--color-gold)"
                   : "var(--color-foreground)",
-                color: "var(--color-background)",
+                color: !inStock ? "var(--color-muted-foreground)" : "var(--color-background)",
                 fontSize: "12px",
                 fontWeight: 700,
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
-                cursor: "pointer",
+                cursor: !inStock ? "not-allowed" : "pointer",
                 transition: "all 0.3s",
                 display: "flex",
                 alignItems: "center",
@@ -1452,7 +1509,7 @@ export default function ProductDetailPage() {
                 fontFamily: "inherit",
               }}
               onMouseEnter={(e) => {
-                if (!addedAnim) e.currentTarget.style.opacity = "0.88";
+                if (!addedAnim && inStock) e.currentTarget.style.opacity = "0.88";
               }}
               onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
             >
@@ -1460,6 +1517,8 @@ export default function ProductDetailPage() {
                 <>
                   <Check size={15} strokeWidth={2.5} /> Added!
                 </>
+              ) : !inStock ? (
+                "Out of Stock"
               ) : (
                 "Add to Cart"
               )}
@@ -2023,20 +2082,23 @@ export default function ProductDetailPage() {
       >
         <button
           onClick={handleAdd}
+          disabled={!inStock}
           style={{
             flex: 1,
             height: "48px",
-            backgroundColor: addedAnim
+            backgroundColor: !inStock
+              ? "var(--color-border)"
+              : addedAnim
               ? "var(--color-gold)"
               : "var(--color-foreground)",
-            color: "var(--color-background)",
+            color: !inStock ? "var(--color-muted-foreground)" : "var(--color-background)",
             borderRadius: "2px",
             border: "none",
             fontSize: "12px",
             fontWeight: 700,
             letterSpacing: "0.06em",
             textTransform: "uppercase",
-            cursor: "pointer",
+            cursor: !inStock ? "not-allowed" : "pointer",
             fontFamily: "inherit",
             transition: "background-color 0.3s",
             display: "flex",
@@ -2049,6 +2111,8 @@ export default function ProductDetailPage() {
             <>
               <Check size={15} /> Added!
             </>
+          ) : !inStock ? (
+            "Out of Stock"
           ) : (
             "Add to Cart"
           )}

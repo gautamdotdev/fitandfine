@@ -12,6 +12,7 @@ export function ProductCard({ product, badge }) {
   const push = useToasts((s) => s.push);
   const onSale = !!product.salePrice;
   const [hovered, setHovered] = useState(false);
+  const outOfStock = (product.stock ?? 1) === 0;
 
   return (
     <div
@@ -137,6 +138,37 @@ export function ProductCard({ product, badge }) {
             >
               Sale
             </span>
+          )}
+
+          {/* Out of stock overlay */}
+          {outOfStock && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                backgroundColor: "rgba(255,255,255,0.5)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 15,
+              }}
+            >
+              <span
+                className="label-caps"
+                style={{
+                  backgroundColor: "rgba(0,0,0,0.72)",
+                  backdropFilter: "blur(4px)",
+                  color: "white",
+                  padding: "8px 14px",
+                  borderRadius: "4px",
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  letterSpacing: "0.12em",
+                }}
+              >
+                Out of Stock
+              </span>
+            </div>
           )}
         </div>
       </Link>
@@ -279,6 +311,17 @@ export function ProductCard({ product, badge }) {
         >
           {product.fabric}
         </p>
+
+        {/* Stock indicator */}
+        {outOfStock ? (
+          <p style={{ fontSize: "10px", color: "var(--color-destructive)", fontWeight: 700, marginTop: "6px", letterSpacing: "0.04em" }}>
+            Out of stock
+          </p>
+        ) : product.stock > 0 && product.stock <= 5 ? (
+          <p style={{ fontSize: "10px", color: "var(--color-gold)", fontWeight: 700, marginTop: "6px", letterSpacing: "0.04em" }}>
+            Only {product.stock} left
+          </p>
+        ) : null}
       </div>
 
       <style>{`

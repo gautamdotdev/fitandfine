@@ -120,7 +120,11 @@ export default function CartPage() {
       window.open(waUrl, "_blank");
       navigate("/profile"); // Redirect to orders page
     } catch (err) {
-      push({ type: "error", message: err.message });
+      // Stock error from backend includes productId — highlight the item
+      push({
+        type: "error",
+        message: err.message || "Failed to place order. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
