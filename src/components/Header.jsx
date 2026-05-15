@@ -61,6 +61,8 @@ export function Header() {
   const [query, setQuery] = useState("");
   const [mobileDropdown, setMobileDropdown] = useState(null);
   const [desktopDropdown, setDesktopDropdown] = useState(null);
+  const [mobileVisible, setMobileVisible] = useState(false);
+  const mobileCloseTimer = useRef(null);
   const collectionsTimer = useRef(null);
   const lastScrollY = useRef(0);
 
@@ -94,6 +96,28 @@ export function Header() {
     setMobileDropdown(null);
     setDesktopDropdown(null);
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (mobileOpen) {
+      if (mobileCloseTimer.current) {
+        clearTimeout(mobileCloseTimer.current);
+        mobileCloseTimer.current = null;
+      }
+      setMobileVisible(true);
+    } else {
+      // wait for panel transition (0.5s) before hiding completely
+      mobileCloseTimer.current = setTimeout(() => {
+        setMobileVisible(false);
+        mobileCloseTimer.current = null;
+      }, 500);
+    }
+    return () => {
+      if (mobileCloseTimer.current) {
+        clearTimeout(mobileCloseTimer.current);
+        mobileCloseTimer.current = null;
+      }
+    };
+  }, [mobileOpen]);
 
   // Close search on outside click
   useEffect(() => {
@@ -1174,8 +1198,8 @@ export function Header() {
           position: "fixed",
           inset: 0,
           zIndex: 100,
-          visibility: mobileOpen ? "visible" : "hidden",
-          pointerEvents: mobileOpen ? "auto" : "none",
+          visibility: mobileVisible ? "visible" : "hidden",
+          pointerEvents: mobileVisible ? "auto" : "none",
         }}
       >
         {/* Backdrop */}
