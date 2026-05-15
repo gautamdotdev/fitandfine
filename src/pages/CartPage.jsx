@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Trash2,
   ShoppingBag,
@@ -10,16 +10,230 @@ import {
   Truck,
   MapPin,
   CheckCircle2,
+  X,
 } from "lucide-react";
 import { useCart, useToasts } from "../lib/store.js";
 import { useAuth } from "../context/ShopContext.jsx";
-
-import { useNavigate } from "react-router-dom";
 import { orderApi } from "../lib/api.js";
 import { CONTACT_NAME, WHATSAPP_NUMBER } from "../lib/products.js";
 
+/* ── Modal Shell ── */
+function Modal({ open, onClose, children, maxWidth = "480px" }) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => setVisible(true)),
+      );
+    } else {
+      setVisible(false);
+      const t = setTimeout(() => {
+        document.body.style.overflow = "";
+      }, 300);
+      return () => clearTimeout(t);
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  if (!open && !visible) return null;
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1000,
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "center",
+        padding: "0",
+      }}
+    >
+      <div
+        onClick={onClose}
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundColor: "rgba(0,0,0,0.55)",
+          backdropFilter: "blur(6px)",
+          opacity: visible ? 1 : 0,
+          transition: "opacity 0.3s ease",
+        }}
+      />
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          maxWidth,
+          backgroundColor: "var(--color-background)",
+          borderRadius: "24px 24px 0 0",
+          padding: "0",
+          maxHeight: "92vh",
+          overflowY: "auto",
+          scrollbarWidth: "none",
+          transform: visible ? "translateY(0)" : "translateY(100%)",
+          transition: "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+          boxShadow: "0 -8px 40px rgba(0,0,0,0.15)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Handle bar */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            paddingTop: "12px",
+          }}
+        >
+          <div
+            style={{
+              width: "36px",
+              height: "4px",
+              borderRadius: "2px",
+              backgroundColor: "var(--color-border)",
+            }}
+          />
+        </div>
+        {/* Close btn */}
+        <button
+          onClick={onClose}
+          style={{
+            position: "absolute",
+            top: "16px",
+            right: "20px",
+            width: "32px",
+            height: "32px",
+            borderRadius: "50%",
+            border: "1px solid var(--color-border)",
+            backgroundColor: "var(--color-surface)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            color: "var(--color-foreground)",
+            transition: "all 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "var(--color-foreground)";
+            e.currentTarget.style.color = "var(--color-background)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "var(--color-surface)";
+            e.currentTarget.style.color = "var(--color-foreground)";
+          }}
+        >
+          <X size={14} strokeWidth={2.5} />
+        </button>
+        <div>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function ProductDetailsPopup({ open, onClose, item }) {
+  if (!item) return null;
+
+  return (
+    <Modal open={open} onClose={onClose}>
+      <div style={{ textAlign: "center" }}>
+        <Link
+          to={`/product/${item.slug}`}
+          onClick={onClose}
+          style={{
+            display: "block",
+            width: "140px",
+            margin: "24px auto 16px",
+            aspectRatio: "3/4",
+            overflow: "hidden",
+            borderRadius: "16px",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+          }}
+        >
+          <img
+            src={item.image?.url || item.image}
+            alt={item.name}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        </Link>
+        <div style={{ padding: "12px 24px 15px" }}>
+          <h3
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontSize: "1.5rem",
+              marginBottom: "8px",
+            }}
+          >
+            {item.name}
+          </h3>
+          <p
+            style={{
+              fontSize: "1.1rem",
+              fontWeight: 700,
+              color: "var(--color-gold)",
+              marginBottom: "24px",
+            }}
+          >
+            ₹{item.price.toLocaleString("en-IN")}
+          </p>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "16px",
+              textAlign: "left",
+              backgroundColor: "var(--color-surface)",
+              padding: "20px",
+              borderRadius: "16px",
+              border: "1px solid var(--color-border)",
+            }}
+          >
+            <div>
+              <p
+                className="label-caps"
+                style={{ fontSize: "9px", color: "var(--color-muted-foreground)" }}
+              >
+                Selected Color
+              </p>
+              <p style={{ fontWeight: 600, marginTop: "4px" }}>{item.color}</p>
+            </div>
+            <div>
+              <p
+                className="label-caps"
+                style={{ fontSize: "9px", color: "var(--color-muted-foreground)" }}
+              >
+                Selected Size
+              </p>
+              <p style={{ fontWeight: 600, marginTop: "4px" }}>US {item.size}</p>
+            </div>
+          </div>
+
+          <button
+            onClick={onClose}
+            style={{
+              width: "100%",
+              marginTop: "32px",
+              backgroundColor: "var(--color-foreground)",
+              color: "var(--color-background)",
+              padding: "16px",
+              borderRadius: "2px",
+              fontSize: "14px",
+              fontWeight: 600,
+            }}
+          >
+            Close Details
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 export default function CartPage() {
-  const { items, remove, setQty, subtotal, count } = useCart();
+  const { items, remove, setQty, subtotal, count, clear } = useCart();
   const { user, loading: authLoading, updateUser } = useAuth();
   const push = useToasts((s) => s.push);
   const navigate = useNavigate();
@@ -29,17 +243,17 @@ export default function CartPage() {
   const shipping = total > 2999 ? 0 : 120;
   const grandTotal = total + shipping;
   const [loading, setLoading] = useState(false);
+  const [detailsItem, setDetailsItem] = useState(null);
+
   const addresses = user?.addresses || [];
   const defaultAddress = addresses.find((addr) => addr.default) || addresses[0];
   const [selectedAddressId, setSelectedAddressId] = useState("");
 
-  // Sync selectedAddressId whenever user/addresses load or change
-  // (covers the case where checkAuth resolves after initial render)
   useEffect(() => {
     if (defaultAddress?._id && !selectedAddressId) {
       setSelectedAddressId(defaultAddress._id);
     }
-  }, [defaultAddress?._id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [defaultAddress?._id]);
 
   const selectedAddress =
     addresses.find((addr) => addr._id === selectedAddressId) || defaultAddress;
@@ -47,14 +261,14 @@ export default function CartPage() {
   const formatAddress = (addr) =>
     addr
       ? [
-          addr.name,
-          addr.line1,
-          addr.line2,
-          `${addr.city || ""}, ${addr.state || ""} - ${addr.pin || ""}`.trim(),
-          addr.phone,
-        ]
-          .filter(Boolean)
-          .join(", ")
+        addr.name,
+        addr.line1,
+        addr.line2,
+        `${addr.city || ""}, ${addr.state || ""} - ${addr.pin || ""}`.trim(),
+        addr.phone,
+      ]
+        .filter(Boolean)
+        .join(", ")
       : "";
 
   const markDefaultAddress = async () => {
@@ -102,7 +316,6 @@ export default function CartPage() {
         address: selectedAddress,
       });
 
-      // Build WhatsApp message with order link
       const lines = items
         .map(
           (i, n) =>
@@ -114,14 +327,11 @@ export default function CartPage() {
       const text = `Hi ${CONTACT_NAME}, I'd like to order the following:\n${lines}\n\nDelivery address:\n${formatAddress(selectedAddress)}\n\n${breakdown}\n\nOrder details: ${data.orderLink}\nPlease confirm availability.`;
       const waUrl = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(text)}`;
 
-      // Clear cart
-      const { clear } = useCart.getState();
       clear();
 
       window.open(waUrl, "_blank");
-      navigate("/profile"); // Redirect to orders page
+      navigate("/profile");
     } catch (err) {
-      // Stock error from backend includes productId — highlight the item
       push({
         type: "error",
         message: err.message || "Failed to place order. Please try again.",
@@ -187,12 +397,6 @@ export default function CartPage() {
             textDecoration: "none",
             transition: "background-color 0.3s",
           }}
-          onMouseEnter={(e) =>
-            (e.target.style.backgroundColor = "var(--color-gold)")
-          }
-          onMouseLeave={(e) =>
-            (e.target.style.backgroundColor = "var(--color-foreground)")
-          }
         >
           Start Shopping
         </Link>
@@ -201,473 +405,422 @@ export default function CartPage() {
   }
 
   return (
-    <div
-      className="page-transition"
-      style={{
-        maxWidth: "1400px",
-        margin: "0 auto",
-        padding: "24px 20px 80px",
-      }}
-    >
-      <h1
+    <>
+      <div
+        className="page-transition"
         style={{
-          fontFamily: "var(--font-serif)",
-          fontSize: "clamp(2rem, 5vw, 2.5rem)",
+          maxWidth: "1400px",
+          margin: "0 auto",
+          padding: "0px 5px",
         }}
       >
-        Shopping Bag ({itemCount})
-      </h1>
-
-      <div
-        style={{ marginTop: "40px", display: "grid", gap: "48px" }}
-        className="cart-layout"
-      >
-        {/* Items */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
-          {items.map((item) => (
-            <div
-              key={item.id}
-              style={{
-                display: "flex",
-                gap: "20px",
-                borderBottom: "1px solid var(--color-border)",
-                paddingBottom: "32px",
-              }}
-            >
-              <Link
-                to={`/product/${item.slug}`}
-                style={{
-                  width: "120px",
-                  aspectRatio: "3/4",
-                  borderRadius: "8px",
-                  overflow: "hidden",
-                  backgroundColor: "var(--color-muted)",
-                  flexShrink: 0,
-                }}
-              >
-                <img
-                  src={item.image?.url || item.image}
-                  alt={item.name}
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              </Link>
-              <div
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                    }}
-                  >
-                    <Link
-                      to={`/product/${item.slug}`}
-                      style={{ textDecoration: "none", color: "inherit" }}
-                    >
-                      <h3
-                        style={{
-                          fontFamily: "var(--font-serif)",
-                          fontSize: "1.25rem",
-                        }}
-                      >
-                        {item.name}
-                      </h3>
-                    </Link>
-                    <p style={{ fontWeight: 600 }}>
-                      ₹{(item.price * item.qty).toLocaleString("en-IN")}
-                    </p>
-                  </div>
-                  <p
-                    style={{
-                      fontSize: "14px",
-                      color: "var(--color-muted-foreground)",
-                      marginTop: "4px",
-                    }}
-                  >
-                    Size: {item.size} | Color: {item.color}
-                  </p>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginTop: "20px",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      border: "1px solid var(--color-border)",
-                      borderRadius: "6px",
-                    }}
-                  >
-                    <button
-                      onClick={() => setQty(item.id, item.qty - 1)}
-                      style={{ padding: "6px 10px", cursor: "pointer" }}
-                    >
-                      <Minus size={14} />
-                    </button>
-                    <span style={{ padding: "0 12px", fontSize: "14px" }}>
-                      {item.qty}
-                    </span>
-                    <button
-                      onClick={() => setQty(item.id, item.qty + 1)}
-                      style={{ padding: "6px 10px", cursor: "pointer" }}
-                    >
-                      <Plus size={14} />
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => {
-                      remove(item.id);
-                      push({ type: "info", message: "Item removed from bag" });
-                    }}
-                    style={{
-                      color: "var(--color-muted-foreground)",
-                      transition: "color 0.2s",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px",
-                      fontSize: "12px",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.color = "var(--color-destructive)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.color =
-                        "var(--color-muted-foreground)")
-                    }
-                  >
-                    <Trash2 size={14} /> Remove
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {/* Order info */}
-          <div
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "16px",
+            flexWrap: "wrap",
+          }}
+        >
+          <h1
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: "16px",
-              marginTop: "16px",
+              fontFamily: "var(--font-serif)",
+              fontSize: "clamp(2rem, 5vw, 2.5rem)",
+              lineHeight: 1,
             }}
           >
-            <div
-              style={{
-                border: "1px solid var(--color-border)",
-                borderRadius: "8px",
-                padding: "20px",
-                display: "flex",
-                gap: "16px",
-                alignItems: "center",
-              }}
-            >
-              <Truck size={24} style={{ color: "var(--color-gold)" }} />
-              <div>
-                <p className="label-caps" style={{ fontSize: "10px" }}>
-                  Free Delivery
-                </p>
-                <p
-                  style={{
-                    fontSize: "12px",
-                    color: "var(--color-muted-foreground)",
-                    marginTop: "2px",
-                  }}
-                >
-                  On orders over ₹2,999. Usually arrives in 3-5 days.
-                </p>
-              </div>
-            </div>
-            <div
-              style={{
-                border: "1px solid var(--color-border)",
-                borderRadius: "8px",
-                padding: "20px",
-                display: "flex",
-                gap: "16px",
-                alignItems: "center",
-              }}
-            >
-              <ShieldCheck size={24} style={{ color: "var(--color-gold)" }} />
-              <div>
-                <p className="label-caps" style={{ fontSize: "10px" }}>
-                  Secure Checkout
-                </p>
-                <p
-                  style={{
-                    fontSize: "12px",
-                    color: "var(--color-muted-foreground)",
-                    marginTop: "2px",
-                  }}
-                >
-                  Your orders are processed safely via WhatsApp.
-                </p>
-              </div>
-            </div>
-          </div>
+            Carts{" "}
+            <span style={{ fontSize: "0.48em", verticalAlign: "top" }}>
+              {String(itemCount).padStart(2, "0")}
+            </span>
+          </h1>
         </div>
 
-        {/* Summary */}
-        <div style={{ position: "sticky", top: "112px", alignSelf: "start" }}>
+        <div
+          style={{ marginTop: "32px", display: "grid", gap: "32px" }}
+          className="cart-layout"
+        >
           <div
-            style={{
-              backgroundColor: "var(--color-surface)",
-              border: "1px solid var(--color-border)",
-              borderRadius: "12px",
-              padding: "32px",
-            }}
+            className={`cart-items-container ${items.length === 1 ? "single-item-layout" : ""}`}
+            style={{ display: "flex", flexDirection: "column", gap: "18px" }}
           >
-            <h2 className="label-caps" style={{ marginBottom: "24px" }}>
-              Order Summary
-            </h2>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "16px",
-                fontSize: "14px",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "var(--color-muted-foreground)" }}>
-                  Subtotal
-                </span>
-                <span>₹{total.toLocaleString("en-IN")}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "var(--color-muted-foreground)" }}>
-                  Shipping
-                </span>
-                <span>
-                  {shipping === 0 ? (
-                    <span style={{ color: "var(--color-gold)" }}>Free</span>
-                  ) : (
-                    `₹${shipping.toLocaleString("en-IN")}`
-                  )}
-                </span>
-              </div>
-              {shipping > 0 && (
-                <p
-                  style={{
-                    fontSize: "11px",
-                    color: "var(--color-gold)",
-                    backgroundColor:
-                      "color-mix(in oklch, var(--color-gold) 10%, transparent)",
-                    padding: "8px",
-                    borderRadius: "4px",
-                  }}
-                >
-                  Add ₹{(3000 - total).toLocaleString("en-IN")} more for free
-                  delivery.
-                </p>
-              )}
+            {items.map((item) => (
               <div
+                key={item.id}
+                className="cart-item"
                 style={{
-                  borderTop: "1px solid var(--color-border)",
-                  marginTop: "8px",
-                  paddingTop: "16px",
                   display: "flex",
-                  justifyContent: "space-between",
-                  fontWeight: 600,
-                  fontSize: "1.25rem",
-                }}
-              >
-                <span>Total</span>
-                <span>₹{grandTotal.toLocaleString("en-IN")}</span>
-              </div>
-            </div>
-
-            <div
-              style={{
-                marginTop: "24px",
-                paddingTop: "24px",
-                borderTop: "1px solid var(--color-border)",
-              }}
-            >
-              <h3
-                className="label-caps"
-                style={{
-                  marginBottom: "12px",
-                  display: "flex",
-                  gap: 8,
+                  gap: "16px",
                   alignItems: "center",
+                  padding: "16px",
+                  borderRadius: "18px",
+                  border: "1px solid var(--color-border)",
+                  backgroundColor: "var(--color-surface)",
                 }}
               >
-                <MapPin size={14} /> Delivery Address
-              </h3>
-              {addresses.length === 0 ? (
-                <div
+
+                <Link
+                  to={`/product/${item.slug}`}
+                  className="cart-item-image-link"
                   style={{
-                    border: "1px dashed #cc272e",
-                    borderRadius: "10px",
-                    padding: "14px",
-                    fontSize: "13px",
-                    color: "#cc272e",
+                    width: "108px",
+                    aspectRatio: "1",
+                    borderRadius: "14px",
+                    overflow: "hidden",
+                    backgroundColor: "var(--color-muted)",
+                    flexShrink: 0,
+                    display: "block",
                   }}
                 >
-                  {authLoading
-                    ? "Loading your addresses…"
-                    : "Add an address in your profile before checkout."}
-                </div>
-              ) : (
-                <div style={{ display: "grid", gap: "10px" }}>
-                  {addresses.map((addr) => {
-                    const selected = selectedAddress?._id === addr._id;
-                    return (
+                  <img
+                    src={item.image?.url || item.image}
+                    alt={item.name}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                </Link>
+                <div
+                  className="cart-item-main"
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    gap: "8px",
+                    minWidth: 0,
+                  }}
+                >
+                  <div>
+                    <div
+                      className="cart-item-top"
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        gap: "12px",
+                      }}
+                    >
+                      <Link
+                        to={`/product/${item.slug}`}
+                        style={{ textDecoration: "none", color: "inherit" }}
+                      >
+                        <h3
+                          className="cart-item-title"
+                          style={{
+                            fontFamily: "var(--font-serif)",
+                            fontSize: "1.15rem",
+                            wordBreak: "break-word",
+                          }}
+                        >
+                          {item.name}
+                        </h3>
+                      </Link>
+                      <p style={{ fontWeight: 700, whiteSpace: "nowrap" }}>
+                        ₹{(item.price * item.qty).toLocaleString("en-IN")}
+                      </p>
+                    </div>
+                    <p
+                      className="cart-item-details-text"
+                      style={{
+                        fontSize: "13px",
+                        color: "var(--color-muted-foreground)",
+                        marginTop: "4px",
+                      }}
+                    >
+                      Color: {item.color} • Size: US {item.size}
+                    </p>
+                  </div>
+                  <div
+                    className="cart-item-actions"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: "12px",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <button
+                      className="cart-mobile-only"
+                      onClick={() => setDetailsItem(item)}
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        color: "var(--color-foreground)",
+                        textDecoration: "underline",
+                        textUnderlineOffset: "4px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      View product details
+                    </button>
+
+                    <div
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        border: "1px solid var(--color-border)",
+                        borderRadius: "999px",
+                        overflow: "hidden",
+                        backgroundColor: "var(--color-background)",
+                        width: "fit-content",
+                      }}
+                    >
                       <button
-                        key={addr._id}
-                        type="button"
-                        onClick={() => setSelectedAddressId(addr._id)}
+                        onClick={() => setQty(item.id, item.qty - 1)}
+                        style={{ padding: "8px 10px", cursor: "pointer" }}
+                      >
+                        <Minus size={14} />
+                      </button>
+                      <span
                         style={{
-                          textAlign: "left",
-                          border: `1.5px solid ${selected ? "var(--color-foreground)" : "var(--color-border)"}`,
-                          background: selected
-                            ? "var(--color-background)"
-                            : "transparent",
-                          borderRadius: "10px",
-                          padding: "12px",
-                          cursor: "pointer",
+                          padding: "0 12px",
+                          fontSize: "14px",
+                          fontWeight: 600,
                         }}
                       >
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            gap: 10,
-                          }}
-                        >
-                          <strong style={{ fontSize: "13px" }}>
-                            {addr.label || "Address"}
-                          </strong>
-                          {selected && <CheckCircle2 size={16} />}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "12px",
-                            color: "var(--color-muted-foreground)",
-                            marginTop: 6,
-                            lineHeight: 1.55,
-                          }}
-                        >
-                          <div>
-                            <strong>Address line 1:</strong> {addr.line1}
-                          </div>
-                          {addr.line2 && (
-                            <div>
-                              <strong>Address line 2:</strong> {addr.line2}
-                            </div>
-                          )}
-                          <div>
-                            {addr.city}, {addr.state} - {addr.pin}
-                          </div>
-                          <div>{addr.phone}</div>
-                        </div>
+                        {item.qty}
+                      </span>
+                      <button
+                        onClick={() => setQty(item.id, item.qty + 1)}
+                        style={{ padding: "8px 10px", cursor: "pointer" }}
+                      >
+                        <Plus size={14} />
                       </button>
-                    );
-                  })}
+                    </div>
+                    <button
+                      className="cart-mobile-delete"
+                      onClick={() => {
+                        remove(item.id);
+                        push({ type: "info", message: "Item removed from bag" });
+                      }}
+                      aria-label="Remove item"
+                      style={{
+                        width: "36px",
+                        height: "36px",
+                        borderRadius: "50%",
+                        border: "1px solid var(--color-border)",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "var(--color-muted-foreground)",
+                      }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
-              )}
-              {selectedAddress && !selectedAddress.default && (
-                <button
-                  type="button"
-                  onClick={markDefaultAddress}
-                  style={{
-                    marginTop: "10px",
-                    border: "none",
-                    background: "none",
-                    color: "var(--color-gold)",
-                    fontSize: "12px",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    padding: 0,
-                  }}
-                >
-                  Mark selected address as default
-                </button>
-              )}
-            </div>
-
-            <button
-              onClick={handleCheckout}
-              disabled={loading}
-              className="label-caps"
-              style={{
-                width: "100%",
-                marginTop: "32px",
-                backgroundColor: "var(--color-foreground)",
-                color: "var(--color-background)",
-                padding: "16px",
-                borderRadius: "50px",
-                fontSize: "14px",
-                textDecoration: "none",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                transition: "background-color 0.3s",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor = "var(--color-gold)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor =
-                  "var(--color-foreground)")
-              }
-            >
-              {loading ? (
-                "Processing..."
-              ) : (
-                <>
-                  <span>Checkout on WhatsApp</span> <ArrowRight size={16} />
-                </>
-              )}
-            </button>
-
-            <p
-              style={{
-                marginTop: "20px",
-                fontSize: "12px",
-                color: "var(--color-muted-foreground)",
-                textAlign: "center",
-              }}
-            >
-              All taxes included. Order confirmation will be sent to your
-              WhatsApp.
-            </p>
+              </div>
+            ))}
           </div>
 
-          <div style={{ marginTop: "24px", textAlign: "center" }}>
-            <Link
-              to="/collections"
+          <div
+            className="cart-summary"
+            style={{ position: "sticky", top: "112px", alignSelf: "start" }}
+          >
+            <div
+              className="cart-summary-card"
               style={{
-                fontSize: "14px",
-                color: "inherit",
-                textDecoration: "underline",
+                backgroundColor: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "12px",
+                padding: "32px",
               }}
             >
-              Continue Shopping
-            </Link>
+              <h2
+                className="label-caps"
+                style={{ marginBottom: "24px", fontSize: "12px" }}
+              >
+                Summary
+              </h2>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "16px",
+                  fontSize: "14px",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "var(--color-muted-foreground)" }}>
+                    Subtotal
+                  </span>
+                  <span>₹{total.toLocaleString("en-IN")}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "var(--color-muted-foreground)" }}>
+                    Shipping
+                  </span>
+                  <span>
+                    {shipping === 0 ? (
+                      <span style={{ color: "var(--color-gold)" }}>Free</span>
+                    ) : (
+                      `₹${shipping.toLocaleString("en-IN")}`
+                    )}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    borderTop: "1px solid var(--color-border)",
+                    marginTop: "8px",
+                    paddingTop: "16px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontWeight: 600,
+                    fontSize: "1.25rem",
+                  }}
+                >
+                  <span>Total</span>
+                  <span>₹{grandTotal.toLocaleString("en-IN")}</span>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  marginTop: "24px",
+                  paddingTop: "24px",
+                  borderTop: "1px solid var(--color-border)",
+                }}
+              >
+                <h3
+                  className="label-caps"
+                  style={{
+                    marginBottom: "12px",
+                    display: "flex",
+                    gap: 8,
+                    alignItems: "center",
+                  }}
+                >
+                  <MapPin size={14} /> Delivery Address
+                </h3>
+                {addresses.length === 0 ? (
+                  <div
+                    style={{
+                      border: "1px dashed #cc272e",
+                      borderRadius: "10px",
+                      padding: "14px",
+                      fontSize: "13px",
+                      color: "#cc272e",
+                    }}
+                  >
+                    Add an address in your profile before checkout.
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gap: "10px" }}>
+                    {addresses.map((addr) => {
+                      const selected = selectedAddress?._id === addr._id;
+                      return (
+                        <button
+                          key={addr._id}
+                          type="button"
+                          onClick={() => setSelectedAddressId(addr._id)}
+                          style={{
+                            textAlign: "left",
+                            border: `1.5px solid ${selected ? "var(--color-foreground)" : "var(--color-border)"}`,
+                            background: selected
+                              ? "var(--color-background)"
+                              : "transparent",
+                            borderRadius: "10px",
+                            padding: "12px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              gap: 10,
+                            }}
+                          >
+                            <div style={{ flex: 1 }}>
+                              <strong style={{ fontSize: "13px" }}>
+                                {addr.label || "Address"}
+                              </strong>
+                              <p
+                                style={{
+                                  fontSize: "12px",
+                                  color: "var(--color-muted-foreground)",
+                                  marginTop: "4px",
+                                }}
+                              >
+                                {addr.name} • {addr.phone}
+                              </p>
+                              <p
+                                style={{
+                                  fontSize: "12px",
+                                  color: "var(--color-muted-foreground)",
+                                  marginTop: "2px",
+                                  lineHeight: 1.4,
+                                }}
+                              >
+                                {addr.line1}
+                                {addr.line2 ? `, ${addr.line2}` : ""}, {addr.city}
+                                , {addr.state} - {addr.pin}
+                              </p>
+                            </div>
+                            {selected && (
+                              <CheckCircle2
+                                size={16}
+                                style={{ color: "var(--color-foreground)" }}
+                              />
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <button
+                onClick={handleCheckout}
+                disabled={loading}
+                className="label-caps"
+                style={{
+                  width: "100%",
+                  marginTop: "32px",
+                  backgroundColor: "var(--color-foreground)",
+                  color: "var(--color-background)",
+                  padding: "16px",
+                  borderRadius: "50px",
+                  fontSize: "14px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                }}
+              >
+                {loading ? (
+                  "Processing..."
+                ) : (
+                  <>
+                    <span>Checkout on WhatsApp</span> <ArrowRight size={16} />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
+      <ProductDetailsPopup
+        open={detailsItem !== null}
+        onClose={() => setDetailsItem(null)}
+        item={detailsItem}
+      />
+
       <style>{`
         .cart-layout { grid-template-columns: 1fr; }
         @media (min-width: 1024px) {
-          .cart-layout { grid-template-columns: 1fr 400px !important; }
+          .cart-layout { grid-template-columns: minmax(0, 1fr) 400px !important; }
+        }
+        @media (max-width: 767px) {
+          .cart-summary { position: static !important; }
+          .cart-summary-card { padding: 20px !important; }
         }
       `}</style>
-    </div>
+    </>
   );
 }

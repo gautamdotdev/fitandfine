@@ -739,7 +739,9 @@ export default function ProductDetailPage() {
       return;
     }
     if (qty > (product.stock ?? 0)) {
-      setError(`Only ${product.stock} unit${product.stock === 1 ? "" : "s"} available`);
+      setError(
+        `Only ${product.stock} unit${product.stock === 1 ? "" : "s"} available`,
+      );
       return;
     }
     add({
@@ -1196,7 +1198,8 @@ export default function ProductDetailPage() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "6px",
-                backgroundColor: "color-mix(in oklch, var(--color-destructive) 10%, transparent)",
+                backgroundColor:
+                  "color-mix(in oklch, var(--color-destructive) 10%, transparent)",
                 color: "var(--color-destructive)",
                 fontSize: "11px",
                 fontWeight: 700,
@@ -1204,7 +1207,8 @@ export default function ProductDetailPage() {
                 textTransform: "uppercase",
                 padding: "5px 12px",
                 borderRadius: "50px",
-                border: "1px solid color-mix(in oklch, var(--color-destructive) 30%, transparent)",
+                border:
+                  "1px solid color-mix(in oklch, var(--color-destructive) 30%, transparent)",
               }}
             >
               Out of Stock
@@ -1216,7 +1220,8 @@ export default function ProductDetailPage() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "6px",
-                backgroundColor: "color-mix(in oklch, var(--color-gold) 10%, transparent)",
+                backgroundColor:
+                  "color-mix(in oklch, var(--color-gold) 10%, transparent)",
                 color: "var(--color-gold)",
                 fontSize: "11px",
                 fontWeight: 700,
@@ -1224,7 +1229,8 @@ export default function ProductDetailPage() {
                 textTransform: "uppercase",
                 padding: "5px 12px",
                 borderRadius: "50px",
-                border: "1px solid color-mix(in oklch, var(--color-gold) 30%, transparent)",
+                border:
+                  "1px solid color-mix(in oklch, var(--color-gold) 30%, transparent)",
               }}
             >
               Only {product.stock} left
@@ -1479,7 +1485,11 @@ export default function ProductDetailPage() {
               flexWrap: "wrap",
             }}
           >
-            <QtyStepper value={qty} onChange={setQty} max={inStock ? Math.min(product.stock, 10) : 1} />
+            <QtyStepper
+              value={qty}
+              onChange={setQty}
+              max={inStock ? Math.min(product.stock, 10) : 1}
+            />
             <button
               className="pdp-desktop-action"
               onClick={handleAdd}
@@ -1493,9 +1503,11 @@ export default function ProductDetailPage() {
                 backgroundColor: !inStock
                   ? "var(--color-border)"
                   : addedAnim
-                  ? "var(--color-gold)"
-                  : "var(--color-foreground)",
-                color: !inStock ? "var(--color-muted-foreground)" : "var(--color-background)",
+                    ? "var(--color-gold)"
+                    : "var(--color-foreground)",
+                color: !inStock
+                  ? "var(--color-muted-foreground)"
+                  : "var(--color-background)",
                 fontSize: "12px",
                 fontWeight: 700,
                 letterSpacing: "0.08em",
@@ -1509,7 +1521,8 @@ export default function ProductDetailPage() {
                 fontFamily: "inherit",
               }}
               onMouseEnter={(e) => {
-                if (!addedAnim && inStock) e.currentTarget.style.opacity = "0.88";
+                if (!addedAnim && inStock)
+                  e.currentTarget.style.opacity = "0.88";
               }}
               onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
             >
@@ -1740,15 +1753,19 @@ export default function ProductDetailPage() {
             display: "flex",
             gap: "12px",
             overflowX: "auto",
-            margin: "0 -20px",
-            padding: "0 20px 16px",
+            margin: "0 -10px",
+            padding: "0 10px 16px",
           }}
         >
           {relatedLoading
             ? Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
-                  style={{ width: "180px", minWidth: "180px", flexShrink: 0 }}
+                  style={{
+                    width: "clamp(150px, 42vw, 180px)",
+                    minWidth: "clamp(150px, 42vw, 180px)",
+                    flexShrink: 0,
+                  }}
                 >
                   <div
                     style={{
@@ -1787,7 +1804,11 @@ export default function ProductDetailPage() {
             : relatedProducts.slice(0, 8).map((p) => (
                 <div
                   key={p.id || p._id}
-                  style={{ width: "180px", minWidth: "180px", flexShrink: 0 }}
+                  style={{
+                    width: "clamp(150px, 42vw, 180px)",
+                    minWidth: "clamp(150px, 42vw, 180px)",
+                    flexShrink: 0,
+                  }}
                 >
                   <ProductCard product={p} />
                 </div>
@@ -2089,9 +2110,11 @@ export default function ProductDetailPage() {
             backgroundColor: !inStock
               ? "var(--color-border)"
               : addedAnim
-              ? "var(--color-gold)"
-              : "var(--color-foreground)",
-            color: !inStock ? "var(--color-muted-foreground)" : "var(--color-background)",
+                ? "var(--color-gold)"
+                : "var(--color-foreground)",
+            color: !inStock
+              ? "var(--color-muted-foreground)"
+              : "var(--color-background)",
             borderRadius: "2px",
             border: "none",
             fontSize: "12px",
