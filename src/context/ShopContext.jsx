@@ -90,6 +90,28 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const googleLogin = async (idToken) => {
+    try {
+      const data = await authApi.googleLogin({ idToken });
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setUser(data.user);
+      pushToast({
+        title: "Success",
+        message: "Signed in with Google",
+        type: "success",
+      });
+      return data;
+    } catch (error) {
+      pushToast({
+        title: "Google Sign-In Failed",
+        message: error.message,
+        type: "error",
+      });
+      throw error;
+    }
+  };
+
   const checkAuth = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -121,6 +143,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     updateUser,
+    googleLogin,
     isAdmin: user?.role === "admin" || user?.isAdmin,
   };
 

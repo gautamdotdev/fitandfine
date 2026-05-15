@@ -15,6 +15,94 @@ import { useShop, useAuth } from "../context/ShopContext.jsx";
 
 import { authApi } from "../lib/api.js";
 
+// ─── GOOGLE AUTH HOOK ─────────────────────────────────────────────────────────
+// Uses renderButton() instead of prompt() — works reliably on localhost.
+// A hidden div holds the real Google button; clicking our custom button
+// programmatically clicks the hidden one to trigger the popup.
+
+const GIS_SCRIPT_URL = "https://accounts.google.com/gsi/client";
+
+function loadGisScript() {
+  return new Promise((resolve, reject) => {
+    if (window.google?.accounts?.id) { resolve(); return; }
+    if (document.querySelector(`script[src="${GIS_SCRIPT_URL}"]`)) {
+      // Script tag exists but may still be loading — wait for it
+      const existing = document.querySelector(`script[src="${GIS_SCRIPT_URL}"]`);
+      existing.addEventListener("load", resolve);
+      existing.addEventListener("error", reject);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = GIS_SCRIPT_URL;
+    script.async = true;
+    script.defer = true;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
+function useGoogleAuth({ onSuccess, onError }) {
+  const [googleLoading, setGoogleLoading] = useState(false);
+  // Ref to the hidden container where Google renders its button
+  const hiddenBtnRef = useRef(null);
+
+  const triggerGoogleLogin = async () => {
+    if (googleLoading) return;
+    setGoogleLoading(true);
+    try {
+      await loadGisScript();
+
+      // Create a hidden container if it doesn't exist yet
+      if (!hiddenBtnRef.current) {
+        const div = document.createElement("div");
+        div.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;overflow:hidden;";
+        document.body.appendChild(div);
+        hiddenBtnRef.current = div;
+      }
+
+      window.google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        callback: (response) => {
+          setGoogleLoading(false);
+          onSuccess(response.credential);
+        },
+        cancel_on_tap_outside: false,
+      });
+
+      // Render the real Google button into the hidden div
+      window.google.accounts.id.renderButton(hiddenBtnRef.current, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+      });
+
+      // Click the rendered Google button to open the account picker popup
+      const btn = hiddenBtnRef.current.querySelector("div[role=button]");
+      if (btn) {
+        btn.click();
+      } else {
+        // Fallback: small delay for the button to render then click
+        setTimeout(() => {
+          const b = hiddenBtnRef.current?.querySelector("div[role=button]");
+          if (b) b.click();
+          else {
+            setGoogleLoading(false);
+            onError(new Error("Could not open Google sign-in. Please try again."));
+          }
+        }, 300);
+      }
+    } catch (err) {
+      setGoogleLoading(false);
+      onError(err);
+    }
+  };
+
+  return { googleLoading, triggerGoogleLogin };
+}
+
+// ─── FLOATING INPUT ───────────────────────────────────────────────────────────
+
 function FloatingInput({
   id,
   label,
@@ -152,12 +240,15 @@ function FloatingInput({
   );
 }
 
-function SocialBtn({ children, onClick }) {
+// ─── SOCIAL BUTTON ────────────────────────────────────────────────────────────
+
+function SocialBtn({ children, onClick, disabled, loading }) {
   const [hov, setHov] = useState(false);
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
@@ -168,20 +259,37 @@ function SocialBtn({ children, onClick }) {
         justifyContent: "center",
         gap: "8px",
         borderRadius: "10px",
-        border: `1.5px solid ${hov ? "var(--color-foreground)" : "var(--color-border)"}`,
-        backgroundColor: hov ? "var(--color-surface)" : "transparent",
+        border: `1.5px solid ${hov && !disabled ? "var(--color-foreground)" : "var(--color-border)"}`,
+        backgroundColor: hov && !disabled ? "var(--color-surface)" : "transparent",
         fontSize: "12px",
         fontWeight: 600,
         color: "var(--color-foreground)",
-        cursor: "pointer",
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.6 : 1,
         transition: "all 0.2s",
         fontFamily: "inherit",
       }}
     >
+      {loading && (
+        <span
+          style={{
+            width: "14px",
+            height: "14px",
+            borderRadius: "50%",
+            border: "2px solid var(--color-muted-foreground)",
+            borderTopColor: "transparent",
+            display: "inline-block",
+            animation: "spin 0.7s linear infinite",
+            flexShrink: 0,
+          }}
+        />
+      )}
       {children}
     </button>
   );
 }
+
+// ─── LOGIN FORM ───────────────────────────────────────────────────────────────
 
 function LoginForm({ onSwitch }) {
   const [email, setEmail] = useState("");
@@ -190,7 +298,27 @@ function LoginForm({ onSwitch }) {
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
+
+  const { googleLoading, triggerGoogleLogin } = useGoogleAuth({
+    onSuccess: async (credential) => {
+      try {
+        await googleLogin(credential);
+        const params = new URLSearchParams(location.search);
+        const next = params.get("next");
+        if (next && next.startsWith("/")) {
+          navigate(next, { replace: true });
+        } else {
+          navigate("/");
+        }
+      } catch (err) {
+        setErrors({ password: err.message });
+      }
+    },
+    onError: (err) => {
+      setErrors({ password: err.message });
+    },
+  });
 
   const validate = () => {
     const e = {};
@@ -212,9 +340,8 @@ function LoginForm({ onSwitch }) {
       await login({ email, password });
       const params = new URLSearchParams(location.search);
       const next = params.get("next");
-      if (next) {
-        // URL may be encoded
-        navigate(decodeURIComponent(next), { replace: true });
+      if (next && next.startsWith("/")) {
+        navigate(next, { replace: true });
       } else {
         navigate("/");
       }
@@ -248,7 +375,7 @@ function LoginForm({ onSwitch }) {
           textAlign: "center",
         }}
       >
-        Sign in to your FIT & FINE account
+        Sign in to your FIT &amp; FINE account
       </p>
 
       <div
@@ -259,7 +386,11 @@ function LoginForm({ onSwitch }) {
           justifyContent: "center",
         }}
       >
-        <SocialBtn>
+        <SocialBtn
+          onClick={triggerGoogleLogin}
+          disabled={googleLoading}
+          loading={googleLoading}
+        >
           <svg width="16" height="16" viewBox="0 0 24 24">
             <path
               fill="#4285F4"
@@ -405,7 +536,7 @@ function LoginForm({ onSwitch }) {
           marginTop: "28px",
         }}
       >
-        New to FIT & FINE?{" "}
+        New to FIT &amp; FINE?{" "}
         <button
           onClick={onSwitch}
           style={{
@@ -434,6 +565,8 @@ function LoginForm({ onSwitch }) {
   );
 }
 
+// ─── REGISTER FORM ────────────────────────────────────────────────────────────
+
 function RegisterForm({ onSwitch }) {
   const [form, setForm] = useState({
     name: "",
@@ -448,6 +581,27 @@ function RegisterForm({ onSwitch }) {
   const navigate = useNavigate();
   const push = useToasts((s) => s.push);
   const location = useLocation();
+  const { googleLogin } = useAuth();
+
+  const { googleLoading, triggerGoogleLogin } = useGoogleAuth({
+    onSuccess: async (credential) => {
+      try {
+        await googleLogin(credential);
+        const params = new URLSearchParams(location.search);
+        const next = params.get("next");
+        if (next && next.startsWith("/")) {
+          navigate(next, { replace: true });
+        } else {
+          navigate("/");
+        }
+      } catch (err) {
+        push({ type: "error", message: err.message });
+      }
+    },
+    onError: (err) => {
+      push({ type: "error", message: err.message });
+    },
+  });
 
   const set = (field) => (e) => {
     setForm((f) => ({ ...f, [field]: e.target.value }));
@@ -487,7 +641,7 @@ function RegisterForm({ onSwitch }) {
       push({ type: "success", message: "Account created! Please sign in." });
       const params = new URLSearchParams(location.search);
       const next = params.get("next");
-      if (next) navigate(decodeURIComponent(next), { replace: true });
+      if (next && next.startsWith("/")) navigate(next, { replace: true });
       else navigate("/");
     } catch (err) {
       setErrors({ email: err.message });
@@ -520,7 +674,7 @@ function RegisterForm({ onSwitch }) {
           textAlign: "center",
         }}
       >
-        Join FIT & FINE — it only takes a minute
+        Join FIT &amp; FINE — it only takes a minute
       </p>
 
       <div
@@ -531,7 +685,11 @@ function RegisterForm({ onSwitch }) {
           justifyContent: "center",
         }}
       >
-        <SocialBtn>
+        <SocialBtn
+          onClick={triggerGoogleLogin}
+          disabled={googleLoading}
+          loading={googleLoading}
+        >
           <svg width="16" height="16" viewBox="0 0 24 24">
             <path
               fill="#4285F4"
@@ -802,6 +960,8 @@ function RegisterForm({ onSwitch }) {
     </div>
   );
 }
+
+// ─── AUTH PAGE ────────────────────────────────────────────────────────────────
 
 export default function AuthPage() {
   const [mode, setMode] = useState(() =>
