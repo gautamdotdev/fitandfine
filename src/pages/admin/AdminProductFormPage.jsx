@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useShop, useAuth } from "../../context/ShopContext";
-
 import { productApi } from "../../lib/api";
 import { useToasts } from "../../lib/store";
+import { getPalette } from "colorthief";
+import namer from "color-namer";
 import {
-  ArrowLeft,
   Save,
   Loader2,
   Plus,
   X,
-  Upload,
   Trash2,
   ImagePlus,
   CheckCircle2,
@@ -20,30 +19,19 @@ import {
   ChevronDown,
   Palette,
   AlertCircle,
+  Pipette,
 } from "lucide-react";
-import { getPalette } from "colorthief";
-import namer from "color-namer";
 
-/* ─── Responsive Styles ─── */
+/* ─── Styles ─── */
 const FORM_STYLES = `
   .apf-wrap { max-width: 1080px; font-family: 'DM Sans', sans-serif; }
   .apf-progress-header {
-    position: sticky;
-    top: 0;
-    z-index: 40;
-    background: #f5f4f0;
-    border-bottom: 1px solid #e8e6e0;
-    height: 60px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin: 0 0 32px;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    position: sticky; top: 0; z-index: 40; background: #f5f4f0;
+    border-bottom: 1px solid #e8e6e0; height: 60px; display: flex;
+    flex-direction: column; justify-content: center; margin: 0 0 32px;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   }
-  @media (max-width: 900px) {
-    .apf-progress-header { height: 64px; margin-bottom: 24px; }
-  }
+  @media (max-width: 900px) { .apf-progress-header { height: 64px; margin-bottom: 24px; } }
   .apf-form { display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start; }
   .apf-section { background: #fff; border: 1px solid #e8e6e0; border-radius: 2px; padding: 24px; margin-bottom: 0; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
   .apf-label { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #999; margin-bottom: 8px; }
@@ -56,9 +44,56 @@ const FORM_STYLES = `
   .apf-left { display: grid; gap: 24px; }
   .apf-right { display: grid; gap: 24px; position: sticky; top: 24px; }
   .apf-img-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
-  .apf-img-thumb { position: relative; aspect-ratio: 3/4; border-radius: 12px; overflow: hidden; border: 1px solid #e8e6e0; background: #faf9f7; }
-  
-  /* Custom Dropdown */
+
+  /* ── thumb ── */
+  .apf-img-thumb {
+    position: relative; aspect-ratio: 3/4; border-radius: 12px; overflow: hidden;
+    border: 1px solid #e8e6e0; background: #faf9f7;
+    cursor: pointer; user-select: none; -webkit-user-select: none;
+  }
+  /* brightness flash on double-tap/double-click */
+  .apf-img-thumb.dbl-flash { animation: thumbFlash 0.32s ease forwards; }
+  @keyframes thumbFlash {
+    0%   { filter: brightness(1); }
+    45%  { filter: brightness(1.4); }
+    100% { filter: brightness(1); }
+  }
+
+  /* delete — ALWAYS visible, top-right */
+  .apf-img-del {
+    position: absolute; top: 6px; right: 6px;
+    background: rgba(0,0,0,0.55); color: #fff; border: none;
+    border-radius: 50%; width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background 0.2s; z-index: 2;
+  }
+  .apf-img-del:hover { background: rgba(239,68,68,0.9); }
+
+  /* colors button — ALWAYS visible, bottom-right */
+  .apf-img-extract-btn {
+    position: absolute; bottom: 6px; right: 6px;
+    background: rgba(201,168,76,0.92); color: #fff; border: none;
+    border-radius: 20px; padding: 4px 8px;
+    display: flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 700; cursor: pointer;
+    transition: background 0.2s; font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.04em; white-space: nowrap;
+    backdrop-filter: blur(4px); z-index: 2;
+  }
+  .apf-img-extract-btn:hover:not(:disabled) { background: rgba(170,130,30,0.98); }
+  .apf-img-extract-btn.extracting { background: rgba(0,0,0,0.65); cursor: not-allowed; }
+
+  /* "DOUBLE TAP" hint — shows on hover */
+  .apf-dbl-hint {
+    position: absolute; top: 6px; left: 6px;
+    background: rgba(0,0,0,0.48); color: #fff;
+    font-size: 8px; font-weight: 700; letter-spacing: 0.07em;
+    padding: 3px 7px; border-radius: 20px;
+    pointer-events: none; z-index: 2;
+    opacity: 0; transition: opacity 0.22s;
+  }
+  .apf-img-thumb:hover .apf-dbl-hint { opacity: 1; }
+
   .apf-custom-select { position: relative; width: 100%; }
   .apf-select-trigger { width: 100%; padding: 13px 15px; border-radius: 11px; border: 1.5px solid #e8e6e0; background: #faf9f7; font-size: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s; color: #1a1a1a; }
   .apf-select-trigger:hover { border-color: #1a1a1a; }
@@ -68,11 +103,8 @@ const FORM_STYLES = `
   .apf-select-option { padding: 12px 16px; font-size: 14px; cursor: pointer; transition: background 0.2s; color: #444; }
   .apf-select-option:hover { background: #faf9f7; }
   .apf-select-option.selected { background: #faf9f7; color: #c9a84c; font-weight: 700; }
-  
   .apf-error-msg { font-size: 11px; color: #ef4444; font-weight: 600; margin-top: 6px; display: flex; align-items: center; gap: 4px; }
   .apf-input.error { border-color: #ef4444 !important; background: #fffafb; }
-  .apf-img-del { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.55); color: #fff; border: none; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity 0.2s; }
-  .apf-img-thumb:hover .apf-img-del { opacity: 1; }
   .apf-drop-zone { aspect-ratio: 3/4; border-radius: 12px; border: 2px dashed #e8e6e0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.2s; color: #bbb; background: #faf9f7; }
   .apf-drop-zone:hover, .apf-drop-zone.drag-over { border-color: #1a1a1a; background: #fff; color: #1a1a1a; }
   .size-btn { padding: 8px 14px; border-radius: 9px; border: 1.5px solid; cursor: pointer; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; transition: all 0.18s; font-family: 'DM Sans', sans-serif; }
@@ -85,7 +117,6 @@ const FORM_STYLES = `
   .apf-cancel-btn { width: 100%; padding: 14px; border-radius: 2px; border: 1.5px solid #e8e6e0; background: #fff; font-weight: 600; cursor: pointer; font-size: 14px; color: #444; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
   .apf-cancel-btn:hover { border-color: #1a1a1a; color: #1a1a1a; background: #faf9f7; }
   .apf-color-row { display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 10px; border: 1.5px solid #e8e6e0; background: #faf9f7; }
-
   @media (max-width: 820px) {
     .apf-form { grid-template-columns: 1fr; }
     .apf-right { position: static; }
@@ -113,6 +144,152 @@ const CATEGORIES = [
 ];
 const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "28", "30", "32", "34", "36"];
 
+/* ══════════════════════════════════════════
+   LAB PIPELINE
+══════════════════════════════════════════ */
+const toLinear = (c) => {
+  const s = c / 255;
+  return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+};
+
+const rgbToLab = (r, g, b) => {
+  const lr = toLinear(r),
+    lg = toLinear(g),
+    lb = toLinear(b);
+  const x = (lr * 0.4124564 + lg * 0.3575761 + lb * 0.1804375) / 0.95047;
+  const y = (lr * 0.2126729 + lg * 0.7151522 + lb * 0.072175) / 1.0;
+  const z = (lr * 0.0193339 + lg * 0.119192 + lb * 0.9503041) / 1.08883;
+  const f = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+  return [116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))];
+};
+
+const deltaE = ([L1, a1, b1], [L2, a2, b2]) =>
+  Math.sqrt((L1 - L2) ** 2 + (a1 - a2) ** 2 + (b1 - b2) ** 2);
+
+const isNoiseColor = (r, g, b) => {
+  const [L, a, bv] = rgbToLab(r, g, b);
+  const chroma = Math.sqrt(a * a + bv * bv);
+  if (L > 88 && chroma < 16) return true;
+  if (L < 10) return true;
+  if (chroma < 7 && L > 15 && L < 88) return true;
+  if (L > 38 && L < 82 && a > 4 && a < 24 && bv > 5 && bv < 30 && chroma < 38)
+    return true;
+  return false;
+};
+
+const DEDUP_THRESHOLD = 22;
+
+/* Accepts File OR URL string */
+const extractColorsFromImage = (source) =>
+  new Promise((resolve) => {
+    const isFile = source instanceof File;
+    const blobUrl = isFile ? URL.createObjectURL(source) : null;
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = async () => {
+      try {
+        const scale = Math.min(1, 320 / img.naturalWidth);
+        const W = Math.round(img.naturalWidth * scale);
+        const H = Math.round(img.naturalHeight * scale);
+        const canvas = document.createElement("canvas");
+        const x0 = Math.round(W * 0.2),
+          y0 = Math.round(H * 0.18);
+        const cW = Math.round(W * 0.6),
+          cH = Math.round(H * 0.68);
+        canvas.width = cW;
+        canvas.height = cH;
+        canvas.getContext("2d").drawImage(img, x0, y0, cW, cH, 0, 0, cW, cH);
+
+        const cropped = new Image();
+        await new Promise((res) => {
+          cropped.onload = res;
+          cropped.src = canvas.toDataURL("image/jpeg", 0.92);
+        });
+
+        let rawPalette = [];
+        try {
+          rawPalette = (await getPalette(cropped, { colorCount: 12 })) || [];
+        } catch {
+          try {
+            rawPalette = (await getPalette(img, { colorCount: 12 })) || [];
+          } catch {
+            /**/
+          }
+        }
+
+        if (!rawPalette.length) {
+          resolve([]);
+          return;
+        }
+
+        const normalized = rawPalette
+          .map((item) => {
+            if (Array.isArray(item))
+              return { r: item[0], g: item[1], b: item[2] };
+            if (item && typeof item.r === "number") return item;
+            if (item && typeof item.hex === "function") {
+              const h = item.hex().replace("#", "");
+              return {
+                r: parseInt(h.slice(0, 2), 16),
+                g: parseInt(h.slice(2, 4), 16),
+                b: parseInt(h.slice(4, 6), 16),
+              };
+            }
+            return null;
+          })
+          .filter(Boolean);
+
+        const withLab = normalized.map((c) => ({
+          ...c,
+          lab: rgbToLab(c.r, c.g, c.b),
+        }));
+        let candidates = withLab.filter(
+          ({ r, g, b }) => !isNoiseColor(r, g, b),
+        );
+        if (candidates.length < 2)
+          candidates = withLab.filter(({ lab: [L, a, bv] }) => {
+            const ch = Math.sqrt(a * a + bv * bv);
+            return !(L > 94 && ch < 6) && !(L < 5);
+          });
+
+        const unique = [];
+        for (const c of candidates) {
+          if (!unique.some((u) => deltaE(u.lab, c.lab) < DEDUP_THRESHOLD))
+            unique.push(c);
+          if (unique.length >= 4) break;
+        }
+
+        const result = unique.map(({ r, g, b }) => {
+          const hex =
+            "#" +
+            [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
+          const ntc = namer(hex).ntc[0]?.name || "";
+          const basic = namer(hex).basic[0]?.name || "";
+          const name =
+            ntc &&
+            ntc.toLowerCase() !== "black" &&
+            ntc.toLowerCase() !== "white"
+              ? ntc
+              : basic || ntc;
+          return { name, hex };
+        });
+        resolve(result);
+      } catch (err) {
+        console.error("Color extraction failed:", err);
+        resolve([]);
+      } finally {
+        if (blobUrl) URL.revokeObjectURL(blobUrl);
+      }
+    };
+
+    img.onerror = () => {
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+      resolve([]);
+    };
+    img.src = isFile ? blobUrl : source;
+  });
+
 /* ─── Section header ─── */
 function SectionHead({ title, sub }) {
   return (
@@ -129,93 +306,158 @@ function SectionHead({ title, sub }) {
         {title}
       </h3>
       {sub && (
-        <p
-          style={{
-            fontSize: 12,
-            color: "#888",
-            margin: "4px 0 0",
-          }}
-        >
-          {sub}
-        </p>
+        <p style={{ fontSize: 12, color: "#888", margin: "4px 0 0" }}>{sub}</p>
       )}
     </div>
   );
 }
 
+/* ─── ImageThumb — double-click / double-tap triggers color extraction ─── */
+function ImageThumb({
+  img,
+  index,
+  extractingIndex,
+  onExtract,
+  onDelete,
+  isFirst,
+}) {
+  const tapTimerRef = useRef(null);
+  const [flashing, setFlashing] = useState(false);
+
+  const doExtract = (e) => {
+    if (extractingIndex !== null) return;
+    setFlashing(true);
+    setTimeout(() => setFlashing(false), 380);
+    onExtract(e, index);
+  };
+
+  /* desktop double-click */
+  const handleDoubleClick = (e) => {
+    if (e.target.closest("button")) return;
+    doExtract(e);
+  };
+
+  /* mobile double-tap (300 ms window) */
+  const handleTouchEnd = (e) => {
+    if (e.target.closest("button")) return;
+    if (tapTimerRef.current) {
+      clearTimeout(tapTimerRef.current);
+      tapTimerRef.current = null;
+      doExtract(e);
+    } else {
+      tapTimerRef.current = setTimeout(() => {
+        tapTimerRef.current = null;
+      }, 300);
+    }
+  };
+
+  const isExtracting = extractingIndex === index;
+
+  return (
+    <div
+      className={`apf-img-thumb${flashing ? " dbl-flash" : ""}`}
+      onDoubleClick={handleDoubleClick}
+      onTouchEnd={handleTouchEnd}
+    >
+      <img
+        src={img.url || img}
+        alt=""
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          display: "block",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* hover hint */}
+      <span className="apf-dbl-hint">DOUBLE TAP</span>
+
+      {/* delete — always visible */}
+      <button
+        type="button"
+        className="apf-img-del"
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete(index);
+        }}
+        title="Remove image"
+      >
+        <Trash2 size={12} />
+      </button>
+
+      {/* colors — always visible */}
+      <button
+        type="button"
+        className={`apf-img-extract-btn${isExtracting ? " extracting" : ""}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          onExtract(e, index);
+        }}
+        disabled={extractingIndex !== null}
+        title="Detect colors from this image"
+      >
+        {isExtracting ? (
+          <>
+            <Loader2
+              size={10}
+              style={{ animation: "spin 1s linear infinite" }}
+            />{" "}
+            Detecting…
+          </>
+        ) : (
+          <>
+            <Pipette size={10} /> Colors
+          </>
+        )}
+      </button>
+
+      {/* MAIN badge */}
+      {isFirst && (
+        <span
+          style={{
+            position: "absolute",
+            bottom: 6,
+            left: 6,
+            background: "rgba(0,0,0,0.65)",
+            color: "#fff",
+            fontSize: 8,
+            padding: "2px 7px",
+            borderRadius: 20,
+            fontWeight: 700,
+            letterSpacing: "0.05em",
+            pointerEvents: "none",
+          }}
+        >
+          MAIN
+        </span>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════
+   MAIN PAGE
+══════════════════════════════════════════ */
 export default function AdminProductFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
-  const { products, fetchProducts, saveProduct } = useShop();
-
+  const { saveProduct } = useShop();
   const pushToast = useToasts((s) => s.push);
+
   const [loading, setLoading] = useState(false);
-  const dropRef = useRef(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isExtractingColors, setIsExtractingColors] = useState(false);
-
-  const extractColorsFromImage = (file) => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = async () => {
-        try {
-          // ColorThief 3.3.1 returns an array of Color objects
-          const palette = (await getPalette(img, { colorCount: 6 })) || [];
-
-          const unique = [];
-          const seenNames = new Set();
-
-          for (const item of palette) {
-            let hex;
-
-            if (item && typeof item.hex === "function") {
-              hex = item.hex();
-            } else if (Array.isArray(item)) {
-              const [r, g, b] = item;
-              hex =
-                "#" +
-                [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
-            }
-
-            if (!hex) continue;
-
-            const names = namer(hex).ntc;
-            const name = names[0].name;
-
-            if (!seenNames.has(name)) {
-              unique.push({ name, hex });
-              seenNames.add(name);
-            }
-            if (unique.length >= 4) break;
-          }
-
-          resolve(unique);
-        } catch (error) {
-          console.error("Color extraction failed:", error);
-          resolve([]);
-        } finally {
-          if (img.src.startsWith("blob:")) {
-            URL.revokeObjectURL(img.src);
-          }
-        }
-      };
-      img.onerror = () => {
-        if (img.src.startsWith("blob:")) {
-          URL.revokeObjectURL(img.src);
-        }
-        resolve([]);
-      };
-      img.src = URL.createObjectURL(file);
-    });
-  };
+  const [extractingIndex, setExtractingIndex] = useState(null);
 
   const initialFormState = {
     name: "",
     description: "",
     price: "",
     salePrice: "",
-    category: "", // Default to empty
+    category: "",
     fabric: "",
     sizes: [],
     colors: [],
@@ -232,72 +474,13 @@ export default function AdminProductFormPage() {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const categoryRef = useRef(null);
 
-  /* ── Prefill on edit ── */
-  // useEffect(() => {
-  //   const loadProduct = async () => {
-  //     if (!id) return;
-
-  //     setLoading(true);
-  //     try {
-  //       // 1. Try to find in context first
-  //       let product = products.find((p) => p._id === id || p.id === id);
-
-  //       // 2. If not in context (e.g. on refresh), fetch from API
-  //       if (!product) {
-  //         const data = await productApi.getOne(id);
-  //         product = data.product || data.data || data;
-  //       }
-
-  //       if (product) {
-  //         setFormData({
-  //           name: product.name || "",
-  //           description: product.description || "",
-  //           price: product.price || "",
-  //           salePrice: product.salePrice || "",
-  //           category: product.category || "",
-  //           fabric: product.fabric || "",
-  //           sizes: product.sizes || [],
-  //           colors: product.colors || [],
-  //           stock: product.stock || 0,
-  //           newArrival: product.newArrival ?? true,
-  //           isBestseller: product.isBestseller ?? false,
-  //           images: [],
-  //         });
-  //         setPreviews(product.images || []);
-  //       }
-  //     } catch (error) {
-  //       pushToast({
-  //         title: "Error",
-  //         message: "Could not load product details.",
-  //         type: "error",
-  //       });
-  //       console.error("Load product error:", error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   loadProduct();
-
-  //   // Close category dropdown on outside click
-  //   const handleClickOutside = (e) => {
-  //     if (categoryRef.current && !categoryRef.current.contains(e.target)) {
-  //       setIsCategoryOpen(false);
-  //     }
-  //   };
-  //   document.addEventListener("mousedown", handleClickOutside);
-  //   return () => document.removeEventListener("mousedown", handleClickOutside);
-  // }, [id, products, pushToast]);
   useEffect(() => {
     const loadProduct = async () => {
       if (!id) return;
-
       setLoading(true);
-
       try {
         const data = await productApi.getAdminOne(id);
         const product = data.product || data.data || data;
-
         if (product) {
           setFormData({
             name: product.name || "",
@@ -314,10 +497,9 @@ export default function AdminProductFormPage() {
             isBestseller: product.isBestseller ?? false,
             images: [],
           });
-
           setPreviews(product.images || []);
         }
-      } catch (error) {
+      } catch {
         pushToast({
           title: "Error",
           message: "Could not load product details.",
@@ -327,9 +509,17 @@ export default function AdminProductFormPage() {
         setLoading(false);
       }
     };
-
     loadProduct();
   }, [id]);
+
+  useEffect(() => {
+    const handle = (e) => {
+      if (categoryRef.current && !categoryRef.current.contains(e.target))
+        setIsCategoryOpen(false);
+    };
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, []);
 
   if (!isAdmin) {
     return (
@@ -344,52 +534,100 @@ export default function AdminProductFormPage() {
     );
   }
 
-  /* ── Helpers ── */
   const set = (key, val) => setFormData((prev) => ({ ...prev, [key]: val }));
 
-  const toggleSize = (size) => {
+  const toggleSize = (size) =>
     setFormData((prev) => ({
       ...prev,
       sizes: prev.sizes.includes(size)
         ? prev.sizes.filter((s) => s !== size)
         : [...prev.sizes, size],
     }));
-  };
 
-  // Add color with auto-generated name if missing
   const addColor = () =>
-    setFormData((prev) => {
-      // Try to generate a name if possible
-      const hex = "#000000";
-      let name = "";
-      // Optionally, generate a name from hex (simple fallback)
-      if (prev.colors.some((c) => c.hex === hex)) {
-        name = `Color ${prev.colors.length + 1}`;
-      }
-      return {
-        ...prev,
-        colors: [...prev.colors, { name, hex }],
-      };
-    });
+    setFormData((prev) => ({
+      ...prev,
+      colors: [
+        ...prev.colors,
+        { name: `Color ${prev.colors.length + 1}`, hex: "#000000" },
+      ],
+    }));
+
   const removeColor = (i) =>
     setFormData((prev) => ({
       ...prev,
       colors: prev.colors.filter((_, idx) => idx !== i),
     }));
-  // Require color name or auto-generate if empty
-  const updateColor = (i, field, val) => {
+
+  const updateColor = (i, field, val) =>
     setFormData((prev) => {
-      const newColors = [...prev.colors];
-      // Create a fresh object for the specific color being updated
-      const updatedColor = { ...newColors[i], [field]: val };
-
-      if (field === "name" && val.trim() === "") {
-        updatedColor.name = `Color ${i + 1}`;
-      }
-
-      newColors[i] = updatedColor;
-      return { ...prev, colors: newColors };
+      const cols = [...prev.colors];
+      cols[i] = { ...cols[i], [field]: val };
+      if (field === "name" && val.trim() === "")
+        cols[i].name = `Color ${i + 1}`;
+      return { ...prev, colors: cols };
     });
+
+  /* Auto-extract when first image uploaded and no colors yet */
+  const handleAutoColorExtraction = async (file) => {
+    setIsExtractingColors(true);
+    try {
+      const detected = await extractColorsFromImage(file);
+      if (detected.length > 0) {
+        setFormData((prev) => ({
+          ...prev,
+          colors: [...prev.colors, ...detected].slice(0, 6),
+        }));
+        pushToast({
+          title: "Colors Detected",
+          message: `Extracted ${detected.length} garment color${detected.length > 1 ? "s" : ""}.`,
+          type: "success",
+        });
+      } else {
+        pushToast({
+          title: "No Colors Found",
+          message: "Could not detect garment colors. Add manually.",
+          type: "error",
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsExtractingColors(false);
+    }
+  };
+
+  /* Per-image extract — called by button click AND double-tap/click */
+  const handleExtractFromPreview = async (e, index) => {
+    e.stopPropagation();
+    if (extractingIndex !== null) return;
+    const preview = previews[index];
+    const source = preview.isNew ? preview.file : preview.url || preview;
+    setExtractingIndex(index);
+    try {
+      const detected = await extractColorsFromImage(source);
+      if (detected.length > 0) {
+        setFormData((prev) => ({
+          ...prev,
+          colors: [...prev.colors, ...detected].slice(0, 6),
+        }));
+        pushToast({
+          title: "Colors Detected",
+          message: `Extracted ${detected.length} color${detected.length > 1 ? "s" : ""} from image ${index + 1}.`,
+          type: "success",
+        });
+      } else {
+        pushToast({
+          title: "No Colors Found",
+          message: "Could not detect colors from this image.",
+          type: "error",
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setExtractingIndex(null);
+    }
   };
 
   const processFiles = (files) => {
@@ -401,35 +639,11 @@ export default function AdminProductFormPage() {
       file,
     }));
     setPreviews((prev) => [...prev, ...newPreviews]);
-
-    // Automatic Color Extraction from the FIRST image
-    if (arr.length > 0 && formData.colors.length === 0) {
+    if (arr.length > 0 && formData.colors.length === 0)
       handleAutoColorExtraction(arr[0]);
-    }
-  };
-
-  const handleAutoColorExtraction = async (file) => {
-    setIsExtractingColors(true);
-    try {
-      const detected = await extractColorsFromImage(file);
-      setFormData((prev) => ({
-        ...prev,
-        colors: [...prev.colors, ...detected].slice(0, 6), // Keep it reasonable
-      }));
-      pushToast({
-        title: "Colors Detected",
-        message: `Extracted ${detected.length} colors from image.`,
-        type: "success",
-      });
-    } catch (err) {
-      console.error("Color extraction error:", err);
-    } finally {
-      setIsExtractingColors(false);
-    }
   };
 
   const handleImageChange = (e) => processFiles(e.target.files);
-
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragOver(false);
@@ -447,45 +661,38 @@ export default function AdminProductFormPage() {
   };
 
   const validateForm = () => {
-    const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = "Product name is required";
-    if (!formData.description.trim())
-      newErrors.description = "Description is required";
-    if (!formData.category) newErrors.category = "Please select a category";
+    const e = {};
+    if (!formData.name.trim()) e.name = "Product name is required";
+    if (!formData.description.trim()) e.description = "Description is required";
+    if (!formData.category) e.category = "Please select a category";
     if (!formData.price || formData.price <= 0)
-      newErrors.price = "Valid price is required";
-    if (formData.stock < 0) newErrors.stock = "Stock cannot be negative";
+      e.price = "Valid price is required";
+    if (formData.stock < 0) e.stock = "Stock cannot be negative";
     if (
       formData.salePrice &&
       Number(formData.salePrice) >= Number(formData.price)
-    ) {
-      newErrors.salePrice = "Sale price must be lower than regular price";
-    }
-    if (formData.sizes.length === 0)
-      newErrors.sizes = "Select at least one size";
+    )
+      e.salePrice = "Sale price must be lower than regular price";
+    if (formData.sizes.length === 0) e.sizes = "Select at least one size";
     if (previews.length === 0)
-      newErrors.images = "At least one product image is required";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+      e.images = "At least one product image is required";
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleSubmit = async (ev) => {
+    ev.preventDefault();
     if (!validateForm()) {
       pushToast({
         title: "Validation Error",
         message: "Please check the highlighted fields.",
         type: "error",
       });
-      // Scroll to first error
       const firstError = Object.keys(errors)[0];
       const el = document.getElementsByName(firstError)[0];
       if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-
     setLoading(true);
     try {
       const data = new FormData();
@@ -501,24 +708,18 @@ export default function AdminProductFormPage() {
       data.append("isBestseller", formData.isBestseller);
       data.append("sizes", JSON.stringify(formData.sizes));
       data.append("colors", JSON.stringify(formData.colors));
-      const existingImages = previews.filter((p) => !p.isNew);
-      data.append("existingImages", JSON.stringify(existingImages));
-
+      data.append(
+        "existingImages",
+        JSON.stringify(previews.filter((p) => !p.isNew)),
+      );
       formData.images.forEach((file) => data.append("images", file));
-
-      // Fire and forget
       saveProduct(id, data, { name: formData.name });
-
-      // Navigate immediately
       navigate("/admin/products");
     } catch (error) {
       pushToast({ title: "Error", message: error.message, type: "error" });
-    } finally {
-      // We don't set loading false here because we've navigated away
     }
   };
 
-  /* ─── Progress bar indicator ─── */
   const filledFields = [
     formData.name,
     formData.description,
@@ -533,7 +734,7 @@ export default function AdminProductFormPage() {
     <>
       <style>{FORM_STYLES}</style>
       <div className="apf-wrap">
-        {/* ── Page header ── */}
+        {/* Progress header */}
         <div className="apf-progress-header">
           <div
             style={{
@@ -547,7 +748,6 @@ export default function AdminProductFormPage() {
           >
             {id ? "Editing product" : "New product"}
           </div>
-          {/* progress bar */}
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div
               style={{
@@ -581,9 +781,8 @@ export default function AdminProductFormPage() {
           </div>
         </div>
 
-        {/* ── Form ── */}
         <form onSubmit={handleSubmit} className="apf-form">
-          {/* ═══ LEFT COLUMN ═══ */}
+          {/* ── LEFT ── */}
           <div className="apf-left">
             {/* Basic Info */}
             <div className="apf-section">
@@ -601,8 +800,7 @@ export default function AdminProductFormPage() {
                     value={formData.name}
                     onChange={(e) => {
                       set("name", e.target.value);
-                      if (errors.name)
-                        setErrors((prev) => ({ ...prev, name: "" }));
+                      if (errors.name) setErrors((p) => ({ ...p, name: "" }));
                     }}
                     placeholder="e.g. Classic Oxford Shirt"
                   />
@@ -612,7 +810,6 @@ export default function AdminProductFormPage() {
                     </div>
                   )}
                 </div>
-
                 <div>
                   <label className="apf-label">Description *</label>
                   <textarea
@@ -622,7 +819,7 @@ export default function AdminProductFormPage() {
                     onChange={(e) => {
                       set("description", e.target.value);
                       if (errors.description)
-                        setErrors((prev) => ({ ...prev, description: "" }));
+                        setErrors((p) => ({ ...p, description: "" }));
                     }}
                     placeholder="Describe the product, its fit, quality and feel…"
                   />
@@ -632,7 +829,6 @@ export default function AdminProductFormPage() {
                     </div>
                   )}
                 </div>
-
                 <div className="apf-grid-2">
                   <div>
                     <label className="apf-label">Category *</label>
@@ -668,10 +864,7 @@ export default function AdminProductFormPage() {
                                 set("category", c);
                                 setIsCategoryOpen(false);
                                 if (errors.category)
-                                  setErrors((prev) => ({
-                                    ...prev,
-                                    category: "",
-                                  }));
+                                  setErrors((p) => ({ ...p, category: "" }));
                               }}
                             >
                               {c}
@@ -700,7 +893,7 @@ export default function AdminProductFormPage() {
               </div>
             </div>
 
-            {/* Pricing & Inventory */}
+            {/* Pricing */}
             <div className="apf-section">
               <SectionHead
                 title="Pricing & Inventory"
@@ -717,8 +910,7 @@ export default function AdminProductFormPage() {
                     value={formData.price}
                     onChange={(e) => {
                       set("price", e.target.value);
-                      if (errors.price)
-                        setErrors((prev) => ({ ...prev, price: "" }));
+                      if (errors.price) setErrors((p) => ({ ...p, price: "" }));
                     }}
                     placeholder="0"
                   />
@@ -749,8 +941,7 @@ export default function AdminProductFormPage() {
                     value={formData.stock}
                     onChange={(e) => {
                       set("stock", e.target.value);
-                      if (errors.stock)
-                        setErrors((prev) => ({ ...prev, stock: "" }));
+                      if (errors.stock) setErrors((p) => ({ ...p, stock: "" }));
                     }}
                   />
                   {errors.stock && (
@@ -776,8 +967,7 @@ export default function AdminProductFormPage() {
                     alignItems: "center",
                   }}
                 >
-                  <Info size={14} />
-                  Discount:{" "}
+                  <Info size={14} /> Discount:{" "}
                   {Math.round((1 - formData.salePrice / formData.price) * 100)}%
                   off
                 </div>
@@ -790,8 +980,6 @@ export default function AdminProductFormPage() {
                 title="Variants"
                 sub="Available sizes and color options"
               />
-
-              {/* Sizes */}
               <div style={{ marginBottom: 28 }}>
                 <label className="apf-label" style={{ marginBottom: 12 }}>
                   Available Sizes
@@ -806,9 +994,9 @@ export default function AdminProductFormPage() {
                         onClick={() => {
                           toggleSize(size);
                           if (errors.sizes)
-                            setErrors((prev) => ({ ...prev, sizes: "" }));
+                            setErrors((p) => ({ ...p, sizes: "" }));
                         }}
-                        className={`size-btn ${errors.sizes ? "error" : ""}`}
+                        className="size-btn"
                         style={{
                           borderColor: active
                             ? "#1a1a1a"
@@ -855,7 +1043,6 @@ export default function AdminProductFormPage() {
                 )}
               </div>
 
-              {/* Colors */}
               <div>
                 <div
                   style={{
@@ -883,7 +1070,6 @@ export default function AdminProductFormPage() {
                       cursor: "pointer",
                       padding: "4px 8px",
                       borderRadius: 8,
-                      transition: "background 0.15s",
                     }}
                     onMouseEnter={(e) =>
                       (e.currentTarget.style.background = "#faf9f7")
@@ -906,12 +1092,11 @@ export default function AdminProductFormPage() {
                         fontStyle: "italic",
                       }}
                     >
-                      No colors added yet.
+                      Upload an image — colors auto-detected.
                     </div>
                   )}
                   {formData.colors.map((color, i) => (
                     <div key={i} className="apf-color-row">
-                      {/* Color swatch preview */}
                       <div
                         style={{
                           width: 20,
@@ -981,57 +1166,27 @@ export default function AdminProductFormPage() {
             </div>
           </div>
 
-          {/* ═══ RIGHT COLUMN ═══ */}
+          {/* ── RIGHT ── */}
           <div className="apf-right">
-            {/* Images */}
             <div className="apf-section">
               <SectionHead
                 title="Product Images"
-                sub={`${previews.length} image${previews.length !== 1 ? "s" : ""} uploaded`}
+                sub={`${previews.length} image${previews.length !== 1 ? "s" : ""} · double-tap to detect colors`}
               />
-
               <div className="apf-img-grid">
                 {previews.map((img, i) => (
-                  <div key={i} className="apf-img-thumb">
-                    <img
-                      src={img.url || img}
-                      alt=""
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        display: "block",
-                      }}
-                    />
-                    <button
-                      type="button"
-                      className="apf-img-del"
-                      onClick={() => removePreview(i)}
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                    {i === 0 && (
-                      <span
-                        style={{
-                          position: "absolute",
-                          bottom: 5,
-                          left: 5,
-                          background: "rgba(0,0,0,0.65)",
-                          color: "#fff",
-                          fontSize: 8,
-                          padding: "2px 7px",
-                          borderRadius: 20,
-                          fontWeight: 700,
-                          letterSpacing: "0.05em",
-                        }}
-                      >
-                        MAIN
-                      </span>
-                    )}
-                  </div>
+                  <ImageThumb
+                    key={i}
+                    img={img}
+                    index={i}
+                    extractingIndex={extractingIndex}
+                    onExtract={handleExtractFromPreview}
+                    onDelete={removePreview}
+                    isFirst={i === 0}
+                  />
                 ))}
 
-                {/* Drop zone */}
+                {/* Upload drop zone */}
                 <label
                   className={`apf-drop-zone${isDragOver ? " drag-over" : ""}${errors.images ? " error" : ""}`}
                   style={
@@ -1046,8 +1201,7 @@ export default function AdminProductFormPage() {
                   onDragLeave={() => setIsDragOver(false)}
                   onDrop={(e) => {
                     handleDrop(e);
-                    if (errors.images)
-                      setErrors((prev) => ({ ...prev, images: "" }));
+                    if (errors.images) setErrors((p) => ({ ...p, images: "" }));
                   }}
                 >
                   <ImagePlus size={22} />
@@ -1068,12 +1222,13 @@ export default function AdminProductFormPage() {
                     onChange={(e) => {
                       handleImageChange(e);
                       if (errors.images)
-                        setErrors((prev) => ({ ...prev, images: "" }));
+                        setErrors((p) => ({ ...p, images: "" }));
                     }}
                     accept="image/*"
                   />
                 </label>
               </div>
+
               {errors.images && (
                 <div
                   className="apf-error-msg"
@@ -1083,7 +1238,6 @@ export default function AdminProductFormPage() {
                 </div>
               )}
 
-              {/* ── Detected Colors Preview ── */}
               {isExtractingColors && (
                 <div
                   style={{
@@ -1097,26 +1251,20 @@ export default function AdminProductFormPage() {
                 >
                   <Loader2
                     size={18}
-                    className="animate-spin"
                     style={{
                       color: "#999",
                       marginBottom: 8,
                       display: "inline-block",
+                      animation: "spin 1s linear infinite",
                     }}
                   />
-                  <p
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 600,
-                      color: "#999",
-                    }}
-                  >
-                    Extracting colors...
+                  <p style={{ fontSize: 11, fontWeight: 600, color: "#999" }}>
+                    Analysing garment colors…
                   </p>
                 </div>
               )}
 
-              {formData.colors.length > 0 && (
+              {formData.colors.length > 0 && !isExtractingColors && (
                 <div style={{ marginTop: 24 }}>
                   <div
                     style={{
@@ -1205,154 +1353,81 @@ export default function AdminProductFormPage() {
                   color: "#888",
                   textAlign: "center",
                   lineHeight: 1.6,
+                  marginTop: 12,
                 }}
               >
                 Recommended: 2+ images · First image used as cover
               </p>
             </div>
 
-            {/* Product Status */}
+            {/* Status */}
             <div className="apf-section">
               <SectionHead
                 title="Product Status"
                 sub="Tags & visibility settings"
               />
-
               <div style={{ display: "grid", gap: 10 }}>
-                <label
-                  className={`apf-check-row${formData.published ? " active" : ""}`}
-                  onClick={() => set("published", !formData.published)}
-                >
-                  <div
-                    style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: 6,
-                      border: `2px solid ${formData.published ? "#1a1a1a" : "#e8e6e0"}`,
-                      background: formData.published ? "#1a1a1a" : "transparent",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                      transition: "all 0.18s",
-                    }}
+                {[
+                  {
+                    key: "published",
+                    icon: <CheckCircle2 size={14} color="#059669" />,
+                    label: "Publish now",
+                    sub: "Uncheck to save as unpublished for later.",
+                  },
+                  {
+                    key: "newArrival",
+                    icon: <Tag size={14} color="#b45309" />,
+                    label: "New Arrival",
+                    sub: "Shown in New Arrivals section",
+                  },
+                  {
+                    key: "isBestseller",
+                    icon: <Star size={14} color="#f59e0b" fill="#f59e0b" />,
+                    label: "Bestseller",
+                    sub: "Highlighted in featured sections",
+                  },
+                ].map(({ key, icon, label, sub }) => (
+                  <label
+                    key={key}
+                    className={`apf-check-row${formData[key] ? " active" : ""}`}
+                    onClick={() => set(key, !formData[key])}
                   >
-                    {formData.published && <CheckCircle2 size={13} color="#fff" />}
-                  </div>
-                  <div>
                     <div
                       style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: 6,
+                        border: `2px solid ${formData[key] ? "#1a1a1a" : "#e8e6e0"}`,
+                        background: formData[key] ? "#1a1a1a" : "transparent",
                         display: "flex",
                         alignItems: "center",
-                        gap: 7,
-                        fontWeight: 700,
-                        fontSize: 14,
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        transition: "all 0.18s",
                       }}
                     >
-                      <CheckCircle2 size={14} color="#059669" /> Publish now
+                      {formData[key] && <CheckCircle2 size={13} color="#fff" />}
                     </div>
-                    <div style={{ fontSize: 11, color: "#888", marginTop: 3 }}>
-                      Uncheck to save this product as unpublished for later.
+                    <div>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 7,
+                          fontWeight: 700,
+                          fontSize: 14,
+                        }}
+                      >
+                        {icon} {label}
+                      </div>
+                      <div
+                        style={{ fontSize: 11, color: "#888", marginTop: 3 }}
+                      >
+                        {sub}
+                      </div>
                     </div>
-                  </div>
-                </label>
-
-                <label
-                  className={`apf-check-row${formData.newArrival ? " active" : ""}`}
-                  onClick={() => set("newArrival", !formData.newArrival)}
-                >
-                  <div
-                    style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: 6,
-                      border: `2px solid ${formData.newArrival ? "#1a1a1a" : "#e8e6e0"}`,
-                      background: formData.newArrival
-                        ? "#1a1a1a"
-                        : "transparent",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                      transition: "all 0.18s",
-                    }}
-                  >
-                    {formData.newArrival && (
-                      <CheckCircle2 size={13} color="#fff" />
-                    )}
-                  </div>
-                  <div>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 7,
-                        fontWeight: 700,
-                        fontSize: 14,
-                      }}
-                    >
-                      <Tag size={14} color="#b45309" /> New Arrival
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: "#888",
-                        marginTop: 3,
-                      }}
-                    >
-                      Shown in New Arrivals section
-                    </div>
-                  </div>
-                </label>
-
-                <label
-                  className={`apf-check-row${formData.isBestseller ? " active" : ""}`}
-                  onClick={() => set("isBestseller", !formData.isBestseller)}
-                >
-                  <div
-                    style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: 6,
-                      border: `2px solid ${formData.isBestseller ? "#1a1a1a" : "#e8e6e0"}`,
-                      background: formData.isBestseller
-                        ? "#1a1a1a"
-                        : "transparent",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                      transition: "all 0.18s",
-                    }}
-                  >
-                    {formData.isBestseller && (
-                      <CheckCircle2 size={13} color="#fff" />
-                    )}
-                  </div>
-                  <div>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 7,
-                        fontWeight: 700,
-                        fontSize: 14,
-                      }}
-                    >
-                      <Star size={14} color="#f59e0b" fill="#f59e0b" />{" "}
-                      Bestseller
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: "#888",
-                        marginTop: 3,
-                      }}
-                    >
-                      Highlighted in featured sections
-                    </div>
-                  </div>
-                </label>
+                  </label>
+                ))}
               </div>
             </div>
 
@@ -1373,7 +1448,12 @@ export default function AdminProductFormPage() {
                   </>
                 ) : (
                   <>
-                    <Save size={18} /> {id ? "Save Changes" : formData.published ? "Publish Product" : "Save For Later"}
+                    <Save size={18} />{" "}
+                    {id
+                      ? "Save Changes"
+                      : formData.published
+                        ? "Publish Product"
+                        : "Save For Later"}
                   </>
                 )}
               </button>
@@ -1388,8 +1468,6 @@ export default function AdminProductFormPage() {
           </div>
         </form>
       </div>
-
-      {/* spinner keyframe */}
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </>
   );

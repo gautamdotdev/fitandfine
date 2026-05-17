@@ -290,7 +290,8 @@ export const categories = [
   {
     slug: "t-shirts",
     name: "T-Shirts",
-    image: img("1598033129183-c4f50c736f10", 800),
+    image:
+      "https://res.cloudinary.com/dk1ulbshe/image/upload/v1778483103/fitandfine/products/lwll6m38sdd6gfrldv36.jpg",
   },
   {
     slug: "shirts",
@@ -302,7 +303,13 @@ export const categories = [
     slug: "trousers",
     name: "Trousers",
     image:
-      "https://imgs.search.brave.com/o9PW0epkGU_Bw5Ol24LioBnO5XdrAb4a1mCW1wUS4Sc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jYW1w/dXNzdXRyYS5jb20v/Y2RuL3Nob3AvZmls/ZXMvQ1NNU1NUUjkx/NjZfNV9hMzBhYjcy/NC04YTdkLTRjNTIt/YmRiMi01N2NhNThl/NjYxYmEuanBnP3Y9/MTc1MzQzMDMxNyZ3/aWR0aD0yMDAw",
+      "https://res.cloudinary.com/dk1ulbshe/image/upload/v1778482010/fitandfine/products/sub00aivlfsvzrhn1ztl.jpg",
+  },
+  {
+    slug: "combo",
+    name: "Combos",
+    image:
+      "https://res.cloudinary.com/dk1ulbshe/image/upload/v1778864030/fitandfine/products/yvj8nltt8pdwie8wjkmq.png",
   },
 ];
 
