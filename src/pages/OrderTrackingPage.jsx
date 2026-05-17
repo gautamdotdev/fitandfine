@@ -299,12 +299,8 @@ export default function OrderTrackingPage() {
   const cfg = STATUS[order.status] || STATUS.pending;
   const StatusIcon = cfg.icon;
   const currentIdx = STEPS.indexOf(order.status);
-  const coupon =
-    order.couponDetails ||
-    (typeof order.coupon === "object" ? order.coupon : null) ||
-    (typeof order.coupon === "string"
-      ? { code: order.coupon, discount: order.discount }
-      : null);
+  const couponCode = typeof order.coupon === "string" ? order.coupon : (order.couponDetails?.code || null);
+  const discountAmount = order.discount || order.couponDetails?.discount || 0;
   const date = new Date(order.createdAt).toLocaleDateString("en-IN", {
     day: "numeric",
     month: "long",
@@ -454,15 +450,16 @@ export default function OrderTrackingPage() {
                       ₹
                       {(
                         order.subtotal ||
-                        order.total - (order.shippingCost || 0)
+                        order.total - (order.shippingCost || 0) + (order.discount || 0)
                       ).toLocaleString("en-IN")}
                     </span>
                   </div>
-                  {coupon?.code && (
+                  {couponCode && discountAmount > 0 && (
                     <div
                       style={{
                         display: "flex",
                         justifyContent: "flex-end",
+                        alignItems: "center",
                         gap: 16,
                       }}
                     >
@@ -470,15 +467,30 @@ export default function OrderTrackingPage() {
                         style={{
                           color: "var(--color-muted-foreground)",
                           fontSize: 13,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
                         }}
                       >
-                        Coupon {coupon.code}:
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 700,
+                            color: "#10b981",
+                            background: "rgba(16,185,129,0.1)",
+                            border: "1px dashed rgba(16,185,129,0.3)",
+                            padding: "2px 6px",
+                            borderRadius: 4,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                          }}
+                        >
+                          {couponCode}
+                        </span>
+                        Discount:
                       </span>
-                      <span style={{ fontWeight: 600, fontSize: 13 }}>
-                        -₹
-                        {(order.discount || coupon.discount || 0).toLocaleString(
-                          "en-IN",
-                        )}
+                      <span style={{ fontWeight: 600, fontSize: 13, color: "#10b981" }}>
+                        -₹{discountAmount.toLocaleString("en-IN")}
                       </span>
                     </div>
                   )}
@@ -517,13 +529,13 @@ export default function OrderTrackingPage() {
                       style={{
                         color: "var(--color-foreground)",
                         fontWeight: 700,
-                        fontSize: 16,
+                        fontSize: 15,
                       }}
                     >
-                      Total Paid:
+                      Grand Total:
                     </span>
-                    <span style={{ fontWeight: 900, fontSize: 18 }}>
-                      ₹{(order.paidAmount || 0).toLocaleString("en-IN")}
+                    <span style={{ fontWeight: 900, fontSize: 16 }}>
+                      ₹{(order.total || 0).toLocaleString("en-IN")}
                     </span>
                   </div>
                   <div
@@ -539,17 +551,105 @@ export default function OrderTrackingPage() {
                         fontSize: 13,
                       }}
                     >
-                      Payment:
+                      Amount Paid:
                     </span>
-                    <span
+                    <span style={{ fontWeight: 600, fontSize: 13 }}>
+                      ₹{(order.paidAmount || 0).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                  {order.total - (order.paidAmount || 0) > 0 && (
+                    <div
                       style={{
-                        fontWeight: 700,
-                        fontSize: 13,
-                        textTransform: "capitalize",
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        gap: 16,
                       }}
                     >
-                      {order.paymentStatus || "unpaid"}
+                      <span
+                        style={{
+                          color: "var(--color-muted-foreground)",
+                          fontSize: 13,
+                        }}
+                      >
+                        Balance Due:
+                      </span>
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          fontSize: 13,
+                          color:
+                            order.paymentInfo?.method === "cod" || order.paymentInfo?.cod
+                              ? "#f59e0b"
+                              : "var(--color-foreground)",
+                        }}
+                      >
+                        ₹{(order.total - (order.paidAmount || 0)).toLocaleString("en-IN")}{" "}
+                        {(order.paymentInfo?.method === "cod" || order.paymentInfo?.cod) && (
+                          <span style={{ fontSize: 11, fontWeight: 500, color: "var(--color-muted-foreground)" }}>
+                            (Pay on Delivery)
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  )}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-end",
+                      gap: 16,
+                      alignItems: "center",
+                      marginTop: 4,
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: "var(--color-muted-foreground)",
+                        fontSize: 12,
+                      }}
+                    >
+                      Payment:
                     </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      {order.paymentInfo?.method && (
+                        <span
+                          style={{
+                            fontSize: 11,
+                            background: "var(--color-surface)",
+                            border: "1px solid var(--color-border)",
+                            padding: "2px 6px",
+                            borderRadius: 4,
+                            color: "var(--color-muted-foreground)",
+                            textTransform: "uppercase",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {order.paymentInfo.method === "cod" ? "COD" : order.paymentInfo.method}
+                        </span>
+                      )}
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          fontSize: 10,
+                          textTransform: "uppercase",
+                          padding: "2px 6px",
+                          borderRadius: 4,
+                          backgroundColor:
+                            order.paymentStatus === "paid"
+                              ? "rgba(16,185,129,0.12)"
+                              : order.paymentStatus === "partial"
+                                ? "rgba(245,158,11,0.12)"
+                                : "rgba(239,68,68,0.12)",
+                          color:
+                            order.paymentStatus === "paid"
+                              ? "#10b981"
+                              : order.paymentStatus === "partial"
+                                ? "#f59e0b"
+                                : "#ef4444",
+                        }}
+                      >
+                        {order.paymentStatus || "unpaid"}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
