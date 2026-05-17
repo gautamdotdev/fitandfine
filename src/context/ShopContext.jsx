@@ -183,9 +183,10 @@ export const ShopProvider = ({ children }) => {
     limit = 20,
     append = false,
     forceRefresh = false,
+    admin = false,
   } = {}) => {
     // 1. Create request key for deduplication & caching
-    const requestKey = JSON.stringify({ page, cursor, filters, limit });
+    const requestKey = JSON.stringify({ page, cursor, filters, limit, admin });
 
     // 2. Check Cache
     const cached = cache.get(requestKey);
@@ -215,7 +216,7 @@ export const ShopProvider = ({ children }) => {
 
     try {
       setLoading(true);
-      const response = await productApi.getAll({
+      const response = await (admin ? productApi.getAdminAll : productApi.getAll)({
         page,
         cursor,
         filters,

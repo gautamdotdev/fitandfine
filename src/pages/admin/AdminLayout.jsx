@@ -15,6 +15,7 @@ import {
   LogOut,
   Plus,
   Globe,
+  Truck,
 } from "lucide-react";
 import { AdminHeader } from "./AdminHeader.jsx";
 
@@ -233,14 +234,16 @@ const NAV = [
   {
     label: "SALES CHANNELS",
     items: [
-      { to: "/admin/analytics", icon: BarChart3, text: "Analytics" },
+      { to: "/admin", icon: BarChart3, text: "Analytics", end: true },
       { to: "/admin/marketing", icon: Zap, text: "Marketing" },
-      { to: "/admin/discounts", icon: Tag, text: "Discounts" },
+      { to: "/admin/settings/coupons", icon: Tag, text: "Discounts" },
     ],
   },
   {
     label: "SETTINGS",
-    items: [{ to: "/admin/settings", icon: Settings, text: "Settings" }],
+    items: [
+      { to: "/admin/settings", icon: Settings, text: "Settings", end: true },
+    ],
   },
   {
     items: [{ to: "/", icon: Globe, text: "Website" }],

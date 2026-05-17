@@ -154,6 +154,16 @@ const STYLES = `
 `;
 
 function StatusBadge({ p }) {
+  if (p.published === false)
+    return (
+      <span
+        className="admp-status"
+        style={{ background: "#f8f8f8", color: "#888" }}
+      >
+        <span className="admp-status-dot" style={{ background: "#aaa" }} />
+        Unpublished
+      </span>
+    );
   if (p.stock === 0)
     return (
       <span
@@ -172,16 +182,6 @@ function StatusBadge({ p }) {
       >
         <span className="admp-status-dot" style={{ background: "#ef4444" }} />
         Low Stock
-      </span>
-    );
-  if (!p.salePrice && !p.newArrival)
-    return (
-      <span
-        className="admp-status"
-        style={{ background: "#f8f8f8", color: "#888" }}
-      >
-        <span className="admp-status-dot" style={{ background: "#aaa" }} />
-        Draft
       </span>
     );
   return (
@@ -325,7 +325,7 @@ export default function AdminProductsPage() {
   const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
-    if (isAdmin) fetchProducts({ page, limit: 20, append: false });
+    if (isAdmin) fetchProducts({ page, limit: 20, append: false, admin: true });
   }, [page, isAdmin, fetchProducts]);
 
   const categories = useMemo(() => {
@@ -356,6 +356,7 @@ export default function AdminProductsPage() {
         limit: 20,
         append: false,
         forceRefresh: true,
+        admin: true,
       }).catch(() => {});
       pushToast({
         title: "Deleted",
@@ -601,6 +602,9 @@ export default function AdminProductsPage() {
                             }}
                           >
                             {p.category}
+                          </div>
+                          <div style={{ marginTop: 6 }}>
+                            <StatusBadge p={p} />
                           </div>
                         </div>
                       </div>

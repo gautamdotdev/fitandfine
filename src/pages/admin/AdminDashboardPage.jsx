@@ -111,6 +111,10 @@ const DASH_STYLES = `
   }
   .dash-low-item:last-child { border-bottom: none; }
   .dash-low-img { width: 38px; height: 46px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: #f0ede6; }
+  .dash-status-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 16px; }
+  .dash-status-pill { border: 1px solid #f0ede6; background: #faf9f7; border-radius: 2px; padding: 12px; }
+  .dash-order-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 13px 16px; border-bottom: 1px solid #f5f3ef; }
+  .dash-order-row:last-child { border-bottom: none; }
 
   @media (max-width: 1100px) {
     .dash-stats { grid-template-columns: repeat(2, 1fr); }
@@ -248,12 +252,9 @@ export default function AdminDashboardPage() {
         setLoading(false);
       });
 
-    /* 
-    // Ensure products are loaded for "Recent Products" section
     if (products.length === 0) {
       fetchProducts({ limit: 20, append: false });
     }
-    */
   }, [fetchProducts, products.length]);
 
   const lowStock = useMemo(
@@ -263,7 +264,11 @@ export default function AdminDashboardPage() {
         : products.filter((p) => (p.stock ?? 0) <= 5).slice(0, 5),
     [dashboard.lowStock, products],
   );
-  const recent = useMemo(() => [...products].slice(0, 7), [products]);
+  const recent = useMemo(
+    () => dashboard.recentOrders || [],
+    [dashboard.recentOrders],
+  );
+  const statuses = useMemo(() => dashboard.statusStats || [], [dashboard.statusStats]);
 
   const isDataLoading = loading || productsLoading;
 
@@ -275,55 +280,127 @@ export default function AdminDashboardPage() {
           Manage inventory, pricing and availability across your store
         </p>
 
-        {/* Maintenance Message */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '60vh',
-          textAlign: 'center',
-          background: '#fff',
-          border: '1px solid #e8e6e0',
-          borderRadius: '2px',
-          padding: '48px 24px',
-          marginTop: '20px'
-        }}>
-          <div style={{
-            width: 64,
-            height: 64,
-            borderRadius: 20,
-            background: '#fff7ed',
-            border: '1.5px solid #ffedd5',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: 24,
-            color: '#f97316'
-          }}>
-            <Zap size={32} />
-          </div>
+        <div className="dash-stats">
+          {STATS.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div className="dash-stat-card" key={stat.label}>
+                <div className="dash-stat-label">
+                  <span>{stat.label}</span>
+                  <span className="dash-stat-icon" style={{ color: stat.accent, background: `${stat.accent}14` }}>
+                    <Icon size={16} />
+                  </span>
+                </div>
+                <div className="dash-stat-value">
+                  {isDataLoading ? <Skeleton w="80px" h="28px" /> : stat.value(products, dashboard)}
+                </div>
+                <div className="dash-stat-trend" style={{ color: stat.up ? "#10b981" : "#ef4444" }}>
+                  {stat.up ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}
+                  {stat.trend}
+                  <span className="dash-stat-sub">{stat.sub}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
-          <h1 style={{
-            fontFamily: 'var(--font-serif, serif)',
-            fontSize: '32px',
-            fontWeight: 700,
-            marginBottom: 12,
-            color: '#1a1a1a'
-          }}>
-            Dashboard Under Construction
-          </h1>
+        <div className="dash-grid-2">
+          <section className="dash-card">
+            <div className="dash-card-head">
+              <div className="dash-card-title">Recent Orders</div>
+              <Link className="dash-card-action" to="/admin/orders">
+                View all <ChevronRight size={13} />
+              </Link>
+            </div>
+            {recent.length === 0 ? (
+              <div style={{ padding: 20, color: "#999", fontSize: 13 }}>No orders yet</div>
+            ) : (
+              recent.map((order) => (
+                <div className="dash-order-row" key={order._id}>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: 13 }}>#{order.orderId || order._id}</div>
+                    <div style={{ color: "#888", fontSize: 12, marginTop: 4 }}>
+                      {order.user?.name || "Customer"} · {order.items?.length || 0} item(s)
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontWeight: 900 }}>Rs {(order.total || 0).toLocaleString("en-IN")}</div>
+                    <div style={{ color: "#888", fontSize: 12, textTransform: "capitalize" }}>{order.status}</div>
+                  </div>
+                </div>
+              ))
+            )}
+          </section>
 
-          <p style={{
-            fontSize: '15px',
-            color: '#666',
-            maxWidth: '440px',
-            lineHeight: 1.6,
-            marginBottom: 32
-          }}>
-            We're currently refining the dashboard to provide better insights and analytics.
-            All other admin sections (Products, Orders, etc.) remain fully functional.
-          </p>
+          <section className="dash-card">
+            <div className="dash-card-head">
+              <div className="dash-card-title">Order Status</div>
+              <BarChart3 size={16} color="#888" />
+            </div>
+            <div className="dash-status-grid">
+              {statuses.length === 0 ? (
+                <div style={{ color: "#999", fontSize: 13 }}>No status data</div>
+              ) : (
+                statuses.map((row) => (
+                  <div className="dash-status-pill" key={row._id || "none"}>
+                    <div className="dash-stat-label" style={{ marginBottom: 8 }}>{row._id || "unknown"}</div>
+                    <div style={{ fontSize: 24, fontWeight: 900 }}>{row.count}</div>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+        </div>
+
+        <div className="dash-grid-2">
+          <section className="dash-card">
+            <div className="dash-card-head">
+              <div className="dash-card-title">Recent Products</div>
+              <Link className="dash-card-action" to="/admin/products">
+                Manage <ChevronRight size={13} />
+              </Link>
+            </div>
+            <div className="dash-table-container">
+              <table className="dash-table">
+                <thead>
+                  <tr><th>Product</th><th>Stock</th><th>Price</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                  {products.slice(0, 7).map((product) => (
+                    <tr key={product._id || product.id}>
+                      <td style={{ fontWeight: 800, fontSize: 13 }}>{product.name}</td>
+                      <td>{product.stock ?? 0}</td>
+                      <td>Rs {(product.salePrice || product.price || 0).toLocaleString("en-IN")}</td>
+                      <td><StatusBadge stock={product.stock ?? 0} salePrice={product.salePrice} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="dash-card">
+            <div className="dash-card-head">
+              <div className="dash-card-title">Low Stock</div>
+              <AlertTriangle size={16} color="#f59e0b" />
+            </div>
+            {lowStock.length === 0 ? (
+              <div style={{ padding: 16, color: "#999", fontSize: 13 }}>No low stock products</div>
+            ) : (
+              lowStock.map((product) => {
+                const image = product.images?.[0]?.url || product.images?.[0];
+                return (
+                  <div className="dash-low-item" key={product._id || product.id}>
+                    {image ? <img className="dash-low-img" src={image} alt="" /> : <div className="dash-low-img" />}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 800, fontSize: 13 }}>{product.name}</div>
+                      <div style={{ color: "#888", fontSize: 12 }}>Stock: {product.stock ?? 0}</div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </section>
         </div>
       </div>
     </>

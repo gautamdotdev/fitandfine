@@ -10,6 +10,7 @@ import {
 } from "../lib/products.js";
 import { ProductCard } from "../components/ProductCard.jsx";
 import { SkeletonBox, SkeletonProductCard } from "../components/Skeleton.jsx";
+import { adminApi } from "../lib/api.js";
 
 function HomePageSkeleton() {
   return (
@@ -28,6 +29,7 @@ function HomePageSkeleton() {
             gap: "24px",
           }}
           className="hero-content"
+          data-order={heroTextOrder}
         >
           <SkeletonBox width="140px" height="12px" borderRadius="50px" />
           <div
@@ -182,6 +184,8 @@ export default function HomePage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [settings, setSettings] = useState(null);
+  const [showOffer, setShowOffer] = useState(false);
 
   useEffect(() => {
     fetchProducts({ page, limit: 24, append: page > 1 }).then((data) => {
@@ -190,6 +194,23 @@ export default function HomePage() {
     });
     // eslint-disable-next-line
   }, [page]);
+
+  useEffect(() => {
+    adminApi
+      .getSiteSettings()
+      .then((data) => setSettings(data.settings))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const popup = settings?.offerPopup;
+    if (!popup?.enabled || sessionStorage.getItem("fitandfineOfferSeen")) return;
+    const timer = setTimeout(() => {
+      setShowOffer(true);
+      sessionStorage.setItem("fitandfineOfferSeen", "1");
+    }, Math.max(Number(popup.delaySeconds || 3), 0) * 1000);
+    return () => clearTimeout(timer);
+  }, [settings]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -210,6 +231,11 @@ export default function HomePage() {
 
   const featured = products.filter((p) => p.isBestseller);
   const newArrivals = products.filter((p) => p.newArrival);
+  const hero = settings?.hero || {};
+  const popup = settings?.offerPopup || {};
+  const heroTitle = hero.title || "Dress for\nthe life you\ndeserve.";
+  const heroTextOrder = hero.layout === "text-right" ? 2 : 1;
+  const heroImageOrder = hero.layout === "text-right" ? 1 : 2;
 
   return (
     <div className="page-transition">
@@ -252,7 +278,7 @@ export default function HomePage() {
                 letterSpacing: "0.18em",
               }}
             >
-              New Season • 2026
+              {hero.eyebrow || "New Season - 2026"}
             </span>
           </div>
           <h1
@@ -263,11 +289,12 @@ export default function HomePage() {
               letterSpacing: "-0.01em",
             }}
           >
-            Dress for
-            <br />
-            the life you
-            <br />
-            deserve.
+            {heroTitle.split("\n").map((line, index) => (
+              <span key={index}>
+                {line}
+                {index < heroTitle.split("\n").length - 1 && <br />}
+              </span>
+            ))}
           </h1>
           <p
             style={{
@@ -276,12 +303,12 @@ export default function HomePage() {
             }}
             className="hero-description"
           >
-            Curated menswear for the discerning gentleman. Timeless over trendy
-            — pieces made to live with you, not the season.
+            {hero.description ||
+              "Curated menswear for the discerning gentleman. Timeless over trendy - pieces made to live with you, not the season."}
           </p>
           <div style={{ marginTop: "40px" }}>
             <Link
-              to="/collections"
+              to={hero.buttonLink || "/collections"}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -306,7 +333,7 @@ export default function HomePage() {
                   "translateX(0)";
               }}
             >
-              Explore Collection
+              {hero.buttonText || "Explore Collection"}
               <ArrowRight size={16} style={{ transition: "transform 0.3s" }} />
             </Link>
           </div>
@@ -314,9 +341,10 @@ export default function HomePage() {
         <div
           style={{ position: "relative", minHeight: "50vh" }}
           className="hero-image"
+          data-order={heroImageOrder}
         >
           <img
-            src={HERO_IMAGE}
+            src={hero.imageUrl || HERO_IMAGE}
             alt=""
             style={{
               position: "absolute",
@@ -328,6 +356,52 @@ export default function HomePage() {
           />
         </div>
       </section>
+
+      {showOffer && (
+        <div className="offer-backdrop" onClick={() => setShowOffer(false)}>
+          <div className="offer-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="offer-close" onClick={() => setShowOffer(false)}>
+              ×
+            </button>
+            <p
+              className="label-caps"
+              style={{ color: "var(--color-gold)", marginBottom: "10px" }}
+            >
+              Offer
+            </p>
+            <h2
+              style={{
+                fontFamily: "var(--font-serif)",
+                fontSize: "2rem",
+                lineHeight: 1.05,
+              }}
+            >
+              {popup.title || "Sale is live"}
+            </h2>
+            <p
+              style={{
+                color: "var(--color-muted-foreground)",
+                marginTop: "12px",
+              }}
+            >
+              {popup.message || "Use this coupon code on your order today."}
+            </p>
+            <button
+              className="offer-code"
+              onClick={() => navigator.clipboard?.writeText(popup.couponCode || "")}
+            >
+              {popup.couponCode || "WELCOME10"} <span>Copy</span>
+            </button>
+            <Link
+              className="offer-shop"
+              to={popup.buttonLink || "/sale"}
+              onClick={() => setShowOffer(false)}
+            >
+              {popup.buttonText || "Shop sale"} <ArrowRight size={15} />
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* FEATURED */}
       <section
@@ -747,6 +821,16 @@ export default function HomePage() {
         .story-grid { grid-template-columns: 1fr; text-align: center; }
         .testimonials-grid { grid-template-columns: 1fr; }
         .view-all-link { display: none; }
+        .hero-content[data-order="1"] { order: 1; }
+        .hero-content[data-order="2"] { order: 2; }
+        .hero-image[data-order="1"] { order: 1; }
+        .hero-image[data-order="2"] { order: 2; }
+        .offer-backdrop { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.5); backdrop-filter: blur(6px); display: grid; place-items: center; padding: 18px; }
+        .offer-modal { width: min(420px, 100%); background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; padding: 28px; position: relative; box-shadow: 0 24px 70px rgba(0,0,0,.22); }
+        .offer-close { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border: 1px solid var(--color-border); border-radius: 50%; background: var(--color-surface); font-size: 20px; cursor: pointer; }
+        .offer-code { width: 100%; margin-top: 20px; border: 1.5px dashed var(--color-gold); background: var(--color-surface); padding: 14px; border-radius: 8px; display: flex; justify-content: space-between; font-weight: 900; letter-spacing: .08em; }
+        .offer-code span { color: var(--color-muted-foreground); font-size: 12px; letter-spacing: 0; }
+        .offer-shop { margin-top: 16px; height: 46px; display: inline-flex; width: 100%; align-items: center; justify-content: center; gap: 8px; background: var(--color-foreground); color: var(--color-background); border-radius: 50px; text-decoration: none; font-weight: 800; }
 
         @media (max-width: 767px) {
           .hero-description, .editorial-description { max-width: 100%; }
@@ -765,8 +849,8 @@ export default function HomePage() {
 
         @media (min-width: 1024px) {
           .hero-grid { grid-template-columns: repeat(2, 1fr) !important; min-height: 90vh !important; }
-          .hero-content { order: 1 !important; padding: 80px 80px !important; }
-          .hero-image { order: 2 !important; min-height: 100% !important; }
+          .hero-content { padding: 80px 80px !important; }
+          .hero-image { min-height: 100% !important; }
           .categories-grid { grid-template-columns: repeat(4, 1fr) !important; }
           .featured-grid { grid-template-columns: repeat(4, 1fr) !important; }
           .editorial-grid { grid-template-columns: repeat(2, 1fr) !important; }

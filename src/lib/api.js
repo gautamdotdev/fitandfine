@@ -77,6 +77,15 @@ export const fetchProducts = async ({
 export const productApi = {
   getAll: (params = {}) => fetchProducts(params),
   getOne: (id) => api(`/products/${id}`),
+  getAdminAll: ({ signal, filters = {}, ...params } = {}) => {
+    const queryParams = { ...filters, ...params };
+    const urlParams = new URLSearchParams();
+    Object.entries(queryParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) urlParams.append(key, value);
+    });
+    return api(`/products/admin/all?${urlParams.toString()}`, { signal });
+  },
+  getAdminOne: (id) => api(`/products/admin/${id}`),
   create: (formData) => api("/products", { method: "POST", body: formData }),
   update: (id, data) =>
     api(`/products/${id}`, {
@@ -120,6 +129,30 @@ export const orderApi = {
 
 export const adminApi = {
   dashboard: () => api("/admin/dashboard"),
+  customers: () => api("/admin/customers"),
+  getSiteSettings: () => api("/admin/settings/site", { skipAuth: true }),
+  updateSiteSettings: (data) =>
+    api("/admin/settings/site", { method: "PUT", body: JSON.stringify(data) }),
+  coupons: () => api("/admin/coupons"),
+  saveCoupon: (data) =>
+    api("/admin/coupons", { method: "POST", body: JSON.stringify(data) }),
+  cancelCoupon: (code) =>
+    api(`/admin/coupons/${encodeURIComponent(code)}/cancel`, {
+      method: "PUT",
+    }),
+  deleteCoupon: (code) =>
+    api(`/admin/coupons/${encodeURIComponent(code)}`, {
+      method: "DELETE",
+    }),
+};
+
+export const couponApi = {
+  validate: (data) =>
+    api("/coupons/validate", {
+      method: "POST",
+      body: JSON.stringify(data),
+      skipAuth: true,
+    }),
 };
 
 export const wishlistApi = {

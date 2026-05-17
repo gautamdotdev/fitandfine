@@ -299,6 +299,12 @@ export default function OrderTrackingPage() {
   const cfg = STATUS[order.status] || STATUS.pending;
   const StatusIcon = cfg.icon;
   const currentIdx = STEPS.indexOf(order.status);
+  const coupon =
+    order.couponDetails ||
+    (typeof order.coupon === "object" ? order.coupon : null) ||
+    (typeof order.coupon === "string"
+      ? { code: order.coupon, discount: order.discount }
+      : null);
   const date = new Date(order.createdAt).toLocaleDateString("en-IN", {
     day: "numeric",
     month: "long",
@@ -452,6 +458,30 @@ export default function OrderTrackingPage() {
                       ).toLocaleString("en-IN")}
                     </span>
                   </div>
+                  {coupon?.code && (
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        gap: 16,
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: "var(--color-muted-foreground)",
+                          fontSize: 13,
+                        }}
+                      >
+                        Coupon {coupon.code}:
+                      </span>
+                      <span style={{ fontWeight: 600, fontSize: 13 }}>
+                        -₹
+                        {(order.discount || coupon.discount || 0).toLocaleString(
+                          "en-IN",
+                        )}
+                      </span>
+                    </div>
+                  )}
                   <div
                     style={{
                       display: "flex",

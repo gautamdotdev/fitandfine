@@ -220,6 +220,7 @@ export default function AdminProductFormPage() {
     sizes: [],
     colors: [],
     stock: 0,
+    published: true,
     newArrival: true,
     isBestseller: false,
     images: [],
@@ -294,7 +295,7 @@ export default function AdminProductFormPage() {
       setLoading(true);
 
       try {
-        const data = await productApi.getOne(id);
+        const data = await productApi.getAdminOne(id);
         const product = data.product || data.data || data;
 
         if (product) {
@@ -308,6 +309,7 @@ export default function AdminProductFormPage() {
             sizes: product.sizes || [],
             colors: product.colors || [],
             stock: product.stock || 0,
+            published: product.published ?? true,
             newArrival: product.newArrival ?? true,
             isBestseller: product.isBestseller ?? false,
             images: [],
@@ -494,6 +496,7 @@ export default function AdminProductFormPage() {
       data.append("category", formData.category);
       data.append("fabric", formData.fabric);
       data.append("stock", formData.stock);
+      data.append("published", formData.published);
       data.append("newArrival", formData.newArrival);
       data.append("isBestseller", formData.isBestseller);
       data.append("sizes", JSON.stringify(formData.sizes));
@@ -1217,6 +1220,44 @@ export default function AdminProductFormPage() {
 
               <div style={{ display: "grid", gap: 10 }}>
                 <label
+                  className={`apf-check-row${formData.published ? " active" : ""}`}
+                  onClick={() => set("published", !formData.published)}
+                >
+                  <div
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: 6,
+                      border: `2px solid ${formData.published ? "#1a1a1a" : "#e8e6e0"}`,
+                      background: formData.published ? "#1a1a1a" : "transparent",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      transition: "all 0.18s",
+                    }}
+                  >
+                    {formData.published && <CheckCircle2 size={13} color="#fff" />}
+                  </div>
+                  <div>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 7,
+                        fontWeight: 700,
+                        fontSize: 14,
+                      }}
+                    >
+                      <CheckCircle2 size={14} color="#059669" /> Publish now
+                    </div>
+                    <div style={{ fontSize: 11, color: "#888", marginTop: 3 }}>
+                      Uncheck to save this product as unpublished for later.
+                    </div>
+                  </div>
+                </label>
+
+                <label
                   className={`apf-check-row${formData.newArrival ? " active" : ""}`}
                   onClick={() => set("newArrival", !formData.newArrival)}
                 >
@@ -1332,7 +1373,7 @@ export default function AdminProductFormPage() {
                   </>
                 ) : (
                   <>
-                    <Save size={18} /> {id ? "Save Changes" : "Publish Product"}
+                    <Save size={18} /> {id ? "Save Changes" : formData.published ? "Publish Product" : "Save For Later"}
                   </>
                 )}
               </button>

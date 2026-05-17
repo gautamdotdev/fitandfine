@@ -718,6 +718,13 @@ function DetailModal({ order, open, onClose }) {
 }
 
 function OrderDetails({ order }) {
+  const coupon =
+    order.couponDetails ||
+    (typeof order.coupon === "object" ? order.coupon : null) ||
+    (typeof order.coupon === "string"
+      ? { code: order.coupon, discount: order.discount }
+      : null);
+
   return (
     <div className="ao-detail">
       <div className="ao-panel">
@@ -776,6 +783,15 @@ function OrderDetails({ order }) {
           <div className="ao-muted">
             Payment status: {order.paymentStatus || "unpaid"}
           </div>
+          <div className="ao-muted">
+            Method: {order.paymentInfo?.cod ? "COD" : order.paymentInfo?.method || "Not selected"}
+          </div>
+          {coupon?.code && (
+            <div className="ao-muted">
+              Coupon: {coupon.code} (-₹
+              {(order.discount || coupon.discount || 0).toLocaleString("en-IN")})
+            </div>
+          )}
           {order.payments?.length > 0 &&
             order.payments.map((payment, index) => (
               <div className="ao-muted" key={payment._id || index}>
@@ -954,6 +970,14 @@ export default function AdminOrdersPage() {
 
   const changeStatus = async (order, status) => {
     if (status === order.status) return;
+    if (["delivered", "cancelled"].includes(order.status)) {
+      push({
+        type: "info",
+        title: "Status locked",
+        message: "Delivered and cancelled orders cannot be changed.",
+      });
+      return;
+    }
     if (status === "delivered" && order.paymentStatus !== "paid") {
       setPaymentTarget(order);
       setPaymentMode("deliver");

@@ -29,6 +29,11 @@ import AdminOrdersPage from "./pages/admin/AdminOrdersPage.jsx";
 import OrderTrackingPage from "./pages/OrderTrackingPage.jsx";
 import AdminLayout from "./pages/admin/AdminLayout.jsx";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage.jsx";
+import AdminCustomersPage from "./pages/admin/AdminCustomersPage.jsx";
+import AdminSettingsPage from "./pages/admin/AdminSettingsPage.jsx";
+import AdminWebsiteSettingsPage from "./pages/admin/AdminWebsiteSettingsPage.jsx";
+import AdminCouponSettingsPage from "./pages/admin/AdminCouponSettingsPage.jsx";
+import AdminShippingSettingsPage from "./pages/admin/AdminShippingSettingsPage.jsx";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -119,6 +124,11 @@ export default function App() {
                 element={<AdminProductDetailPage />}
               />
               <Route path="orders" element={<AdminOrdersPage />} />
+              <Route path="customers" element={<AdminCustomersPage />} />
+              <Route path="settings" element={<AdminSettingsPage />} />
+              <Route path="settings/website" element={<AdminWebsiteSettingsPage />} />
+              <Route path="settings/shipping" element={<AdminShippingSettingsPage />} />
+              <Route path="settings/coupons" element={<AdminCouponSettingsPage />} />
             </Route>
 
             <Route path="/order" element={<OrderTrackingPage />} />

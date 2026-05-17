@@ -136,6 +136,12 @@ function OrderCard({ order }) {
     year: "numeric",
   });
   const displayOrderId = order.orderId || order._id.slice(-8).toUpperCase();
+  const coupon =
+    order.couponDetails ||
+    (typeof order.coupon === "object" ? order.coupon : null) ||
+    (typeof order.coupon === "string"
+      ? { code: order.coupon, discount: order.discount }
+      : null);
 
   const handleCopyOrderId = async (event) => {
     event.stopPropagation();
@@ -239,6 +245,32 @@ function OrderCard({ order }) {
                 </div>
               );
             })}
+          </div>
+          <div
+            style={{
+              borderTop: "1px solid var(--color-border)",
+              paddingTop: 12,
+              display: "grid",
+              gap: 6,
+              fontSize: 13,
+            }}
+          >
+            {coupon?.code && (
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "var(--color-muted-foreground)" }}>
+                  Coupon {coupon.code}
+                </span>
+                <strong>
+                  -₹{(order.discount || coupon.discount || 0).toLocaleString("en-IN")}
+                </strong>
+              </div>
+            )}
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "var(--color-muted-foreground)" }}>
+                Order total
+              </span>
+              <strong>₹{order.total?.toLocaleString("en-IN")}</strong>
+            </div>
           </div>
         </div>
       )}

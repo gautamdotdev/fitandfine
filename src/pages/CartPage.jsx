@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useCart, useToasts } from "../lib/store.js";
 import { useAuth } from "../context/ShopContext.jsx";
-import { orderApi } from "../lib/api.js";
+import { adminApi, couponApi, orderApi } from "../lib/api.js";
 import { CONTACT_NAME, WHATSAPP_NUMBER } from "../lib/products.js";
 
 /* ── Modal Shell ── */
@@ -232,6 +232,153 @@ function ProductDetailsPopup({ open, onClose, item }) {
   );
 }
 
+function PriceLine({ label, value, free }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between" }}>
+      <span style={{ color: "var(--color-muted-foreground)" }}>{label}</span>
+      <span>
+        {free
+          ? "Free"
+          : `${value < 0 ? "- " : ""}Rs ${Math.abs(value).toLocaleString("en-IN")}`}
+      </span>
+    </div>
+  );
+}
+
+function CheckoutConfirmPopup({
+  open,
+  onClose,
+  items,
+  address,
+  subtotal,
+  shipping,
+  discount,
+  total,
+  coupon,
+  cod,
+  setCod,
+  loading,
+  onConfirm,
+}) {
+  return (
+    <Modal open={open} onClose={onClose} maxWidth="560px">
+      <div style={{ padding: "24px" }}>
+        <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "1.6rem" }}>
+          Confirm your order
+        </h2>
+        <p style={{ color: "var(--color-muted-foreground)", fontSize: 13 }}>
+          Review your items, delivery address and payment option before WhatsApp opens.
+        </p>
+
+        <div style={{ marginTop: 20, display: "grid", gap: 12 }}>
+          {items.map((item) => (
+            <div
+              key={item.id}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "54px 1fr auto",
+                gap: 12,
+                alignItems: "center",
+                border: "1px solid var(--color-border)",
+                borderRadius: 12,
+                padding: 10,
+                background: "var(--color-surface)",
+              }}
+            >
+              <img
+                src={item.image?.url || item.image}
+                alt={item.name}
+                style={{ width: 54, height: 64, borderRadius: 8, objectFit: "cover" }}
+              />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: 13 }}>{item.name}</div>
+                <div style={{ color: "var(--color-muted-foreground)", fontSize: 12 }}>
+                  Size {item.size} · {item.color} · Qty {item.qty}
+                </div>
+              </div>
+              <strong style={{ fontSize: 13 }}>
+                Rs {(item.price * item.qty).toLocaleString("en-IN")}
+              </strong>
+            </div>
+          ))}
+        </div>
+
+        <div
+          style={{
+            marginTop: 16,
+            border: "1px solid var(--color-border)",
+            borderRadius: 12,
+            padding: 14,
+            fontSize: 13,
+          }}
+        >
+          <div className="label-caps" style={{ fontSize: 10, marginBottom: 8 }}>
+            Delivery Address
+          </div>
+          <div style={{ color: "var(--color-muted-foreground)", lineHeight: 1.5 }}>
+            {address?.name} · {address?.phone}
+            <br />
+            {address?.line1}
+            {address?.line2 ? `, ${address.line2}` : ""}, {address?.city},{" "}
+            {address?.state} - {address?.pin}
+          </div>
+        </div>
+
+        <label
+          style={{
+            marginTop: 14,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            border: "1px solid var(--color-border)",
+            borderRadius: 12,
+            padding: 14,
+            cursor: "pointer",
+          }}
+        >
+          <input checked={cod} type="checkbox" onChange={(e) => setCod(e.target.checked)} />
+          <span style={{ fontWeight: 700 }}>Cash on delivery (COD)</span>
+        </label>
+
+        <div style={{ marginTop: 18, display: "grid", gap: 10, fontSize: 14 }}>
+          <PriceLine label="Subtotal" value={subtotal} />
+          <PriceLine label="Shipping" value={shipping} free={shipping === 0} />
+          {discount > 0 && <PriceLine label={`Coupon ${coupon?.code || ""}`} value={-discount} />}
+          <div
+            style={{
+              borderTop: "1px solid var(--color-border)",
+              paddingTop: 12,
+              display: "flex",
+              justifyContent: "space-between",
+              fontWeight: 900,
+              fontSize: 18,
+            }}
+          >
+            <span>Total</span>
+            <span>Rs {total.toLocaleString("en-IN")}</span>
+          </div>
+        </div>
+
+        <button
+          onClick={onConfirm}
+          disabled={loading}
+          style={{
+            width: "100%",
+            marginTop: 24,
+            background: "var(--color-foreground)",
+            color: "var(--color-background)",
+            borderRadius: 999,
+            padding: 16,
+            fontWeight: 800,
+          }}
+        >
+          {loading ? "Placing order..." : "Confirm order on WhatsApp"}
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
 export default function CartPage() {
   const { items, remove, setQty, subtotal, count, clear } = useCart();
   const { user, loading: authLoading, updateUser } = useAuth();
@@ -240,10 +387,32 @@ export default function CartPage() {
 
   const total = subtotal();
   const itemCount = count();
-  const shipping = total > 2999 ? 0 : 120;
-  const grandTotal = total + shipping;
+  const [shippingSettings, setShippingSettings] = useState({
+    charge: 120,
+    freeAbove: 2999,
+  });
+  const shipping =
+    total > Number(shippingSettings.freeAbove || 2999)
+      ? 0
+      : Number(shippingSettings.charge || 120);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const discount = appliedCoupon?.discount || 0;
+  const grandTotal = Math.max(total + shipping - discount, 0);
   const [loading, setLoading] = useState(false);
   const [detailsItem, setDetailsItem] = useState(null);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [cod, setCod] = useState(true);
+
+  useEffect(() => {
+    adminApi
+      .getSiteSettings()
+      .then((data) => {
+        if (data.settings?.shipping) setShippingSettings(data.settings.shipping);
+      })
+      .catch(() => {});
+  }, []);
 
   const addresses = user?.addresses || [];
   const defaultAddress = addresses.find((addr) => addr.default) || addresses[0];
@@ -281,7 +450,29 @@ export default function CartPage() {
     });
   };
 
-  async function handleCheckout() {
+  async function applyCoupon() {
+    if (!couponCode.trim()) return;
+    setCouponLoading(true);
+    try {
+      const data = await couponApi.validate({
+        code: couponCode,
+        subtotal: total,
+      });
+      setAppliedCoupon({
+        code: data.coupon.code,
+        discount: data.discount,
+        type: data.coupon.type,
+      });
+      push({ type: "success", message: "Coupon applied." });
+    } catch (err) {
+      setAppliedCoupon(null);
+      push({ type: "error", message: err.message });
+    } finally {
+      setCouponLoading(false);
+    }
+  }
+
+  function openCheckout() {
     if (!user) {
       push({ type: "info", message: "Please sign in to complete your order." });
       navigate(`/auth?next=${encodeURIComponent("/cart")}`);
@@ -298,6 +489,10 @@ export default function CartPage() {
       return;
     }
 
+    setCheckoutOpen(true);
+  }
+
+  async function handleCheckout() {
     setLoading(true);
     try {
       const mappedItems = items.map((i) => ({
@@ -312,8 +507,12 @@ export default function CartPage() {
         items: mappedItems,
         subtotal: total,
         shippingCost: shipping,
-        total: grandTotal,
         address: selectedAddress,
+        paymentInfo: {
+          method: cod ? "cod" : "whatsapp_confirmation",
+          cod,
+        },
+        couponCode: appliedCoupon?.code,
       });
 
       const lines = items
@@ -323,7 +522,7 @@ export default function CartPage() {
         )
         .join("\n");
 
-      const breakdown = `Subtotal: ₹${total.toLocaleString("en-IN")}\nShipping: ${shipping === 0 ? "FREE" : `₹${shipping.toLocaleString("en-IN")}`}\nTotal: ₹${grandTotal.toLocaleString("en-IN")}`;
+      const breakdown = `Subtotal: Rs ${total.toLocaleString("en-IN")}\nShipping: ${shipping === 0 ? "FREE" : `Rs ${shipping.toLocaleString("en-IN")}`}${discount > 0 ? `\nCoupon (${appliedCoupon.code}): - Rs ${discount.toLocaleString("en-IN")}` : ""}\nTotal: Rs ${grandTotal.toLocaleString("en-IN")}\nPayment: ${cod ? "COD requested" : "Confirm on WhatsApp"}`;
       const text = `Hi ${CONTACT_NAME}, I'd like to order the following:\n${lines}\n\nDelivery address:\n${formatAddress(selectedAddress)}\n\n${breakdown}\n\nOrder details: ${data.orderLink}\nPlease confirm availability.`;
       const waUrl = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(text)}`;
 
@@ -663,6 +862,62 @@ export default function CartPage() {
                 </div>
                 <div
                   style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr auto",
+                    gap: 8,
+                  }}
+                >
+                  <input
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    placeholder="Coupon code"
+                    style={{
+                      minWidth: 0,
+                      border: "1px solid var(--color-border)",
+                      borderRadius: 10,
+                      padding: "0 12px",
+                      height: 42,
+                      background: "var(--color-background)",
+                    }}
+                  />
+                  <button
+                    onClick={applyCoupon}
+                    disabled={couponLoading}
+                    style={{
+                      border: "1px solid var(--color-border)",
+                      borderRadius: 10,
+                      padding: "0 14px",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {couponLoading ? "..." : "Apply"}
+                  </button>
+                </div>
+                {discount > 0 && (
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span style={{ color: "var(--color-muted-foreground)" }}>
+                      Coupon {appliedCoupon.code}
+                    </span>
+                    <span style={{ color: "var(--color-gold)", display: "inline-flex", gap: 8 }}>
+                      -₹{discount.toLocaleString("en-IN")}
+                      <button
+                        onClick={() => {
+                          setAppliedCoupon(null);
+                          setCouponCode("");
+                        }}
+                        style={{
+                          color: "#cc272e",
+                          fontWeight: 800,
+                          textDecoration: "underline",
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </span>
+                  </div>
+                )}
+                <div
+                  style={{
                     borderTop: "1px solid var(--color-border)",
                     marginTop: "8px",
                     paddingTop: "16px",
@@ -775,7 +1030,7 @@ export default function CartPage() {
               </div>
 
               <button
-                onClick={handleCheckout}
+                onClick={openCheckout}
                 disabled={loading}
                 className="label-caps"
                 style={{
@@ -809,6 +1064,21 @@ export default function CartPage() {
         open={detailsItem !== null}
         onClose={() => setDetailsItem(null)}
         item={detailsItem}
+      />
+      <CheckoutConfirmPopup
+        open={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
+        items={items}
+        address={selectedAddress}
+        subtotal={total}
+        shipping={shipping}
+        discount={discount}
+        total={grandTotal}
+        coupon={appliedCoupon}
+        cod={cod}
+        setCod={setCod}
+        loading={loading}
+        onConfirm={handleCheckout}
       />
 
       <style>{`
