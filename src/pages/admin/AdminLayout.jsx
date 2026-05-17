@@ -231,14 +231,14 @@ const NAV = [
       { to: "/admin/customers", icon: Users, text: "Customers" },
     ],
   },
-  {
-    label: "SALES CHANNELS",
-    items: [
-      { to: "/admin", icon: BarChart3, text: "Analytics", end: true },
-      { to: "/admin/marketing", icon: Zap, text: "Marketing" },
-      { to: "/admin/settings/coupons", icon: Tag, text: "Discounts" },
-    ],
-  },
+  // {
+  //   label: "SALES CHANNELS",
+  //   items: [
+  //     { to: "/admin", icon: BarChart3, text: "Analytics", end: true },
+  //     { to: "/admin/marketing", icon: Zap, text: "Marketing" },
+  //     { to: "/admin/settings/coupons", icon: Tag, text: "Discounts" },
+  //   ],
+  // },
   {
     label: "SETTINGS",
     items: [
