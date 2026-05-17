@@ -34,6 +34,7 @@ import AdminSettingsPage from "./pages/admin/AdminSettingsPage.jsx";
 import AdminWebsiteSettingsPage from "./pages/admin/AdminWebsiteSettingsPage.jsx";
 import AdminCouponSettingsPage from "./pages/admin/AdminCouponSettingsPage.jsx";
 import AdminShippingSettingsPage from "./pages/admin/AdminShippingSettingsPage.jsx";
+import {AnnouncementBar} from "./components/AnnouncementBar.jsx"
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -62,6 +63,29 @@ function CacheBootstrap() {
   return null;
 }
 
+function ConditionalAnnouncementBar() {
+  const { pathname } = useLocation();
+
+  const hidePaths = [
+    "/cart",
+    "/auth",
+    "/profile",
+    "/wishlist",
+    "/search",
+    "/order"
+  ];
+
+  const hide =
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/order/") ||
+    hidePaths.includes(pathname);
+
+  if (hide) return null;
+
+  return <AnnouncementBar />;
+}
+
+
 export default function App() {
   const comingSoon = import.meta.env.VITE_COMING_SOON === "true";
 
@@ -76,6 +100,7 @@ export default function App() {
       <div
         style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
       >
+        <ConditionalAnnouncementBar />
         <Header />
         <main style={{ flex: 1 }}>
           <Routes>
