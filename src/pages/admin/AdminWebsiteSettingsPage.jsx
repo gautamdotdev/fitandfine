@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { adminApi } from "../../lib/api";
 import { useToasts } from "../../lib/store";
-import { Save } from "lucide-react";
+import { ImagePlus, Save } from "lucide-react";
 
 const CSS = `
   .as-wrap { max-width: 980px; margin: 0 auto; font-family: 'DM Sans', sans-serif; }
@@ -14,8 +14,13 @@ const CSS = `
   .as-field label { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #aaa; font-weight: 800; }
   .as-field input, .as-field textarea, .as-field select { width: 100%; border: 1.5px solid #e8e6e0; border-radius: 10px; padding: 12px; font: inherit; box-sizing: border-box; outline: none; background: #faf9f7; }
   .as-field textarea { min-height: 96px; resize: vertical; }
+  .as-upload { grid-column: 1 / -1; display: grid; grid-template-columns: 180px 1fr; gap: 14px; align-items: stretch; }
+  .as-preview { width: 100%; aspect-ratio: 4/3; border-radius: 10px; border: 1px solid #e8e6e0; background: #faf9f7; object-fit: cover; }
+  .as-upload-box { border: 1.5px dashed #d8d3c9; border-radius: 10px; background: #faf9f7; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 140px; cursor: pointer; color: #666; text-align: center; padding: 16px; }
+  .as-upload-box strong { color: #1a1a1a; font-size: 13px; }
+  .as-upload-box span { font-size: 12px; color: #888; }
   .as-save { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border: none; border-radius: 2px; background: #1a1a1a; color: #fff; font-weight: 900; cursor: pointer; }
-  @media (max-width: 720px) { .as-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 720px) { .as-grid { grid-template-columns: 1fr; } .as-upload { grid-template-columns: 1fr; } }
 `;
 
 const defaults = {
@@ -26,6 +31,8 @@ const defaults = {
 export default function AdminWebsiteSettingsPage() {
   const [form, setForm] = useState(defaults);
   const [saving, setSaving] = useState(false);
+  const [heroImageFile, setHeroImageFile] = useState(null);
+  const [heroImagePreview, setHeroImagePreview] = useState("");
   const push = useToasts((s) => s.push);
 
   useEffect(() => {
@@ -38,11 +45,14 @@ export default function AdminWebsiteSettingsPage() {
   const save = async () => {
     setSaving(true);
     try {
-      const data = await adminApi.updateSiteSettings({
-        hero: form.hero,
-        offerPopup: form.offerPopup,
-      });
+      const payload = new FormData();
+      payload.append("hero", JSON.stringify(form.hero || {}));
+      payload.append("offerPopup", JSON.stringify(form.offerPopup || {}));
+      if (heroImageFile) payload.append("heroImage", heroImageFile);
+      const data = await adminApi.updateSiteSettings(payload);
       setForm(data.settings);
+      setHeroImageFile(null);
+      setHeroImagePreview("");
       push({ type: "success", title: "Saved", message: "Website settings updated." });
     } catch (err) {
       push({ type: "error", title: "Error", message: err.message });
@@ -66,6 +76,33 @@ export default function AdminWebsiteSettingsPage() {
             <Field full label="Title" textarea value={form.hero?.title} onChange={(v) => setNested("hero", "title", v)} />
             <Field full label="Description" textarea value={form.hero?.description} onChange={(v) => setNested("hero", "description", v)} />
             <Field full label="Image URL" value={form.hero?.imageUrl} onChange={(v) => setNested("hero", "imageUrl", v)} />
+            <div className="as-upload">
+              {(heroImagePreview || form.hero?.imageUrl) && (
+                <img
+                  className="as-preview"
+                  src={heroImagePreview || form.hero?.imageUrl}
+                  alt="Homepage hero preview"
+                />
+              )}
+              <label className="as-upload-box">
+                <ImagePlus size={24} />
+                <strong>Select hero image from system</strong>
+                <span>
+                  Upload a new image to replace the current homepage hero image.
+                </span>
+                <input
+                  hidden
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setHeroImageFile(file);
+                    setHeroImagePreview(URL.createObjectURL(file));
+                  }}
+                />
+              </label>
+            </div>
           </div>
         </div>
         <div className="as-card">
