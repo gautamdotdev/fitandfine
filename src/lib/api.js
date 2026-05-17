@@ -130,9 +130,10 @@ export const orderApi = {
 export const adminApi = {
   dashboard: () => api("/admin/dashboard"),
   customers: () => api("/admin/customers"),
-  getSiteSettings: () => api("/admin/settings/site", { skipAuth: true }),
+  getSiteSettings: () =>
+    api("/admin/settings/site", { skipAuth: true, cache: "no-store" }),
   updateSiteSettings: (data) =>
-    api("/admin/settings/site", { method: "PUT", body: JSON.stringify(data) }),
+    api("/admin/settings/site", { method: "PUT", body: data }),
   coupons: () => api("/admin/coupons"),
   saveCoupon: (data) =>
     api("/admin/coupons", { method: "POST", body: JSON.stringify(data) }),
