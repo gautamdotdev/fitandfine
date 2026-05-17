@@ -76,6 +76,12 @@ export const fetchProducts = async ({
 
 export const productApi = {
   getAll: (params = {}) => fetchProducts(params),
+  getFilters: ({ category, fabric } = {}) => {
+    const params = new URLSearchParams();
+    if (category) params.append("category", category);
+    if (fabric) params.append("fabric", fabric);
+    return api(`/products/filters?${params.toString()}`);
+  },
   getOne: (id) => api(`/products/${id}`),
   getAdminAll: ({ signal, filters = {}, ...params } = {}) => {
     const queryParams = { ...filters, ...params };

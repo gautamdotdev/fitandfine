@@ -6,7 +6,7 @@
  */
 
 import { useMemo, useState, useRef, useEffect, useCallback } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
   ChevronRight,
   X,
@@ -15,40 +15,16 @@ import {
   ArrowUpDown,
 } from "lucide-react";
 import { useShop } from "../context/ShopContext.jsx";
+import { productApi } from "../lib/api.js";
 import { ProductCard } from "../components/ProductCard.jsx";
 import { SkeletonProductCard } from "../components/Skeleton.jsx";
 
-import { useToasts } from "../lib/store.js";
 import { categories } from "../lib/products.js";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const ALL_SIZES = [
-  "XS",
-  "S",
-  "M",
-  "L",
-  "XL",
-  "XXL",
-  "28",
-  "30",
-  "32",
-  "34",
-  "36",
-];
-
-const COLORS = [
-  { name: "White", hex: "#F5F5F0" },
-  { name: "Black", hex: "#1A1A1A" },
-  { name: "Navy", hex: "#1B2A4A" },
-  { name: "Ecru", hex: "#C8B99A" },
-  { name: "Sage", hex: "#7D9B76" },
-  { name: "Indigo", hex: "#3D4F7C" },
-  { name: "Charcoal", hex: "#4A4A4A" },
-  { name: "Camel", hex: "#C19A6B" },
-  { name: "Ivory", hex: "#FFFFF0" },
-  { name: "Stone", hex: "#928E85" },
-];
+const PRICE_FALLBACK_MIN = 0;
+const PRICE_FALLBACK_MAX = 10000;
 
 const SORT_OPTIONS = [
   { value: "newest", label: "Newest First" },
@@ -57,7 +33,12 @@ const SORT_OPTIONS = [
   { value: "best", label: "Best Rated" },
 ];
 
-const DEFAULT_FILTERS = { sizes: [], colors: [], minPrice: 0, maxPrice: 10000 };
+const DEFAULT_FILTERS = {
+  sizes: [],
+  minPrice: PRICE_FALLBACK_MIN,
+  maxPrice: PRICE_FALLBACK_MAX,
+  fabric: "",
+};
 
 // ─── SizeBtn ─────────────────────────────────────────────────────────────────
 
@@ -86,42 +67,6 @@ function SizeBtn({ size, active, onClick }) {
     >
       {size}
     </button>
-  );
-}
-
-// ─── ColorSwatch ─────────────────────────────────────────────────────────────
-
-function ColorSwatch({ color, active, onClick }) {
-  const [hov, setHov] = useState(false);
-  const isLight = ["White", "Ivory", "Ecru"].includes(color.name);
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      title={color.name}
-      style={{
-        width: "32px",
-        height: "32px",
-        borderRadius: "50%",
-        backgroundColor: color.hex,
-        border: active
-          ? "2.5px solid var(--color-foreground)"
-          : isLight
-            ? "1.5px solid var(--color-border)"
-            : "2px solid transparent",
-        outline: active
-          ? "2px solid var(--color-background)"
-          : hov
-            ? "2px solid var(--color-border)"
-            : "none",
-        outlineOffset: "1px",
-        cursor: "pointer",
-        transition: "all 0.2s",
-        transform: hov || active ? "scale(1.12)" : "scale(1)",
-        boxShadow: active ? "0 2px 8px rgba(0,0,0,0.18)" : "none",
-      }}
-    />
   );
 }
 
@@ -361,21 +306,20 @@ function FilterSection({ title, children, defaultOpen = true }) {
 
 // ─── FilterPanel ──────────────────────────────────────────────────────────────
 
-function FilterPanel({ draft, setDraft }) {
+function FilterPanel({
+  draft,
+  setDraft,
+  availableSizes,
+  availableFabrics,
+  minPriceBound,
+  maxPriceBound,
+}) {
   const toggleSize = (s) =>
     setDraft((d) => ({
       ...d,
       sizes: d.sizes.includes(s)
         ? d.sizes.filter((x) => x !== s)
         : [...d.sizes, s],
-    }));
-
-  const toggleColor = (c) =>
-    setDraft((d) => ({
-      ...d,
-      colors: d.colors.includes(c)
-        ? d.colors.filter((x) => x !== c)
-        : [...d.colors, c],
     }));
 
   return (
@@ -389,13 +333,71 @@ function FilterPanel({ draft, setDraft }) {
             paddingBottom: "4px",
           }}
         >
-          {ALL_SIZES.map((s) => (
+          {availableSizes.map((s) => (
             <SizeBtn
               key={s}
               size={s}
               active={draft.sizes.includes(s)}
               onClick={() => toggleSize(s)}
             />
+          ))}
+        </div>
+      </FilterSection>
+
+      <FilterSection title="Fabric">
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "8px",
+            paddingBottom: "4px",
+          }}
+        >
+          <button
+            onClick={() => setDraft((d) => ({ ...d, fabric: "" }))}
+            style={{
+              padding: "6px 12px",
+              borderRadius: "999px",
+              border: `1.5px solid ${draft.fabric === "" ? "var(--color-foreground)" : "var(--color-border)"}`,
+              backgroundColor:
+                draft.fabric === "" ? "var(--color-foreground)" : "transparent",
+              color:
+                draft.fabric === ""
+                  ? "var(--color-background)"
+                  : "var(--color-foreground)",
+              fontSize: "11px",
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            Any
+          </button>
+          {availableFabrics.map((fabric) => (
+            <button
+              key={fabric}
+              onClick={() => setDraft((d) => ({ ...d, fabric }))}
+              style={{
+                padding: "6px 12px",
+                borderRadius: "999px",
+                border: `1.5px solid ${draft.fabric === fabric ? "var(--color-foreground)" : "var(--color-border)"}`,
+                backgroundColor:
+                  draft.fabric === fabric
+                    ? "var(--color-foreground)"
+                    : "transparent",
+                color:
+                  draft.fabric === fabric
+                    ? "var(--color-background)"
+                    : "var(--color-foreground)",
+                fontSize: "11px",
+                fontWeight: 600,
+                cursor: "pointer",
+                textTransform: "capitalize",
+                fontFamily: "inherit",
+              }}
+            >
+              {fabric}
+            </button>
           ))}
         </div>
       </FilterSection>
@@ -415,7 +417,10 @@ function FilterPanel({ draft, setDraft }) {
                 color: "var(--color-muted-foreground)",
               }}
             >
-              ₹500
+              ₹
+              {Number(minPriceBound || PRICE_FALLBACK_MIN).toLocaleString(
+                "en-IN",
+              )}
             </span>
             <span
               style={{
@@ -433,48 +438,20 @@ function FilterPanel({ draft, setDraft }) {
                 color: "var(--color-muted-foreground)",
               }}
             >
-              ₹10,000
+              ₹
+              {Number(maxPriceBound || PRICE_FALLBACK_MAX).toLocaleString(
+                "en-IN",
+              )}
             </span>
           </div>
           <RangeSlider
-            min={500}
-            max={10000}
+            min={minPriceBound || PRICE_FALLBACK_MIN}
+            max={maxPriceBound || PRICE_FALLBACK_MAX}
             step={100}
             value={draft.maxPrice}
             onChange={(v) => setDraft((d) => ({ ...d, maxPrice: v }))}
           />
         </div>
-      </FilterSection>
-
-      <FilterSection title="Color">
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "10px",
-            paddingBottom: "4px",
-          }}
-        >
-          {COLORS.map((c) => (
-            <ColorSwatch
-              key={c.name}
-              color={c}
-              active={draft.colors.includes(c.name)}
-              onClick={() => toggleColor(c.name)}
-            />
-          ))}
-        </div>
-        {draft.colors.length > 0 && (
-          <div
-            style={{
-              marginTop: "10px",
-              fontSize: "11px",
-              color: "var(--color-muted-foreground)",
-            }}
-          >
-            {draft.colors.join(", ")}
-          </div>
-        )}
       </FilterSection>
     </div>
   );
@@ -514,7 +491,17 @@ function FilterChip({ label, onClear }) {
 
 // ─── FilterSidebar (desktop) ──────────────────────────────────────────────────
 
-function FilterSidebar({ draft, setDraft, hasDraftChanges, onApply, onReset }) {
+function FilterSidebar({
+  draft,
+  setDraft,
+  hasDraftChanges,
+  onApply,
+  onReset,
+  availableSizes,
+  availableFabrics,
+  minPriceBound,
+  maxPriceBound,
+}) {
   return (
     <aside className="ccp-sidebar">
       <div
@@ -543,8 +530,8 @@ function FilterSidebar({ draft, setDraft, hasDraftChanges, onApply, onReset }) {
             Filters
           </span>
           {(draft.sizes.length > 0 ||
-            draft.colors.length > 0 ||
-            draft.maxPrice < 10000) && (
+            draft.maxPrice < (maxPriceBound || PRICE_FALLBACK_MAX) ||
+            !!draft.fabric) && (
             <button
               onClick={onReset}
               onMouseEnter={(e) =>
@@ -571,7 +558,14 @@ function FilterSidebar({ draft, setDraft, hasDraftChanges, onApply, onReset }) {
           )}
         </div>
 
-        <FilterPanel draft={draft} setDraft={setDraft} />
+        <FilterPanel
+          draft={draft}
+          setDraft={setDraft}
+          availableSizes={availableSizes}
+          availableFabrics={availableFabrics}
+          minPriceBound={minPriceBound}
+          maxPriceBound={maxPriceBound}
+        />
 
         <div style={{ paddingTop: "20px" }}>
           <button
@@ -622,6 +616,10 @@ function FilterDrawer({
   onClose,
   onApply,
   onReset,
+  availableSizes,
+  availableFabrics,
+  minPriceBound,
+  maxPriceBound,
 }) {
   if (!open) return null;
   return (
@@ -695,8 +693,8 @@ function FilterDrawer({
               Filters
             </h3>
             {(draft.sizes.length > 0 ||
-              draft.colors.length > 0 ||
-              draft.maxPrice < 10000) && (
+              draft.maxPrice < (maxPriceBound || PRICE_FALLBACK_MAX) ||
+              !!draft.fabric) && (
               <p
                 style={{
                   fontSize: "11px",
@@ -705,8 +703,10 @@ function FilterDrawer({
                 }}
               >
                 {draft.sizes.length +
-                  draft.colors.length +
-                  (draft.maxPrice < 10000 ? 1 : 0)}{" "}
+                  (draft.maxPrice < (maxPriceBound || PRICE_FALLBACK_MAX)
+                    ? 1
+                    : 0) +
+                  (draft.fabric ? 1 : 0)}{" "}
                 selected
               </p>
             )}
@@ -757,7 +757,14 @@ function FilterDrawer({
             scrollbarWidth: "none",
           }}
         >
-          <FilterPanel draft={draft} setDraft={setDraft} />
+          <FilterPanel
+            draft={draft}
+            setDraft={setDraft}
+            availableSizes={availableSizes}
+            availableFabrics={availableFabrics}
+            minPriceBound={minPriceBound}
+            maxPriceBound={maxPriceBound}
+          />
         </div>
 
         {/* Footer */}
@@ -821,32 +828,130 @@ function FilterDrawer({
   );
 }
 
-
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function CollectionCategoryPage() {
   const { category } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlFabric = (searchParams.get("fabric") || "").trim().toLowerCase();
+  const urlSizes = (searchParams.get("sizes") || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const urlMaxPrice = Number(searchParams.get("maxPrice"));
+  const urlSort = (searchParams.get("sort") || "").trim();
   const { products, loading, fetchProducts, nextCursor, hasMore, total } =
     useShop();
 
   // ── ALL HOOKS FIRST ──
   const [initialLoad, setInitialLoad] = useState(true);
-  const [applied, setApplied] = useState(DEFAULT_FILTERS);
-  const [draft, setDraft] = useState(DEFAULT_FILTERS);
-  const [sort, setSort] = useState("newest");
+  const [applied, setApplied] = useState(() => ({
+    ...DEFAULT_FILTERS,
+    fabric: urlFabric,
+    sizes: urlSizes,
+    maxPrice:
+      Number.isFinite(urlMaxPrice) && urlMaxPrice > 0
+        ? urlMaxPrice
+        : PRICE_FALLBACK_MAX,
+  }));
+  const [draft, setDraft] = useState(() => ({
+    ...DEFAULT_FILTERS,
+    fabric: urlFabric,
+    sizes: urlSizes,
+    maxPrice:
+      Number.isFinite(urlMaxPrice) && urlMaxPrice > 0
+        ? urlMaxPrice
+        : PRICE_FALLBACK_MAX,
+  }));
+  const [sort, setSort] = useState(
+    SORT_OPTIONS.some((option) => option.value === urlSort)
+      ? urlSort
+      : "newest",
+  );
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
+  const [filterOptions, setFilterOptions] = useState({
+    sizes: [],
+    fabrics: [],
+    minPrice: PRICE_FALLBACK_MIN,
+    maxPrice: PRICE_FALLBACK_MAX,
+  });
 
   const fetchingRef = useRef(false);
-  const debounceTimerRef = useRef(null);
 
-  // 1. Debounced filter apply for price
-  const debouncedSetApplied = useCallback((newFilters) => {
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => {
-      setApplied(newFilters);
-    }, 300);
-  }, []);
+  useEffect(() => {
+    productApi
+      .getFilters({ category })
+      .then((data) => {
+        const backendFilters = data?.filters || {};
+        const minPrice = Number(backendFilters.minPrice || PRICE_FALLBACK_MIN);
+        const maxPrice = Number(backendFilters.maxPrice || PRICE_FALLBACK_MAX);
+        setFilterOptions({
+          sizes: Array.isArray(backendFilters.sizes)
+            ? backendFilters.sizes
+            : [],
+          fabrics: Array.isArray(backendFilters.fabrics)
+            ? backendFilters.fabrics
+            : [],
+          minPrice,
+          maxPrice,
+        });
+
+        setApplied((prev) => ({
+          ...prev,
+          minPrice,
+          maxPrice: Math.min(prev.maxPrice || maxPrice, maxPrice),
+        }));
+        setDraft((prev) => ({
+          ...prev,
+          minPrice,
+          maxPrice: Math.min(prev.maxPrice || maxPrice, maxPrice),
+        }));
+      })
+      .catch(() => {
+        setFilterOptions({
+          sizes: [],
+          fabrics: [],
+          minPrice: PRICE_FALLBACK_MIN,
+          maxPrice: PRICE_FALLBACK_MAX,
+        });
+      });
+  }, [category]);
+
+  useEffect(() => {
+    const parsedSort = SORT_OPTIONS.some((option) => option.value === urlSort)
+      ? urlSort
+      : "newest";
+    const maxBound = filterOptions.maxPrice || PRICE_FALLBACK_MAX;
+    const minBound = filterOptions.minPrice || PRICE_FALLBACK_MIN;
+    const parsedMaxPrice =
+      Number.isFinite(urlMaxPrice) && urlMaxPrice > 0
+        ? Math.min(urlMaxPrice, maxBound)
+        : maxBound;
+
+    setSort(parsedSort);
+    setApplied((prev) => ({
+      ...prev,
+      fabric: urlFabric,
+      sizes: urlSizes,
+      minPrice: minBound,
+      maxPrice: parsedMaxPrice,
+    }));
+    setDraft((prev) => ({
+      ...prev,
+      fabric: urlFabric,
+      sizes: urlSizes,
+      minPrice: minBound,
+      maxPrice: parsedMaxPrice,
+    }));
+  }, [
+    urlFabric,
+    urlSort,
+    urlMaxPrice,
+    filterOptions.maxPrice,
+    filterOptions.minPrice,
+    searchParams,
+  ]);
 
   const fetchFiltered = useCallback(
     async ({ cursor = null, append = false } = {}) => {
@@ -856,7 +961,9 @@ export default function CollectionCategoryPage() {
       try {
         const filters = {
           category,
-          minPrice: 0,
+          fabric: applied.fabric,
+          sizes: applied.sizes.length ? applied.sizes.join(",") : undefined,
+          minPrice: applied.minPrice,
           maxPrice: applied.maxPrice,
           sort:
             sort === "low"
@@ -902,41 +1009,47 @@ export default function CollectionCategoryPage() {
   }, [hasMore, loading, nextCursor, fetchFiltered]);
 
   const filtered = useMemo(() => {
-    let r = products.slice();
-    if (applied.sizes.length)
-      r = r.filter((p) => p.sizes?.some((s) => applied.sizes.includes(s)));
-    if (applied.colors.length)
-      r = r.filter((p) =>
-        p.colors?.some((c) => applied.colors.includes(c.name)),
-      );
-    return r;
-  }, [products, applied]);
+    return products.slice();
+  }, [products]);
 
   const activeChips = useMemo(
     () => [
+      ...(applied.fabric
+        ? [
+            {
+              label: `Fabric: ${applied.fabric.charAt(0).toUpperCase()}${applied.fabric.slice(1)}`,
+              clear: () => {
+                const next = new URLSearchParams(searchParams);
+                next.delete("fabric");
+                setSearchParams(next, { replace: true });
+              },
+            },
+          ]
+        : []),
       ...applied.sizes.map((s) => ({
         label: `Size: ${s}`,
-        clear: () =>
-          setApplied((a) => ({ ...a, sizes: a.sizes.filter((x) => x !== s) })),
+        clear: () => {
+          const nextSizes = applied.sizes.filter((x) => x !== s);
+          const next = new URLSearchParams(searchParams);
+          if (nextSizes.length > 0) next.set("sizes", nextSizes.join(","));
+          else next.delete("sizes");
+          setSearchParams(next, { replace: true });
+        },
       })),
-      ...applied.colors.map((c) => ({
-        label: c,
-        clear: () =>
-          setApplied((a) => ({
-            ...a,
-            colors: a.colors.filter((x) => x !== c),
-          })),
-      })),
-      ...(applied.maxPrice < 10000
+      ...(applied.maxPrice < (filterOptions.maxPrice || PRICE_FALLBACK_MAX)
         ? [
             {
               label: `Under ₹${applied.maxPrice.toLocaleString("en-IN")}`,
-              clear: () => setApplied((a) => ({ ...a, maxPrice: 10000 })),
+              clear: () => {
+                const next = new URLSearchParams(searchParams);
+                next.delete("maxPrice");
+                setSearchParams(next, { replace: true });
+              },
             },
           ]
         : []),
     ],
-    [applied],
+    [applied, searchParams, setSearchParams, filterOptions.maxPrice],
   );
 
   const hasDraftChanges = JSON.stringify(draft) !== JSON.stringify(applied);
@@ -960,15 +1073,68 @@ export default function CollectionCategoryPage() {
     setDrawerVisible(false);
     setTimeout(() => setDrawerOpen(false), 380);
   };
-  const applyFilters = () => setApplied({ ...draft });
+  const writeFiltersToUrl = useCallback(
+    (nextFilters, nextSort = sort) => {
+      const maxBound = filterOptions.maxPrice || PRICE_FALLBACK_MAX;
+      const params = new URLSearchParams(searchParams);
+
+      if (nextFilters.fabric) params.set("fabric", nextFilters.fabric);
+      else params.delete("fabric");
+
+      if (nextFilters.sizes?.length) {
+        params.set("sizes", nextFilters.sizes.join(","));
+      } else {
+        params.delete("sizes");
+      }
+
+      if (
+        Number.isFinite(nextFilters.maxPrice) &&
+        nextFilters.maxPrice > 0 &&
+        nextFilters.maxPrice < maxBound
+      ) {
+        params.set("maxPrice", String(nextFilters.maxPrice));
+      } else {
+        params.delete("maxPrice");
+      }
+
+      if (nextSort && nextSort !== "newest") params.set("sort", nextSort);
+      else params.delete("sort");
+
+      setSearchParams(params, { replace: true });
+    },
+    [filterOptions.maxPrice, searchParams, setSearchParams, sort],
+  );
+
+  const applyFilters = () => {
+    writeFiltersToUrl(draft, sort);
+  };
   const applyDrawer = () => {
-    setApplied({ ...draft });
+    writeFiltersToUrl(draft, sort);
     closeDrawer();
   };
-  const resetDraft = () => setDraft(DEFAULT_FILTERS);
+  const resetDraft = () =>
+    setDraft((prev) => ({
+      ...DEFAULT_FILTERS,
+      minPrice: filterOptions.minPrice || PRICE_FALLBACK_MIN,
+      maxPrice: filterOptions.maxPrice || PRICE_FALLBACK_MAX,
+    }));
   const resetAll = () => {
-    setDraft(DEFAULT_FILTERS);
-    setApplied(DEFAULT_FILTERS);
+    setDraft((prev) => ({
+      ...DEFAULT_FILTERS,
+      minPrice: filterOptions.minPrice || PRICE_FALLBACK_MIN,
+      maxPrice: filterOptions.maxPrice || PRICE_FALLBACK_MAX,
+    }));
+    setApplied((prev) => ({
+      ...DEFAULT_FILTERS,
+      minPrice: filterOptions.minPrice || PRICE_FALLBACK_MIN,
+      maxPrice: filterOptions.maxPrice || PRICE_FALLBACK_MAX,
+    }));
+    const next = new URLSearchParams(searchParams);
+    next.delete("fabric");
+    next.delete("sizes");
+    next.delete("maxPrice");
+    next.delete("sort");
+    setSearchParams(next, { replace: true });
   };
 
   // ── Render ──
@@ -1069,7 +1235,10 @@ export default function CollectionCategoryPage() {
             </button>
             <CustomSelect
               value={sort}
-              onChange={setSort}
+              onChange={(value) => {
+                setSort(value);
+                writeFiltersToUrl(draft, value);
+              }}
               options={SORT_OPTIONS}
             />
           </div>
@@ -1114,18 +1283,14 @@ export default function CollectionCategoryPage() {
       <div className="ccp-layout">
         <FilterSidebar
           draft={draft}
-          setDraft={(update) => {
-            setDraft((prev) => {
-              const next = typeof update === "function" ? update(prev) : update;
-              if (next.maxPrice !== prev.maxPrice) {
-                debouncedSetApplied(next);
-              }
-              return next;
-            });
-          }}
+          setDraft={setDraft}
           hasDraftChanges={hasDraftChanges}
           onApply={applyFilters}
           onReset={resetDraft}
+          availableSizes={filterOptions.sizes}
+          availableFabrics={filterOptions.fabrics}
+          minPriceBound={filterOptions.minPrice}
+          maxPriceBound={filterOptions.maxPrice}
         />
 
         <div>
@@ -1144,7 +1309,6 @@ export default function CollectionCategoryPage() {
                 </div>
               ))
             ) : (
-
               <>
                 {filtered.map((p) => (
                   <ProductCard key={p.id} product={p} />
@@ -1161,7 +1325,6 @@ export default function CollectionCategoryPage() {
                       <SkeletonProductCard />
                     </div>
                   ))}
-
               </>
             )}
           </div>
@@ -1247,6 +1410,10 @@ export default function CollectionCategoryPage() {
         onClose={closeDrawer}
         onApply={applyDrawer}
         onReset={resetDraft}
+        availableSizes={filterOptions.sizes}
+        availableFabrics={filterOptions.fabrics}
+        minPriceBound={filterOptions.minPrice}
+        maxPriceBound={filterOptions.maxPrice}
       />
 
       <style>{`
@@ -1257,7 +1424,7 @@ export default function CollectionCategoryPage() {
         @media (min-width: 1024px) {
           .ccp-layout { grid-template-columns: 260px 1fr; gap: 48px; }
           .ccp-sidebar { display: block !important; }
-          .ccp-filter-btn { display: none !important; }w
+          .ccp-filter-btn { display: none !important; }
           .ccp-grid { grid-template-columns: repeat(3, 1fr); gap: 28px; }
         }
         @media (min-width: 1280px) {

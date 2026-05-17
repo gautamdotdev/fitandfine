@@ -523,7 +523,7 @@ export default function HomePage() {
             a quiet palette of stone, ivory and sage.
           </p>
           <Link
-            to="/collections/shirts"
+            to="/collections/shirts?fabric=linen"
             className="label-caps editorial-link"
             style={{
               marginTop: "32px",
