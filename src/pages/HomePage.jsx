@@ -1,18 +1,15 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ArrowRight, Star } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useShop } from "../context/ShopContext";
-import {
-  categories,
-  HERO_IMAGE,
-  EDITORIAL_IMAGE,
-  STORY_IMAGE,
-} from "../lib/products.js";
+import { HERO_IMAGE, EDITORIAL_IMAGE, STORY_IMAGE } from "../lib/products.js";
 import { ProductCard } from "../components/ProductCard.jsx";
 import { SkeletonBox, SkeletonProductCard } from "../components/Skeleton.jsx";
 import { adminApi } from "../lib/api.js";
 
 function HomePageSkeleton() {
+  const heroTextOrder = 2;
+
   return (
     <div className="page-transition">
       {/* HERO skeleton */}
@@ -204,11 +201,15 @@ export default function HomePage() {
 
   useEffect(() => {
     const popup = settings?.offerPopup;
-    if (!popup?.enabled || sessionStorage.getItem("fitandfineOfferSeen")) return;
-    const timer = setTimeout(() => {
-      setShowOffer(true);
-      sessionStorage.setItem("fitandfineOfferSeen", "1");
-    }, Math.max(Number(popup.delaySeconds || 3), 0) * 1000);
+    if (!popup?.enabled || sessionStorage.getItem("fitandfineOfferSeen"))
+      return;
+    const timer = setTimeout(
+      () => {
+        setShowOffer(true);
+        sessionStorage.setItem("fitandfineOfferSeen", "1");
+      },
+      Math.max(Number(popup.delaySeconds || 3), 0) * 1000,
+    );
     return () => clearTimeout(timer);
   }, [settings]);
 
@@ -252,6 +253,7 @@ export default function HomePage() {
             padding: "32px 64px 64px 64px",
           }}
           className="hero-content"
+          data-order={heroTextOrder}
         >
           <div
             style={{
@@ -388,7 +390,9 @@ export default function HomePage() {
             </p>
             <button
               className="offer-code"
-              onClick={() => navigator.clipboard?.writeText(popup.couponCode || "")}
+              onClick={() =>
+                navigator.clipboard?.writeText(popup.couponCode || "")
+              }
             >
               {popup.couponCode || "WELCOME10"} <span>Copy</span>
             </button>
